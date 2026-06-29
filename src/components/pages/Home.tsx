@@ -17,23 +17,21 @@ export default async function HomePage() {
         Features a full-screen high-contrast sunset wildflower background image
         positioned on the right to prevent zoom, blending into a solid dark theme on the left.
       */}
-      <section className="relative h-screen flex items-center bg-zinc-950 text-white overflow-hidden">
-        {/* Confirmed sunset wildflower sidewalk background image - positioned on the right to prevent zoom crops */}
-        <div className="absolute right-0 top-0 bottom-0 w-full md:w-[65%] h-full z-0 overflow-hidden select-none">
+      <section className="relative h-screen flex items-center bg-[#0A0A0C] text-white overflow-hidden">
+        {/* Full-width 16:9 widescreen sunset wildflower background image (natively dark on the left side) */}
+        <div className="absolute inset-0 w-full h-full z-0 select-none overflow-hidden">
           <img 
             src="/images/hero-bg.jpg" 
             alt="Sunset wildflowers on sidewalk" 
-            className="h-full w-full object-cover object-center grayscale-15 opacity-80"
+            className="h-full w-full object-cover object-center grayscale-10 opacity-85"
           />
-          {/* Subtle warm overlay to enrich sunset hues */}
-          <div className="absolute inset-0 bg-amber-500/5 mix-blend-overlay" />
         </div>
         
-        {/* Left-to-right fade gradient overlay to blend into the solid dark background of the text column */}
-        <div className="absolute inset-0 bg-gradient-to-r from-zinc-950 via-zinc-950/45 to-transparent z-10" />
+        {/* Soft left-to-right vignette gradient overlay for extra legibility on smaller screens */}
+        <div className="absolute inset-0 bg-gradient-to-r from-black/20 via-transparent to-transparent z-10" />
         
         {/* Smooth visual gradient transition to prevent hard line break into dark page sections */}
-        <div className="absolute bottom-0 left-0 right-0 h-48 bg-gradient-to-t from-background via-background/40 to-transparent z-15 pointer-events-none" />
+        <div className="absolute bottom-0 left-0 right-0 h-48 bg-gradient-to-t from-[#0A0A0C] via-[#0A0A0C]/40 to-transparent z-15 pointer-events-none" />
 
         {/* Full-width container matching navbar grids exactly */}
         <div className="w-full px-6 sm:px-10 md:px-14 relative z-20 h-full flex flex-col justify-between pt-28 pb-16 sm:pb-24">
