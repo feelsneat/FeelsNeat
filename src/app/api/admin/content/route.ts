@@ -33,6 +33,13 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
+  const url = new URL(req.url);
+  const loadDefault = url.searchParams.get('default') === 'true';
+
+  if (loadDefault) {
+    return NextResponse.json(localDb);
+  }
+
   // In local development, fallback to the session database store
   if (process.env.NODE_ENV === 'development') {
     const memoryDb = (globalThis as any)[globalSymbol];

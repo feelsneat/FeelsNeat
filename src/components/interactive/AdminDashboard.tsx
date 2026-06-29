@@ -332,6 +332,29 @@ export function AdminDashboard({ userEmail }: AdminDashboardProps) {
     downloadAnchor.remove();
   };
 
+  const handleSyncFromCodebase = async () => {
+    if (!confirm('Are you sure you want to restore the database to the codebase defaults? This will overwrite your current draft in the dashboard.')) {
+      return;
+    }
+    try {
+      setSaveStatus('saving');
+      setSaveMessage('Loading codebase defaults...');
+      const res = await fetch('/api/admin/content?default=true');
+      if (res.ok) {
+        const data = await res.json();
+        setDb(data);
+        setSaveStatus('success');
+        setSaveMessage('Codebase default database loaded. Click "Save Draft to KV" to publish these changes to Cloudflare KV.');
+      } else {
+        setSaveStatus('error');
+        setSaveMessage('Failed to fetch default database from server.');
+      }
+    } catch (err) {
+      setSaveStatus('error');
+      setSaveMessage('Network error occurred while fetching defaults.');
+    }
+  };
+
   // State handlers for settings updates
   const updateSettings = (key: string, value: any) => {
     setDb((prev: any) => ({
@@ -537,6 +560,12 @@ export function AdminDashboard({ userEmail }: AdminDashboardProps) {
         </div>
         
         <div className="flex flex-wrap gap-2.5">
+          <button
+            onClick={handleSyncFromCodebase}
+            className="inline-flex h-9 items-center justify-center rounded-lg border border-border-custom bg-zinc-900 text-foreground px-4 text-xs font-bold hover:bg-zinc-800 cursor-pointer"
+          >
+            Sync from Codebase
+          </button>
           <button
             onClick={handleDownloadBackup}
             className="inline-flex h-9 items-center justify-center rounded-lg border border-border-custom bg-white px-4 text-xs font-bold text-foreground/80 hover:bg-zinc-50 cursor-pointer"
