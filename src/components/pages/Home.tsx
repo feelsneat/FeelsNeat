@@ -17,7 +17,7 @@ export default async function HomePage() {
         Features a full-screen high-contrast grayscale sky and clouds background image
         with massive typography overlay and bottom-right aligned narrative blocks.
       */}
-      <section className="relative h-[85vh] sm:h-[90vh] flex items-center bg-zinc-950 text-white overflow-hidden border-b border-zinc-900">
+      <section className="relative h-screen flex items-center bg-zinc-950 text-white overflow-hidden">
         {/* Grayscale sky & clouds background image generated for premium contrast */}
         <div 
           className="absolute inset-0 bg-cover bg-center grayscale opacity-75 z-0" 
@@ -28,7 +28,11 @@ export default async function HomePage() {
         <div className="absolute inset-0 bg-gradient-to-r from-zinc-950/70 via-zinc-950/40 to-transparent z-10" />
         <div className="absolute inset-0 bg-gradient-to-t from-zinc-950/80 via-transparent to-zinc-950/20 z-10" />
 
-        <div className="mx-auto max-w-5xl w-full px-4 sm:px-6 relative z-20 h-full flex flex-col justify-between py-16 sm:py-24">
+        {/* Smooth visual gradient transition to prevent hard line break into white page sections */}
+        <div className="absolute bottom-0 left-0 right-0 h-48 bg-gradient-to-t from-white via-white/40 to-transparent z-15 pointer-events-none" />
+
+        {/* Full-width container matching navbar grids exactly */}
+        <div className="w-full px-6 sm:px-10 md:px-14 relative z-20 h-full flex flex-col justify-between pt-28 pb-16 sm:pb-24">
           {/* Top Label */}
           <div>
             <span className="inline-flex items-center gap-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/20 px-3 py-1 text-[10px] font-black text-white uppercase tracking-widest animate-fade-in">
