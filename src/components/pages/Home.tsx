@@ -46,8 +46,8 @@ export default async function HomePage() {
           {/* Middle: Massive Bold Typography (Visual Flow of SOTD website) */}
           <div className="max-w-3xl my-auto pt-10 animate-slide-up">
             <h1 className="text-5xl sm:text-7xl font-extrabold tracking-tighter leading-none uppercase drop-shadow-md text-white font-sans select-none">
-              DESIGN <br />
-              FOR <span className="text-accent-custom">CLARITY.</span>
+              FIND <br />
+              THE <span className="text-accent-custom">NEAT.</span>
             </h1>
           </div>
 
