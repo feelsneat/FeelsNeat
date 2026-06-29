@@ -90,7 +90,7 @@ export function Navbar({ settings, navigation }: NavbarProps) {
       {/* Outer grid boundary line layout: Full screen width alignment matching Tresmares */}
       <div className="w-full px-6 sm:px-10 md:px-14 flex h-16 items-center justify-between relative">
         {/* Logo */}
-        <Link href="/" className={`flex items-center gap-3 group h-full py-4 border-r ${isAtTop ? 'border-white/15' : 'border-zinc-900/60'} pr-6`}>
+        <Link href="/" className="flex items-center gap-3 group h-full py-4 pr-6">
           <div className={`flex h-7 w-7 items-center justify-center overflow-hidden rounded-md border transition-colors duration-300 ${logoBorderTheme}`}>
             <img 
               src="/logo.png" 
