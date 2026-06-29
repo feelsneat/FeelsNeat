@@ -11,13 +11,13 @@ export default async function HomePage() {
   const observations = (await getObservations()).slice(0, 3); // Show up to 3 observations
 
   return (
-    <div className="flex flex-col w-full bg-background overflow-hidden">
+    <div className="flex flex-col w-full bg-[#0A0A0C] overflow-hidden">
       {/* 
         PREMIUM HERO SECTION (Tresmares Capital SOTD Visual Style)
         Features a full-screen high-contrast sunset wildflower background image
         positioned on the right to prevent zoom, blending into a solid dark theme on the left.
       */}
-      <section className="relative h-screen flex items-center bg-[#0A0A0C] text-white overflow-hidden">
+      <section className="relative h-screen flex items-center bg-zinc-950 text-white overflow-hidden">
         {/* Full-width 16:9 widescreen sunset wildflower background image (natively dark on the left side) */}
         <div className="absolute inset-0 w-full h-full z-0 select-none overflow-hidden">
           <img 
@@ -75,12 +75,12 @@ export default async function HomePage() {
       </section>
 
       {/* Intro Philosophy Section (Premium Dark Mode with generous spacing) */}
-      <section className="py-24 bg-background border-b border-zinc-900/60 scroll-reveal relative">
+      <section className="py-24 bg-[#0A0A0C] border-b border-zinc-900/60 scroll-reveal relative">
         <div className="mx-auto max-w-5xl px-4 sm:px-6">
           <div className="grid md:grid-cols-12 gap-8 md:gap-16 items-start">
             <div className="md:col-span-4 space-y-2">
               <span className="text-[10px] font-black text-accent-custom uppercase tracking-widest block">Philosophy</span>
-              <h2 className="text-2xl font-black text-foreground uppercase tracking-tight leading-none">
+              <h2 className="text-2xl font-black text-[#F4F4F5] uppercase tracking-tight leading-none">
                 {homeData.title}
               </h2>
             </div>
@@ -97,17 +97,17 @@ export default async function HomePage() {
         Recreates the exact design layout: Left menu text list, center inverted botanical silhouette 
         with horizontal solid red bar crossing it, right side key metrics and tags.
       */}
-      <section className="py-28 bg-background border-b border-zinc-900/60 scroll-reveal">
+      <section className="py-28 bg-[#0A0A0C] border-b border-zinc-900/60 scroll-reveal">
         <div className="mx-auto max-w-5xl px-4 sm:px-6">
           {/* Header */}
           <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-20">
             <div>
               <span className="text-[10px] font-black text-accent-custom uppercase tracking-widest block mb-2">Capabilities</span>
-              <h2 className="text-3xl font-black tracking-tight text-foreground uppercase">Services & Expertise</h2>
+              <h2 className="text-3xl font-black tracking-tight text-[#F4F4F5] uppercase">Services & Expertise</h2>
             </div>
             <Link 
               href="/what-we-do" 
-              className="mt-4 sm:mt-0 inline-flex items-center gap-1.5 text-xs font-black text-foreground uppercase tracking-wider hover:text-accent-custom transition-colors"
+              className="mt-4 sm:mt-0 inline-flex items-center gap-1.5 text-xs font-black text-[#F4F4F5] uppercase tracking-wider hover:text-accent-custom transition-colors"
             >
               All capabilities <LucideIcon name="ArrowRight" className="h-3.5 w-3.5 text-accent-custom" />
             </Link>
@@ -153,7 +153,7 @@ export default async function HomePage() {
               <div className="p-8 bg-zinc-900/30 backdrop-blur-md rounded-lg border border-zinc-850 shadow-sm space-y-6">
                 <div>
                   <span className="text-[9px] font-black text-accent-custom uppercase tracking-widest block mb-1">Standard</span>
-                  <h4 className="text-xl font-extrabold text-foreground uppercase leading-none tracking-tight">Clarity & Usability</h4>
+                  <h4 className="text-xl font-extrabold text-[#F4F4F5] uppercase leading-none tracking-tight">Clarity & Usability</h4>
                 </div>
                 <div className="space-y-4 text-xs text-zinc-400 leading-relaxed">
                   <p>
@@ -174,16 +174,16 @@ export default async function HomePage() {
       </section>
 
       {/* Selected Work Summary Grid (Parallax-esque cover cards with bold borders - Dark Mode) */}
-      <section className="py-24 bg-background border-b border-zinc-900/60 scroll-reveal">
+      <section className="py-24 bg-[#0A0A0C] border-b border-zinc-900/60 scroll-reveal">
         <div className="mx-auto max-w-5xl px-4 sm:px-6">
           <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-16">
             <div>
               <span className="text-[10px] font-black text-accent-custom uppercase tracking-widest block mb-2">Showcase</span>
-              <h2 className="text-3xl font-black tracking-tight text-foreground uppercase">Selected Work</h2>
+              <h2 className="text-3xl font-black tracking-tight text-[#F4F4F5] uppercase">Selected Work</h2>
             </div>
             <Link 
               href="/our-work" 
-              className="mt-4 sm:mt-0 inline-flex items-center gap-1.5 text-xs font-black text-foreground uppercase tracking-wider hover:text-accent-custom transition-colors"
+              className="mt-4 sm:mt-0 inline-flex items-center gap-1.5 text-xs font-black text-[#F4F4F5] uppercase tracking-wider hover:text-accent-custom transition-colors"
             >
               All projects <LucideIcon name="ArrowRight" className="h-3.5 w-3.5 text-accent-custom" />
             </Link>
@@ -218,14 +218,14 @@ export default async function HomePage() {
                     <span>{project.client}</span>
                     <span className="text-accent-custom">{project.category}</span>
                   </div>
-                  <h3 className="text-xl font-black text-foreground uppercase group-hover:text-accent-custom transition-colors leading-snug tracking-tight">
+                  <h3 className="text-xl font-black text-[#F4F4F5] uppercase group-hover:text-accent-custom transition-colors leading-snug tracking-tight">
                     {project.title}
                   </h3>
                   <p className="text-xs text-zinc-400 leading-relaxed max-w-xl">
                     {project.summary}
                   </p>
                   <div className="pt-2">
-                    <span className="inline-flex items-center gap-1 text-[10px] font-black uppercase text-foreground group-hover:text-accent-custom transition-colors">
+                    <span className="inline-flex items-center gap-1 text-[10px] font-black uppercase text-[#F4F4F5] group-hover:text-accent-custom transition-colors">
                       Read case study <LucideIcon name="ArrowRight" className="h-3 w-3 translate-x-0 group-hover:translate-x-1 transition-transform" />
                     </span>
                   </div>
@@ -237,12 +237,12 @@ export default async function HomePage() {
       </section>
 
       {/* Observations Summary Index (Tresmares styled column grid - Dark Mode) */}
-      <section className="py-24 bg-background border-b border-zinc-900/60 scroll-reveal">
+      <section className="py-24 bg-[#0A0A0C] border-b border-zinc-900/60 scroll-reveal">
         <div className="mx-auto max-w-5xl px-4 sm:px-6">
           <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-16">
             <div>
               <span className="text-[10px] font-black text-accent-custom uppercase tracking-widest block mb-2">Observations</span>
-              <h2 className="text-3xl font-black tracking-tight text-foreground uppercase">
+              <h2 className="text-3xl font-black tracking-tight text-[#F4F4F5] uppercase">
                 {homeData.observationsTitle || 'Observations'}
               </h2>
             </div>
@@ -250,7 +250,7 @@ export default async function HomePage() {
               href="https://substack.com" 
               target="_blank" 
               rel="noopener noreferrer" 
-              className="mt-4 sm:mt-0 inline-flex items-center gap-1.5 text-xs font-black text-foreground uppercase tracking-wider hover:text-accent-custom transition-colors"
+              className="mt-4 sm:mt-0 inline-flex items-center gap-1.5 text-xs font-black text-[#F4F4F5] uppercase tracking-wider hover:text-accent-custom transition-colors"
             >
               Follow on Substack <LucideIcon name="ExternalLink" className="h-3.5 w-3.5 text-accent-custom" />
             </a>
@@ -276,7 +276,7 @@ export default async function HomePage() {
                       {isVideo ? 'Video' : 'Article'}
                     </span>
                   </div>
-                  <h3 className="text-sm font-black text-foreground uppercase leading-snug mb-3 group-hover:text-accent-custom transition-colors tracking-tight">
+                  <h3 className="text-sm font-black text-[#F4F4F5] uppercase leading-snug mb-3 group-hover:text-accent-custom transition-colors tracking-tight">
                     {post.title}
                   </h3>
                   <p className="text-xs text-zinc-400 leading-relaxed flex-1 mb-4">{post.summary}</p>
@@ -289,7 +289,7 @@ export default async function HomePage() {
                     ))}
                   </div>
                   
-                  <span className="inline-flex items-center gap-1 text-[10px] font-black uppercase text-foreground group-hover:text-accent-custom transition-colors mt-auto">
+                  <span className="inline-flex items-center gap-1 text-[10px] font-black uppercase text-[#F4F4F5] group-hover:text-accent-custom transition-colors mt-auto">
                     {isVideo ? 'Watch Video' : 'Read Article'} <LucideIcon name="ArrowUpRight" className="h-3 w-3" />
                   </span>
                 </a>
@@ -300,7 +300,7 @@ export default async function HomePage() {
       </section>
 
       {/* Premium, solid dark CTA Section (Optimized for global dark mode) */}
-      <section className="py-24 bg-zinc-900/20 border-t border-zinc-900 text-foreground relative overflow-hidden">
+      <section className="py-24 bg-zinc-900/20 border-t border-zinc-900 text-[#F4F4F5] relative overflow-hidden">
         {/* Small subtle morphing blob overlay */}
         <div className="morphing-blob absolute bottom-[-100px] left-[-100px] opacity-10" />
 
