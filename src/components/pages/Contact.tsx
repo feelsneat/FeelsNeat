@@ -43,12 +43,12 @@ export default async function ContactPage() {
             </div>
 
             <div 
-              className="text-sm text-zinc-600 leading-relaxed prose max-w-none"
+              className="text-sm text-zinc-400 leading-relaxed prose max-w-none"
               dangerouslySetInnerHTML={{ __html: pageData.content }}
             />
 
             {/* Direct Connect Info */}
-            <div className="pt-10 border-t border-zinc-100 space-y-8">
+            <div className="pt-10 border-t border-zinc-900 space-y-8">
               <div className="space-y-2">
                 <h3 className="text-[10px] font-black tracking-widest text-accent-custom uppercase">
                   {pageData.infoTitle || 'Connections'}
@@ -63,7 +63,7 @@ export default async function ContactPage() {
                   href={`mailto:${settings.contactEmail}`} 
                   className="flex items-center gap-3 text-sm text-foreground hover:text-accent-custom transition-colors w-fit font-bold"
                 >
-                  <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-zinc-50 border border-zinc-150 text-accent-custom">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-zinc-900/40 border border-zinc-800 text-accent-custom">
                     <LucideIcon name="Mail" className="h-4.5 w-4.5" />
                   </div>
                   <span>{settings.contactEmail}</span>
@@ -78,7 +78,7 @@ export default async function ContactPage() {
                     href={social.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex h-9 w-9 items-center justify-center rounded-lg bg-zinc-50 border border-zinc-150 text-neutral-gray hover:text-accent-custom hover:border-accent-custom/25 hover:bg-white transition-all duration-300"
+                    className="flex h-9 w-9 items-center justify-center rounded-lg bg-zinc-900/40 border border-zinc-800 text-zinc-400 hover:text-accent-custom hover:border-accent-custom/25 hover:bg-zinc-800 transition-all duration-300"
                     aria-label={`Visit FeelsNeat on ${social.platform}`}
                   >
                     <LucideIcon name={getSocialIcon(social.platform)} className="h-4.5 w-4.5" />

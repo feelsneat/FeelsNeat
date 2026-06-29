@@ -14,8 +14,8 @@ export default async function HomePage() {
     <div className="flex flex-col w-full bg-background overflow-hidden">
       {/* 
         PREMIUM HERO SECTION (Tresmares Capital SOTD Visual Style)
-        Features a full-screen high-contrast grayscale sky and clouds background image
-        with massive typography overlay and bottom-right aligned narrative blocks.
+        Features a full-screen high-contrast sunset wildflower background image
+        positioned on the right to prevent zoom, blending into a solid dark theme on the left.
       */}
       <section className="relative h-screen flex items-center bg-zinc-950 text-white overflow-hidden">
         {/* Confirmed sunset wildflower sidewalk background image - positioned on the right to prevent zoom crops */}
@@ -32,8 +32,8 @@ export default async function HomePage() {
         {/* Left-to-right fade gradient overlay to blend into the solid dark background of the text column */}
         <div className="absolute inset-0 bg-gradient-to-r from-zinc-950 via-zinc-950/45 to-transparent z-10" />
         
-        {/* Smooth visual gradient transition to prevent hard line break into white page sections */}
-        <div className="absolute bottom-0 left-0 right-0 h-48 bg-gradient-to-t from-white via-white/40 to-transparent z-15 pointer-events-none" />
+        {/* Smooth visual gradient transition to prevent hard line break into dark page sections */}
+        <div className="absolute bottom-0 left-0 right-0 h-48 bg-gradient-to-t from-background via-background/40 to-transparent z-15 pointer-events-none" />
 
         {/* Full-width container matching navbar grids exactly */}
         <div className="w-full px-6 sm:px-10 md:px-14 relative z-20 h-full flex flex-col justify-between pt-28 pb-16 sm:pb-24">
@@ -76,8 +76,8 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* Intro Philosophy Section (Generous clean padding) */}
-      <section className="py-24 bg-white border-b border-zinc-100 scroll-reveal relative">
+      {/* Intro Philosophy Section (Premium Dark Mode with generous spacing) */}
+      <section className="py-24 bg-background border-b border-zinc-900/60 scroll-reveal relative">
         <div className="mx-auto max-w-5xl px-4 sm:px-6">
           <div className="grid md:grid-cols-12 gap-8 md:gap-16 items-start">
             <div className="md:col-span-4 space-y-2">
@@ -87,7 +87,7 @@ export default async function HomePage() {
               </h2>
             </div>
             <div 
-              className="text-base text-zinc-600 md:col-span-8 space-y-6 leading-relaxed prose max-w-none"
+              className="text-base text-zinc-400 md:col-span-8 space-y-6 leading-relaxed prose max-w-none"
               dangerouslySetInnerHTML={{ __html: homeData.content }}
             />
           </div>
@@ -95,11 +95,11 @@ export default async function HomePage() {
       </section>
 
       {/* 
-        SERVICES CAPABILITIES SECTION WITH SOLID RED BAR OVERLAY (SOTD visual replica)
-        Recreates the exact design layout: Left menu text list, center botanical silhouette 
+        SERVICES CAPABILITIES SECTION WITH SOLID RED BAR OVERLAY (SOTD visual replica - Dark Mode)
+        Recreates the exact design layout: Left menu text list, center inverted botanical silhouette 
         with horizontal solid red bar crossing it, right side key metrics and tags.
       */}
-      <section className="py-28 bg-white border-b border-zinc-100 scroll-reveal">
+      <section className="py-28 bg-background border-b border-zinc-900/60 scroll-reveal">
         <div className="mx-auto max-w-5xl px-4 sm:px-6">
           {/* Header */}
           <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-20">
@@ -120,12 +120,12 @@ export default async function HomePage() {
             {/* Left Column: Menu Text List */}
             <div className="md:col-span-4 space-y-4 relative z-20">
               <span className="text-[10px] font-black text-accent-custom uppercase tracking-widest block">Menu Selection</span>
-              <nav className="flex flex-col divide-y divide-zinc-100 border-y border-zinc-100 bg-white/80 backdrop-blur-xs p-2 rounded-lg">
+              <nav className="flex flex-col divide-y divide-zinc-800/55 border-y border-zinc-800/55 bg-zinc-900/30 backdrop-blur-md p-2 rounded-lg">
                 {services.map((service, idx) => (
                   <Link
                     key={service.slug}
                     href={`/what-we-do#${service.slug}`}
-                    className="group flex items-center justify-between py-4 px-2 text-xs font-black uppercase tracking-wider text-neutral-gray hover:text-foreground transition-colors"
+                    className="group flex items-center justify-between py-4 px-2 text-xs font-black uppercase tracking-wider text-zinc-400 hover:text-white transition-colors"
                   >
                     <span className="flex items-center gap-2">
                       <span className="text-[9px] text-accent-custom">0{idx + 1}.</span>
@@ -137,27 +137,27 @@ export default async function HomePage() {
               </nav>
             </div>
 
-            {/* Center Column: Grayscale image with Full-Width-esque Solid Red Bar */}
+            {/* Center Column: Inverted botanical image with Full-Width-esque Solid Red Bar */}
             <div className="md:col-span-4 flex justify-center relative h-[450px] overflow-visible">
               {/* Solid bright red horizontal bar crossing the entire center grid section behind glassmorphism columns */}
               <div className="absolute left-[-40%] right-[-40%] top-1/2 -translate-y-1/2 h-24 bg-[#E30613] z-0 shadow-md border-y border-[#B9050F]" />
               
-              {/* Botanical Grayscale image floating directly on background */}
+              {/* Botanical Grayscale image inverted (white silhouette) floating directly on dark page background */}
               <img 
                 src="/images/services-stem.jpg" 
                 alt="Botanical Stem Silhouette" 
-                className="h-full w-auto object-contain grayscale opacity-95 relative z-10 select-none"
+                className="h-full w-auto object-contain grayscale invert opacity-75 relative z-10 select-none"
               />
             </div>
 
             {/* Right Column: Key metrics and technical capability notes */}
             <div className="md:col-span-4 space-y-6 relative z-20">
-              <div className="p-8 bg-white/90 backdrop-blur-xs rounded-lg border border-zinc-100 shadow-sm space-y-6">
+              <div className="p-8 bg-zinc-900/30 backdrop-blur-md rounded-lg border border-zinc-850 shadow-sm space-y-6">
                 <div>
                   <span className="text-[9px] font-black text-accent-custom uppercase tracking-widest block mb-1">Standard</span>
                   <h4 className="text-xl font-extrabold text-foreground uppercase leading-none tracking-tight">Clarity & Usability</h4>
                 </div>
-                <div className="space-y-4 text-xs text-neutral-gray leading-relaxed">
+                <div className="space-y-4 text-xs text-zinc-400 leading-relaxed">
                   <p>
                     We structure products and platforms in three axes—meaningful design, performance engineering, and simple workflows.
                   </p>
@@ -165,9 +165,9 @@ export default async function HomePage() {
                     No complex software jargon. We build interfaces that are clean, fast, and satisfying to use.
                   </p>
                 </div>
-                <div className="pt-4 border-t border-zinc-100 flex flex-wrap gap-1.5">
-                  <span className="px-2.5 py-1 bg-zinc-50 border border-zinc-200 text-[8px] font-black uppercase text-foreground/75 rounded">100% Custom</span>
-                  <span className="px-2.5 py-1 bg-zinc-50 border border-zinc-200 text-[8px] font-black uppercase text-foreground/75 rounded">High Perf</span>
+                <div className="pt-4 border-t border-zinc-800 flex flex-wrap gap-1.5">
+                  <span className="px-2.5 py-1 bg-zinc-900 border border-zinc-800 text-[8px] font-black uppercase text-zinc-300 rounded">100% Custom</span>
+                  <span className="px-2.5 py-1 bg-zinc-900 border border-zinc-800 text-[8px] font-black uppercase text-zinc-300 rounded">High Perf</span>
                 </div>
               </div>
             </div>
@@ -175,8 +175,8 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* Selected Work Summary Grid (Parallax-esque cover cards with bold borders) */}
-      <section className="py-24 bg-white border-b border-zinc-100 scroll-reveal">
+      {/* Selected Work Summary Grid (Parallax-esque cover cards with bold borders - Dark Mode) */}
+      <section className="py-24 bg-background border-b border-zinc-900/60 scroll-reveal">
         <div className="mx-auto max-w-5xl px-4 sm:px-6">
           <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-16">
             <div>
@@ -198,8 +198,8 @@ export default async function HomePage() {
                 href={`/our-work/${project.slug}`}
                 className="group flex flex-col cursor-pointer"
               >
-                {/* Visual Cover Image Panel with thin outline */}
-                <div className="w-full aspect-[1.8/1] rounded-lg mb-6 relative overflow-hidden border border-zinc-100 bg-zinc-50 shadow-2xs group-hover:border-zinc-200 transition-colors">
+                {/* Visual Cover Image Panel with thin dark outline */}
+                <div className="w-full aspect-[1.8/1] rounded-lg mb-6 relative overflow-hidden border border-zinc-900 bg-zinc-900/20 shadow-lg group-hover:border-zinc-800 transition-colors">
                   {project.coverImage ? (
                     <img 
                       src={project.coverImage} 
@@ -216,14 +216,14 @@ export default async function HomePage() {
 
                 {/* Text meta styled clean */}
                 <div className="space-y-3">
-                  <div className="flex items-center justify-between text-[10px] font-black text-neutral-gray uppercase tracking-widest">
+                  <div className="flex items-center justify-between text-[10px] font-black text-zinc-500 uppercase tracking-widest">
                     <span>{project.client}</span>
                     <span className="text-accent-custom">{project.category}</span>
                   </div>
                   <h3 className="text-xl font-black text-foreground uppercase group-hover:text-accent-custom transition-colors leading-snug tracking-tight">
                     {project.title}
                   </h3>
-                  <p className="text-xs text-neutral-gray leading-relaxed max-w-xl">
+                  <p className="text-xs text-zinc-400 leading-relaxed max-w-xl">
                     {project.summary}
                   </p>
                   <div className="pt-2">
@@ -238,8 +238,8 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* Observations Summary Index (Tresmares styled column grid) */}
-      <section className="py-24 bg-white border-b border-zinc-100 scroll-reveal">
+      {/* Observations Summary Index (Tresmares styled column grid - Dark Mode) */}
+      <section className="py-24 bg-background border-b border-zinc-900/60 scroll-reveal">
         <div className="mx-auto max-w-5xl px-4 sm:px-6">
           <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-16">
             <div>
@@ -269,9 +269,9 @@ export default async function HomePage() {
                   href={targetUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="group flex flex-col p-6 rounded-lg border border-zinc-100 bg-white hover:border-zinc-200 transition-all duration-300"
+                  className="group flex flex-col p-6 rounded-lg border border-zinc-900/50 bg-zinc-900/10 hover:border-zinc-800 hover:bg-zinc-900/25 transition-all duration-300"
                 >
-                  <div className="flex items-center justify-between text-[9px] font-black text-neutral-gray uppercase tracking-widest mb-4">
+                  <div className="flex items-center justify-between text-[9px] font-black text-zinc-500 uppercase tracking-widest mb-4">
                     <time>{new Date(post.date).toLocaleDateString('en-US', { year: 'numeric', month: 'short' })}</time>
                     <span className="flex items-center gap-1 text-accent-custom">
                       <LucideIcon name={isVideo ? 'Youtube' : 'BookOpen'} className="h-3 w-3" />
@@ -281,11 +281,11 @@ export default async function HomePage() {
                   <h3 className="text-sm font-black text-foreground uppercase leading-snug mb-3 group-hover:text-accent-custom transition-colors tracking-tight">
                     {post.title}
                   </h3>
-                  <p className="text-xs text-neutral-gray leading-relaxed flex-1 mb-4">{post.summary}</p>
+                  <p className="text-xs text-zinc-400 leading-relaxed flex-1 mb-4">{post.summary}</p>
                   
                   <div className="flex flex-wrap gap-1 mb-4">
                     {post.tags.slice(0, 2).map((tag) => (
-                      <span key={tag} className="text-[8px] font-black uppercase text-foreground/60 bg-zinc-50 border border-zinc-100 px-1.5 py-0.5 rounded">
+                      <span key={tag} className="text-[8px] font-black uppercase text-zinc-300 bg-zinc-900 border border-zinc-800 px-1.5 py-0.5 rounded">
                         {tag}
                       </span>
                     ))}
@@ -301,21 +301,21 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* Modern, solid dark CTA Section (Inspired by Tresmares) */}
-      <section className="py-24 bg-foreground text-background relative overflow-hidden">
+      {/* Premium, solid dark CTA Section (Optimized for global dark mode) */}
+      <section className="py-24 bg-zinc-900/20 border-t border-zinc-900 text-foreground relative overflow-hidden">
         {/* Small subtle morphing blob overlay */}
         <div className="morphing-blob absolute bottom-[-100px] left-[-100px] opacity-10" />
 
         <div className="mx-auto max-w-5xl px-4 sm:px-6 text-center space-y-8 relative z-10 scroll-reveal">
           <span className="text-[10px] font-black text-accent-custom uppercase tracking-widest block">Collaborate</span>
-          <h2 className="text-3xl font-black tracking-tight sm:text-4xl uppercase">Let's build simple solutions.</h2>
+          <h2 className="text-3xl font-black tracking-tight sm:text-4xl uppercase text-white">Let's build simple solutions.</h2>
           <p className="mx-auto max-w-lg text-sm text-zinc-400 leading-relaxed font-medium">
             If you share our appreciation for clean, focused, and high-performance digital solutions, we would love to connect.
           </p>
           <div className="pt-4">
             <Link
               href="/contact"
-              className="inline-flex h-12 items-center justify-center rounded-lg bg-background px-8 text-xs font-black text-foreground uppercase tracking-wider hover:bg-accent-custom hover:text-white transition-colors shadow-sm cursor-pointer"
+              className="inline-flex h-12 items-center justify-center rounded-lg bg-white text-zinc-950 px-8 text-xs font-black uppercase tracking-wider hover:bg-accent-custom hover:text-white transition-colors shadow-lg cursor-pointer"
             >
               Start a Conversation
             </Link>

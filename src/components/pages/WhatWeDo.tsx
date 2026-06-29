@@ -31,18 +31,18 @@ export default async function WhatWeDoPage() {
         </div>
 
         {/* Detailed Services list with thin border layout */}
-        <div className="space-y-16 border-t border-zinc-100 pt-16">
+        <div className="space-y-16 border-t border-zinc-900 pt-16">
           {services.map((service, index) => (
             <div 
               key={service.slug}
               id={service.slug}
-              className={`grid md:grid-cols-12 gap-8 items-start pt-16 border-t border-zinc-100 scroll-reveal ${
+              className={`grid md:grid-cols-12 gap-8 items-start pt-16 border-t border-zinc-900 scroll-reveal ${
                 index === 0 ? 'border-t-0 pt-0' : ''
               }`}
             >
               {/* Icon & Title */}
               <div className="md:col-span-4 flex items-center md:items-start gap-4">
-                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-zinc-50 border border-zinc-100 text-accent-custom">
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-zinc-900/40 border border-zinc-800 text-accent-custom">
                   <LucideIcon name={service.icon} className="h-5 w-5" />
                 </div>
                 <div>
@@ -59,7 +59,7 @@ export default async function WhatWeDoPage() {
 
                 {/* Main Service Image Graphic */}
                 {service.image && (
-                  <div className="w-full aspect-[2.1/1] rounded-lg overflow-hidden border border-zinc-100 bg-zinc-50 shadow-2xs">
+                  <div className="w-full aspect-[2.1/1] rounded-lg overflow-hidden border border-zinc-900 bg-zinc-900/20 shadow-lg">
                     <img 
                       src={service.image} 
                       alt={service.title} 
@@ -70,7 +70,7 @@ export default async function WhatWeDoPage() {
 
                 {/* Detailed description */}
                 <div 
-                  className="text-sm text-zinc-600 space-y-6 leading-relaxed prose max-w-none"
+                  className="text-sm text-zinc-400 space-y-6 leading-relaxed prose max-w-none"
                   dangerouslySetInnerHTML={{ __html: service.content }}
                 />
 
@@ -80,7 +80,7 @@ export default async function WhatWeDoPage() {
                     <h4 className="text-[9px] font-black text-neutral-gray uppercase tracking-widest">Capability Gallery</h4>
                     <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
                       {service.additionalImages.map((imgUrl, imgIdx) => (
-                        <div key={imgIdx} className="aspect-[1.5/1] rounded-lg overflow-hidden border border-zinc-100 bg-white shadow-3xs">
+                        <div key={imgIdx} className="aspect-[1.5/1] rounded-lg overflow-hidden border border-zinc-900 bg-zinc-900/20 shadow-lg">
                           <img 
                             src={imgUrl} 
                             alt={`${service.title} gallery image ${imgIdx + 1}`} 
@@ -93,10 +93,10 @@ export default async function WhatWeDoPage() {
                 )}
 
                 {/* Tags and Action Links */}
-                <div className="flex flex-wrap items-center justify-between gap-4 pt-6 border-t border-zinc-100">
+                <div className="flex flex-wrap items-center justify-between gap-4 pt-6 border-t border-zinc-900">
                   <div className="flex flex-wrap gap-1">
                     {(service.tags || []).map((tag) => (
-                      <span key={tag} className="inline-flex items-center rounded-md bg-zinc-50 border border-zinc-200/60 px-2.5 py-0.5 text-[9px] font-black uppercase text-foreground/70">
+                      <span key={tag} className="inline-flex items-center rounded-md bg-zinc-900 border border-zinc-800 px-2.5 py-0.5 text-[9px] font-black uppercase text-foreground/75">
                         {tag}
                       </span>
                     ))}

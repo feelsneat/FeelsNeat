@@ -60,37 +60,37 @@ export function Navbar({ settings, navigation }: NavbarProps) {
   const regularLinks = navigation.headerLinks.filter(l => l.path !== '/contact');
   const hasContactLink = navigation.headerLinks.some(l => l.path === '/contact');
 
-  // Dynamic theme classes based on scroll state
+  // Dynamic theme classes optimized for Premium Dark Mode
   const headerTheme = isAtTop
     ? 'bg-transparent border-transparent text-white'
-    : 'bg-white/95 border-zinc-100 text-zinc-900 shadow-xs backdrop-blur-md';
+    : 'bg-zinc-950/90 border-zinc-900/60 text-white/90 shadow-lg backdrop-blur-md';
 
   const logoBorderTheme = isAtTop
     ? 'bg-white/10 border-white/20'
-    : 'bg-white border-zinc-200';
+    : 'bg-zinc-900 border-zinc-800';
 
   const navLinkTheme = isAtTop
     ? 'text-white/80 hover:text-white'
-    : 'text-zinc-600 hover:text-foreground';
+    : 'text-zinc-400 hover:text-white';
 
   const contactButtonTheme = isAtTop
     ? 'bg-white text-zinc-950 hover:bg-accent-custom hover:text-white'
-    : 'bg-foreground text-background hover:bg-accent-custom hover:text-white';
+    : 'bg-white text-zinc-950 hover:bg-accent-custom hover:text-white';
 
   const mobileToggleTheme = isAtTop
     ? 'border-white/25 text-white/90 hover:text-white'
-    : 'border-zinc-200 text-foreground/75 hover:text-foreground';
+    : 'border-zinc-800 text-white/80 hover:text-white';
 
   return (
     <header 
-      className={`fixed top-0 left-0 right-0 z-50 w-full border-b transform transition-transform duration-300 ease-in-out ${headerTheme} ${
+      className={`fixed top-0 left-0 right-0 z-50 w-full border-b transform transition-all duration-300 ease-in-out ${headerTheme} ${
         isVisible ? 'translate-y-0' : '-translate-y-full'
       }`}
     >
       {/* Outer grid boundary line layout: Full screen width alignment matching Tresmares */}
       <div className="w-full px-6 sm:px-10 md:px-14 flex h-16 items-center justify-between relative">
         {/* Logo */}
-        <Link href="/" className={`flex items-center gap-3 group h-full py-4 border-r ${isAtTop ? 'border-white/15' : 'border-zinc-100'} pr-6`}>
+        <Link href="/" className={`flex items-center gap-3 group h-full py-4 border-r ${isAtTop ? 'border-white/15' : 'border-zinc-900/60'} pr-6`}>
           <div className={`flex h-7 w-7 items-center justify-center overflow-hidden rounded-md border transition-colors duration-300 ${logoBorderTheme}`}>
             <img 
               src="/logo.png" 
@@ -124,7 +124,7 @@ export function Navbar({ settings, navigation }: NavbarProps) {
 
         {/* Contact button */}
         {hasContactLink && (
-          <div className={`hidden md:flex items-center h-full border-l ${isAtTop ? 'border-white/15' : 'border-zinc-100'} pl-6 ml-6`}>
+          <div className={`hidden md:flex items-center h-full border-l ${isAtTop ? 'border-white/15' : 'border-zinc-900/60'} pl-6 ml-6`}>
             <Link
               href="/contact"
               className={`inline-flex h-10 items-center justify-center px-6 text-[10px] font-black uppercase tracking-widest transition-all duration-300 ${contactButtonTheme}`}
@@ -146,7 +146,7 @@ export function Navbar({ settings, navigation }: NavbarProps) {
 
       {/* Mobile nav panel */}
       {isOpen && (
-        <div className={`border-b ${isAtTop ? 'bg-zinc-950/98 text-white border-white/10' : 'bg-white text-zinc-900 border-zinc-100'} md:hidden animate-fade-in`}>
+        <div className={`border-b ${isAtTop ? 'bg-zinc-950/98 text-white border-white/10' : 'bg-zinc-950 text-white border-zinc-900'} md:hidden animate-fade-in`}>
           <nav className="flex flex-col gap-4 px-6 py-6 sm:px-10">
             {navigation.headerLinks.map((link) => {
               const isActive = pathname === link.path || (link.path !== '/' && pathname.startsWith(link.path));
@@ -157,7 +157,7 @@ export function Navbar({ settings, navigation }: NavbarProps) {
                   className={`text-xs font-black uppercase tracking-widest transition-colors ${
                     isActive
                       ? 'text-accent-custom'
-                      : isAtTop ? 'text-white/60 hover:text-white' : 'text-zinc-600 hover:text-foreground'
+                      : 'text-zinc-400 hover:text-white'
                   }`}
                 >
                   {link.label}

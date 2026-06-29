@@ -81,7 +81,7 @@ export default async function ProjectDetailPage({ projectSlug }: ProjectDetailPa
 
         {/* Visual Header / Cover Panel */}
         {project.coverImage ? (
-          <div className="w-full aspect-[2/1] rounded-lg overflow-hidden border border-zinc-100 mb-16 shadow-2xs">
+          <div className="w-full aspect-[2/1] rounded-lg overflow-hidden border border-zinc-900 mb-16 shadow-lg">
             <img 
               src={project.coverImage} 
               alt={project.title} 
@@ -89,7 +89,7 @@ export default async function ProjectDetailPage({ projectSlug }: ProjectDetailPa
             />
           </div>
         ) : (
-          <div className="w-full aspect-[2/1] rounded-lg bg-zinc-950 mb-16 flex items-center justify-center p-8 border border-zinc-900 shadow-2xs">
+          <div className="w-full aspect-[2/1] rounded-lg bg-zinc-950 mb-16 flex items-center justify-center p-8 border border-zinc-900 shadow-lg">
             <div className="text-center space-y-3">
               <div className="mx-auto h-11 w-11 rounded-lg bg-white/10 flex items-center justify-center text-white backdrop-blur-xs">
                 <LucideIcon name="Briefcase" className="h-5 w-5" />
@@ -101,7 +101,7 @@ export default async function ProjectDetailPage({ projectSlug }: ProjectDetailPa
 
         {/* Detailed markdown article */}
         <div 
-          className="text-base text-zinc-700 space-y-6 leading-relaxed prose max-w-none scroll-reveal"
+          className="text-base text-zinc-400 space-y-6 leading-relaxed prose max-w-none scroll-reveal"
           dangerouslySetInnerHTML={{ __html: project.content }}
         />
 
@@ -111,7 +111,7 @@ export default async function ProjectDetailPage({ projectSlug }: ProjectDetailPa
             <h3 className="text-[9px] font-black text-neutral-gray uppercase tracking-widest">Project Gallery</h3>
             <div className="grid sm:grid-cols-2 gap-8">
               {project.additionalImages.map((imgUrl, imgIdx) => (
-                <div key={imgIdx} className="aspect-[1.5/1] rounded-lg overflow-hidden border border-zinc-100 bg-white shadow-3xs">
+                <div key={imgIdx} className="aspect-[1.5/1] rounded-lg overflow-hidden border border-zinc-900 bg-zinc-900/20 shadow-lg">
                   <img 
                     src={imgUrl} 
                     alt={`${project.title} gallery image ${imgIdx + 1}`} 
@@ -124,12 +124,12 @@ export default async function ProjectDetailPage({ projectSlug }: ProjectDetailPa
         )}
 
         {/* Project Footer Meta */}
-        <div className="mt-20 pt-12 border-t border-zinc-100 flex flex-col sm:flex-row justify-between gap-8 scroll-reveal">
+        <div className="mt-20 pt-12 border-t border-zinc-900 flex flex-col sm:flex-row justify-between gap-8 scroll-reveal">
           <div>
             <h3 className="text-[9px] font-black text-neutral-gray uppercase tracking-widest mb-3">Core Tags</h3>
             <div className="flex flex-wrap gap-1.5">
               {(project.tags || []).map((tag) => (
-                <span key={tag} className="inline-flex items-center rounded-md bg-zinc-50 border border-zinc-200/60 px-2.5 py-0.5 text-[8px] font-black uppercase text-foreground/75">
+                <span key={tag} className="inline-flex items-center rounded-md bg-zinc-900 border border-zinc-800 px-2.5 py-0.5 text-[8px] font-black uppercase text-foreground/75">
                   {tag}
                 </span>
               ))}

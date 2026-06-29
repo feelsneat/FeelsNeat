@@ -31,7 +31,7 @@ export default async function OurWorkPage() {
         </div>
 
         {/* Projects Grid with thin borders */}
-        <div className="grid md:grid-cols-2 gap-12 mt-12 border-t border-zinc-100 pt-16">
+        <div className="grid md:grid-cols-2 gap-12 mt-12 border-t border-zinc-900 pt-16">
           {projects.map((project) => (
             <Link 
               key={project.slug}
@@ -39,7 +39,7 @@ export default async function OurWorkPage() {
               className="group flex flex-col cursor-pointer scroll-reveal"
             >
               {/* Cover Image Visualizer */}
-              <div className="w-full aspect-[1.8/1] rounded-lg mb-6 relative overflow-hidden border border-zinc-100 bg-zinc-50 shadow-2xs group-hover:border-zinc-200 transition-colors">
+              <div className="w-full aspect-[1.8/1] rounded-lg mb-6 relative overflow-hidden border border-zinc-900 bg-zinc-900/20 shadow-lg group-hover:border-zinc-800 transition-colors">
                 {project.coverImage ? (
                   <img 
                     src={project.coverImage} 
@@ -67,10 +67,10 @@ export default async function OurWorkPage() {
                   {project.summary}
                 </p>
                 
-                <div className="flex flex-wrap gap-2 items-center justify-between pt-4 border-t border-zinc-100 mt-4">
+                <div className="flex flex-wrap gap-2 items-center justify-between pt-4 border-t border-zinc-900 mt-4">
                   <div className="flex flex-wrap gap-1">
                     {(project.tags || []).map((tag) => (
-                      <span key={tag} className="inline-flex items-center rounded-md bg-zinc-50 border border-zinc-200/60 px-2 py-0.5 text-[8px] font-black uppercase text-foreground/70">
+                      <span key={tag} className="inline-flex items-center rounded-md bg-zinc-900 border border-zinc-800/80 px-2 py-0.5 text-[8px] font-black uppercase text-zinc-300">
                         {tag}
                       </span>
                     ))}

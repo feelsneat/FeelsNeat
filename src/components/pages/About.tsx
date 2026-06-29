@@ -30,12 +30,12 @@ export default async function AboutPage() {
 
         {/* Content Section */}
         <div 
-          className="text-base text-zinc-700 space-y-6 leading-relaxed prose max-w-none mb-20 scroll-reveal"
+          className="text-base text-zinc-400 space-y-6 leading-relaxed prose max-w-none mb-20 scroll-reveal"
           dangerouslySetInnerHTML={{ __html: pageData.content }}
         />
 
         {/* Philosophy Details Grid separated by clean borders */}
-        <div className="grid md:grid-cols-2 gap-12 pt-16 border-t border-zinc-100 scroll-reveal">
+        <div className="grid md:grid-cols-2 gap-12 pt-16 border-t border-zinc-900 scroll-reveal">
           <div className="space-y-4">
             <span className="text-[9px] font-black text-accent-custom uppercase tracking-widest block">Approach</span>
             <h2 className="text-xl font-black text-foreground uppercase tracking-tight">
