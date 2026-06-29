@@ -39,7 +39,7 @@ export default async function HomePage() {
           <div>
             <span className="inline-flex items-center gap-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/20 px-3 py-1 text-[10px] font-black text-white uppercase tracking-widest animate-fade-in">
               <span className="h-1.5 w-1.5 rounded-full bg-accent-custom animate-ping" />
-              Active Exploration Studio
+              Better Starts Here
             </span>
           </div>
 
