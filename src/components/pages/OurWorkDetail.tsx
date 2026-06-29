@@ -30,44 +30,47 @@ export default async function ProjectDetailPage({ projectSlug }: ProjectDetailPa
   const linkDetails = getLinkDetails(project.externalUrl);
 
   return (
-    <main className="flex-1 w-full bg-background py-16 sm:py-24 border-b border-border-custom">
-      <div className="mx-auto max-w-4xl px-4 sm:px-6">
+    <main className="flex-1 w-full bg-background py-20 sm:py-28 border-b border-border-custom relative">
+      {/* Morphing background blob */}
+      <div className="morphing-blob absolute top-20 right-10 opacity-20" />
+
+      <div className="mx-auto max-w-4xl px-4 sm:px-6 relative z-10">
         {/* Back Link */}
         <Link 
           href="/our-work" 
-          className="inline-flex items-center gap-1.5 text-xs font-bold text-foreground/50 hover:text-foreground mb-8 transition-colors"
+          className="inline-flex items-center gap-1.5 text-[10px] font-black uppercase text-neutral-gray hover:text-accent-custom mb-10 transition-colors"
         >
-          <LucideIcon name="ArrowLeft" className="h-3.5 w-3.5" /> Back to all work
+          <LucideIcon name="ArrowLeft" className="h-3.5 w-3.5 text-accent-custom" /> Back to all work
         </Link>
 
         {/* Project Header */}
-        <div className="space-y-6 mb-12">
-          <div className="flex flex-wrap items-center gap-4 text-[10px] font-bold text-foreground/50 uppercase tracking-widest">
+        <div className="space-y-6 mb-16 scroll-reveal">
+          <div className="flex flex-wrap items-center gap-4 text-[9px] font-black text-neutral-gray uppercase tracking-widest">
             <span>{project.client}</span>
-            <span className="text-border-custom font-normal">|</span>
+            <span className="text-zinc-200 font-normal">|</span>
             <span>{project.date}</span>
-            <span className="text-border-custom font-normal">|</span>
-            <span>{project.category}</span>
-            <span className="text-border-custom font-normal">|</span>
-            <span className="bg-border-custom/50 px-2 py-0.5 rounded-md">{project.status}</span>
+            <span className="text-zinc-200 font-normal">|</span>
+            <span className="text-accent-custom">{project.category}</span>
+            <span className="text-zinc-200 font-normal">|</span>
+            <span className="bg-zinc-50 border border-zinc-150 px-2 py-0.5 rounded text-[8px]">{project.status}</span>
           </div>
           
-          <h1 className="text-3xl sm:text-4xl font-black tracking-tight text-foreground leading-tight">
+          <h1 className="text-3xl sm:text-5xl font-extrabold tracking-tight text-foreground leading-tight uppercase">
             {project.title}
           </h1>
           
-          <p className="text-lg text-foreground/75 font-medium leading-relaxed">
+          <p className="text-lg text-neutral-gray font-medium leading-relaxed max-w-3xl">
             {project.summary}
           </p>
 
           {/* External Action Button */}
           {project.externalUrl && linkDetails && (
-            <div className="pt-2">
+            <div className="pt-4">
               <a 
                 href={project.externalUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex h-10 items-center justify-center gap-2 rounded-xl bg-foreground px-5 text-xs font-bold text-background hover:bg-accent-custom transition-colors"
+                className="inline-flex h-11 items-center justify-center gap-2 rounded-lg bg-foreground px-6 text-xs font-black uppercase tracking-wider text-background hover:bg-accent-custom transition-colors shadow-sm"
               >
                 <LucideIcon name={linkDetails.icon} className="h-4 w-4" />
                 <span>{linkDetails.text}</span>
@@ -78,7 +81,7 @@ export default async function ProjectDetailPage({ projectSlug }: ProjectDetailPa
 
         {/* Visual Header / Cover Panel */}
         {project.coverImage ? (
-          <div className="w-full aspect-[2/1] rounded-xl overflow-hidden border border-border-custom mb-16 shadow-xs">
+          <div className="w-full aspect-[2/1] rounded-lg overflow-hidden border border-zinc-100 mb-16 shadow-2xs">
             <img 
               src={project.coverImage} 
               alt={project.title} 
@@ -86,29 +89,29 @@ export default async function ProjectDetailPage({ projectSlug }: ProjectDetailPa
             />
           </div>
         ) : (
-          <div className="w-full aspect-[2/1] rounded-xl bg-gradient-to-tr from-foreground/95 via-foreground/90 to-foreground/80 mb-16 flex items-center justify-center p-8 border border-border-custom/50 shadow-xs">
+          <div className="w-full aspect-[2/1] rounded-lg bg-zinc-950 mb-16 flex items-center justify-center p-8 border border-zinc-900 shadow-2xs">
             <div className="text-center space-y-3">
               <div className="mx-auto h-11 w-11 rounded-lg bg-white/10 flex items-center justify-center text-white backdrop-blur-xs">
                 <LucideIcon name="Briefcase" className="h-5 w-5" />
               </div>
-              <span className="text-xs font-bold text-background/60 tracking-wider uppercase block">{project.client}</span>
+              <span className="text-[10px] font-bold text-white/50 tracking-wider uppercase block">{project.client}</span>
             </div>
           </div>
         )}
 
         {/* Detailed markdown article */}
         <div 
-          className="text-base text-foreground/80 space-y-6 leading-relaxed prose max-w-none"
+          className="text-base text-zinc-700 space-y-6 leading-relaxed prose max-w-none scroll-reveal"
           dangerouslySetInnerHTML={{ __html: project.content }}
         />
 
         {/* Additional Images Gallery */}
         {project.additionalImages && project.additionalImages.length > 0 && (
-          <div className="mt-16 space-y-6">
-            <h3 className="text-xs font-bold text-foreground/50 uppercase tracking-widest">Project Gallery</h3>
-            <div className="grid sm:grid-cols-2 gap-6">
+          <div className="mt-20 space-y-6 scroll-reveal">
+            <h3 className="text-[9px] font-black text-neutral-gray uppercase tracking-widest">Project Gallery</h3>
+            <div className="grid sm:grid-cols-2 gap-8">
               {project.additionalImages.map((imgUrl, imgIdx) => (
-                <div key={imgIdx} className="aspect-[1.5/1] rounded-lg overflow-hidden border border-border-custom bg-white shadow-xs">
+                <div key={imgIdx} className="aspect-[1.5/1] rounded-lg overflow-hidden border border-zinc-100 bg-white shadow-3xs">
                   <img 
                     src={imgUrl} 
                     alt={`${project.title} gallery image ${imgIdx + 1}`} 
@@ -121,24 +124,24 @@ export default async function ProjectDetailPage({ projectSlug }: ProjectDetailPa
         )}
 
         {/* Project Footer Meta */}
-        <div className="mt-16 pt-10 border-t border-border-custom flex flex-col sm:flex-row justify-between gap-6">
+        <div className="mt-20 pt-12 border-t border-zinc-100 flex flex-col sm:flex-row justify-between gap-8 scroll-reveal">
           <div>
-            <h3 className="text-xs font-bold text-foreground/50 uppercase tracking-widest mb-3">Core Tags</h3>
-            <div className="flex flex-wrap gap-1">
+            <h3 className="text-[9px] font-black text-neutral-gray uppercase tracking-widest mb-3">Core Tags</h3>
+            <div className="flex flex-wrap gap-1.5">
               {(project.tags || []).map((tag) => (
-                <span key={tag} className="inline-flex items-center rounded-md bg-border-custom/40 px-2 py-0.5 text-xs text-foreground/70">
+                <span key={tag} className="inline-flex items-center rounded-md bg-zinc-50 border border-zinc-200/60 px-2.5 py-0.5 text-[8px] font-black uppercase text-foreground/75">
                   {tag}
                 </span>
               ))}
             </div>
           </div>
           <div className="sm:text-right">
-            <h3 className="text-xs font-bold text-foreground/50 uppercase tracking-widest mb-3">Discuss</h3>
+            <h3 className="text-[9px] font-black text-neutral-gray uppercase tracking-widest mb-3">Discuss</h3>
             <Link 
               href="/contact"
-              className="inline-flex items-center gap-1 text-xs font-bold text-foreground hover:underline"
+              className="inline-flex items-center gap-1.5 text-xs font-black uppercase text-foreground hover:text-accent-custom transition-colors"
             >
-              Start collaboration <LucideIcon name="ArrowRight" className="h-3.5 w-3.5" />
+              Start collaboration <LucideIcon name="ArrowRight" className="h-3.5 w-3.5 text-accent-custom" />
             </Link>
           </div>
         </div>

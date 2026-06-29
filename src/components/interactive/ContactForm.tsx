@@ -52,35 +52,35 @@ export function ContactForm() {
   };
 
   return (
-    <div className="w-full rounded-xl border border-border-custom bg-background p-6 shadow-xs relative overflow-hidden transition-all duration-300">
+    <div className="w-full rounded-lg border border-zinc-100 bg-white p-8 shadow-xs relative overflow-hidden transition-all duration-300">
       {status === 'success' ? (
         <div className="flex flex-col items-center justify-center text-center py-12 animate-fade-in">
-          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-foreground text-background mb-5">
-            <LucideIcon name="Check" className="h-6 w-6" />
+          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-accent-custom/5 border border-accent-custom text-accent-custom mb-5">
+            <LucideIcon name="Check" className="h-5 w-5" />
           </div>
-          <h3 className="text-base font-bold text-foreground mb-2">Message Sent</h3>
-          <p className="text-xs text-foreground/70 max-w-xs leading-relaxed">
+          <h3 className="text-base font-black text-foreground uppercase tracking-tight mb-2">Message Sent</h3>
+          <p className="text-xs text-neutral-gray max-w-xs leading-relaxed">
             Thank you for reaching out. We will read your message and reply within one business day.
           </p>
           <button
             onClick={() => setStatus('idle')}
-            className="mt-6 text-xs font-bold text-foreground hover:underline cursor-pointer"
+            className="mt-6 text-xs font-black uppercase text-accent-custom hover:underline cursor-pointer"
           >
             Send another message
           </button>
         </div>
       ) : (
-        <form onSubmit={handleSubmit} className="space-y-5 animate-fade-in">
+        <form onSubmit={handleSubmit} className="space-y-6 animate-fade-in">
           {status === 'error' && (
-            <div className="rounded-lg bg-red-50/50 border border-red-200 p-4 text-xs text-red-800 flex gap-2 items-center">
-              <LucideIcon name="AlertCircle" className="h-4.5 w-4.5 shrink-0" />
+            <div className="rounded bg-rose-50/50 border border-rose-200 p-4 text-xs text-rose-800 flex gap-2 items-center">
+              <LucideIcon name="AlertCircle" className="h-4.5 w-4.5 shrink-0 text-accent-custom" />
               <span>{errorMsg}</span>
             </div>
           )}
 
           <div>
-            <label htmlFor="name" className="block text-xs font-bold text-foreground/80 mb-2 uppercase tracking-wide">
-              Name <span className="text-red-500">*</span>
+            <label htmlFor="name" className="block text-[10px] font-black text-foreground mb-2 uppercase tracking-widest">
+              Name <span className="text-accent-custom">*</span>
             </label>
             <input
               type="text"
@@ -90,15 +90,15 @@ export function ContactForm() {
               value={formData.name}
               onChange={handleChange}
               disabled={status === 'submitting'}
-              className="w-full rounded-lg border border-border-custom bg-white px-4 py-2.5 text-sm text-foreground focus:border-foreground focus:outline-none transition-colors disabled:opacity-50"
+              className="w-full rounded-lg border border-zinc-200 bg-white px-4 py-3 text-sm text-foreground focus:border-accent-custom focus:outline-none transition-colors disabled:opacity-50"
               placeholder="Your name"
             />
           </div>
 
-          <div className="grid sm:grid-cols-2 gap-5">
+          <div className="grid sm:grid-cols-2 gap-6">
             <div>
-              <label htmlFor="email" className="block text-xs font-bold text-foreground/80 mb-2 uppercase tracking-wide">
-                Email Address <span className="text-red-500">*</span>
+              <label htmlFor="email" className="block text-[10px] font-black text-foreground mb-2 uppercase tracking-widest">
+                Email Address <span className="text-accent-custom">*</span>
               </label>
               <input
                 type="email"
@@ -108,12 +108,12 @@ export function ContactForm() {
                 value={formData.email}
                 onChange={handleChange}
                 disabled={status === 'submitting'}
-                className="w-full rounded-lg border border-border-custom bg-white px-4 py-2.5 text-sm text-foreground focus:border-foreground focus:outline-none transition-colors disabled:opacity-50"
+                className="w-full rounded-lg border border-zinc-200 bg-white px-4 py-3 text-sm text-foreground focus:border-accent-custom focus:outline-none transition-colors disabled:opacity-50"
                 placeholder="name@company.com"
               />
             </div>
             <div>
-              <label htmlFor="company" className="block text-xs font-bold text-foreground/80 mb-2 uppercase tracking-wide">
+              <label htmlFor="company" className="block text-[10px] font-black text-foreground mb-2 uppercase tracking-widest">
                 Company
               </label>
               <input
@@ -123,15 +123,15 @@ export function ContactForm() {
                 value={formData.company}
                 onChange={handleChange}
                 disabled={status === 'submitting'}
-                className="w-full rounded-lg border border-border-custom bg-white px-4 py-2.5 text-sm text-foreground focus:border-foreground focus:outline-none transition-colors disabled:opacity-50"
+                className="w-full rounded-lg border border-zinc-200 bg-white px-4 py-3 text-sm text-foreground focus:border-accent-custom focus:outline-none transition-colors disabled:opacity-50"
                 placeholder="Optional"
               />
             </div>
           </div>
 
           <div>
-            <label htmlFor="message" className="block text-xs font-bold text-foreground/80 mb-2 uppercase tracking-wide">
-              Message <span className="text-red-500">*</span>
+            <label htmlFor="message" className="block text-[10px] font-black text-foreground mb-2 uppercase tracking-widest">
+              Message <span className="text-accent-custom">*</span>
             </label>
             <textarea
               id="message"
@@ -141,7 +141,7 @@ export function ContactForm() {
               value={formData.message}
               onChange={handleChange}
               disabled={status === 'submitting'}
-              className="w-full rounded-lg border border-border-custom bg-white px-4 py-2.5 text-sm text-foreground focus:border-foreground focus:outline-none transition-colors disabled:opacity-50 resize-none leading-relaxed"
+              className="w-full rounded-lg border border-zinc-200 bg-white px-4 py-3 text-sm text-foreground focus:border-accent-custom focus:outline-none transition-colors disabled:opacity-50 resize-none leading-relaxed"
               placeholder="Tell us about your project or inquiry..."
             />
           </div>
@@ -149,7 +149,7 @@ export function ContactForm() {
           <button
             type="submit"
             disabled={status === 'submitting'}
-            className="inline-flex h-11 w-full items-center justify-center rounded-xl bg-foreground text-background font-bold hover:bg-accent-custom transition-colors disabled:opacity-75 gap-2 cursor-pointer text-sm shadow-xs"
+            className="inline-flex h-12 w-full items-center justify-center rounded-lg bg-foreground text-background font-black uppercase tracking-wider text-xs hover:bg-accent-custom transition-all duration-300 disabled:opacity-75 gap-2 cursor-pointer shadow-sm"
           >
             {status === 'submitting' ? (
               <>

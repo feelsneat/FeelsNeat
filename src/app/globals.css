@@ -1,10 +1,11 @@
 @import "tailwindcss";
 
 :root {
-  --background: #FAF8F5;
-  --foreground: #22252A;
-  --border: #E8E4DC;
-  --accent: #3A3E45;
+  --background: #FFFFFF;
+  --foreground: #18181B;
+  --border: #F3F4F6;
+  --accent: #E30613; /* Tresmares Capital Bright Red */
+  --neutral-gray: #71717A;
   
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
@@ -15,6 +16,7 @@
   --color-foreground: var(--foreground);
   --color-border-custom: var(--border);
   --color-accent-custom: var(--accent);
+  --color-neutral-gray: var(--neutral-gray);
   
   --font-sans: var(--font-sans);
   --font-mono: var(--font-mono);
@@ -24,7 +26,7 @@ body {
   background-color: var(--background);
   color: var(--foreground);
   font-family: var(--font-sans), ui-sans-serif, system-ui, -apple-system, sans-serif;
-  letter-spacing: -0.01em;
+  letter-spacing: -0.02em;
 }
 
 /* Custom styled prose classes for Markdown content rendering */
@@ -32,18 +34,19 @@ body {
   line-height: 1.625;
 }
 .prose h1, .prose h2, .prose h3 {
-  font-weight: 700;
+  font-weight: 800;
   color: var(--foreground);
-  letter-spacing: -0.02em;
+  letter-spacing: -0.03em;
+  text-transform: uppercase;
 }
-.prose h1 { font-size: 2.25rem; margin-top: 2rem; margin-bottom: 1rem; }
-.prose h2 { font-size: 1.5rem; margin-top: 1.75rem; margin-bottom: 0.75rem; }
-.prose h3 { font-size: 1.25rem; margin-top: 1.5rem; margin-bottom: 0.5rem; }
-.prose p { margin-bottom: 1.25rem; }
+.prose h1 { font-size: 2rem; margin-top: 2rem; margin-bottom: 1rem; }
+.prose h2 { font-size: 1.35rem; margin-top: 1.75rem; margin-bottom: 0.75rem; }
+.prose h3 { font-size: 1.15rem; margin-top: 1.5rem; margin-bottom: 0.5rem; }
+.prose p { margin-bottom: 1.25rem; color: #3F3F46; }
 .prose ul, .prose ol { margin-bottom: 1.25rem; padding-left: 1.5rem; }
 .prose ul { list-style-type: disc; }
 .prose ol { list-style-type: decimal; }
-.prose li { margin-bottom: 0.5rem; }
+.prose li { margin-bottom: 0.5rem; color: #3F3F46; }
 .prose blockquote {
   border-left: 3px solid var(--accent);
   padding-left: 1rem;
@@ -52,14 +55,14 @@ body {
   margin-bottom: 1.25rem;
 }
 .prose code {
-  background-color: #E8E4DC;
+  background-color: #F3F4F6;
   padding: 0.125rem 0.25rem;
   border-radius: 0.25rem;
   font-family: var(--font-mono);
   font-size: 0.875rem;
 }
 .prose pre {
-  background-color: #FAF8F5;
+  background-color: #FFFFFF;
   border: 1px solid var(--border);
   padding: 1rem;
   border-radius: 0.5rem;
@@ -75,8 +78,8 @@ body {
 /* Scroll Reveal Animations */
 .scroll-reveal {
   opacity: 0;
-  transform: translateY(30px);
-  transition: opacity 1.2s cubic-bezier(0.16, 1, 0.3, 1), transform 1.2s cubic-bezier(0.16, 1, 0.3, 1);
+  transform: translateY(20px);
+  transition: opacity 1s cubic-bezier(0.16, 1, 0.3, 1), transform 1s cubic-bezier(0.16, 1, 0.3, 1);
   will-change: transform, opacity;
 }
 
@@ -100,7 +103,7 @@ body {
 @keyframes slideUp {
   from {
     opacity: 0;
-    transform: translateY(20px);
+    transform: translateY(15px);
   }
   to {
     opacity: 1;
@@ -109,9 +112,49 @@ body {
 }
 
 .animate-fade-in {
-  animation: fadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: fadeIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 .animate-slide-up {
-  animation: slideUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: slideUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Morphing Red Graphic Shape Background (Inspired by Tresmares Capital) */
+@keyframes morph {
+  0% {
+    border-radius: 42% 58% 70% 30% / 45% 45% 55% 55%;
+    transform: rotate(0deg);
+  }
+  50% {
+    border-radius: 70% 30% 52% 48% / 60% 40% 60% 40%;
+    transform: rotate(180deg);
+  }
+  100% {
+    border-radius: 42% 58% 70% 30% / 45% 45% 55% 55%;
+    transform: rotate(360deg);
+  }
+}
+
+.morphing-blob {
+  position: absolute;
+  width: 400px;
+  height: 400px;
+  background: linear-gradient(135deg, rgba(227, 6, 19, 0.08) 0%, rgba(227, 6, 19, 0.02) 100%);
+  filter: blur(40px);
+  animation: morph 12s linear infinite;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.morphing-blob-large {
+  width: 600px;
+  height: 600px;
+  background: linear-gradient(135deg, rgba(227, 6, 19, 0.06) 0%, rgba(227, 6, 19, 0.01) 100%);
+  filter: blur(60px);
+  animation: morph 16s linear infinite;
+}
+
+/* Thin Grid layout style details */
+.thin-grid-line {
+  border-color: rgba(24, 24, 27, 0.06);
 }

@@ -1,7 +1,6 @@
 import Link from 'next/link';
 import { getPage, getServices, getWork, getObservations } from '@/lib/cms';
 import { LucideIcon } from '@/components/ui/LucideIcon';
-import { BlueprintCanvas } from '@/components/interactive/BlueprintCanvas';
 
 export const runtime = 'edge';
 
@@ -13,31 +12,38 @@ export default async function HomePage() {
 
   return (
     <div className="flex flex-col w-full bg-background overflow-hidden">
-      {/* Hero Section with Interactive Blueprint canvas grid */}
-      <section className="relative overflow-hidden py-24 md:py-32 border-b border-border-custom bg-[#FAF8F5]">
-        <BlueprintCanvas />
-        <div className="mx-auto max-w-5xl px-4 sm:px-6 relative z-10 pointer-events-none">
-          <div className="max-w-3xl pointer-events-auto animate-slide-up">
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-border-custom px-3 py-1 text-xs font-semibold text-foreground/80 mb-6 border border-border-custom/50">
-              <span className="h-1.5 w-1.5 rounded-full bg-foreground animate-pulse" />
-              Active Explorations
+      {/* Premium Hero Section with Morphing Red Blob (Tresmares Capital style) */}
+      <section className="relative overflow-hidden py-28 md:py-36 bg-white border-b border-zinc-100">
+        {/* Animated Morphing red blobs in the background */}
+        <div className="morphing-blob-large absolute -top-40 -right-40" />
+        <div className="morphing-blob absolute top-1/2 left-1/3 opacity-50" />
+        
+        {/* Subtle architectural vertical layout line */}
+        <div className="absolute top-0 bottom-0 left-[20%] w-[1px] bg-zinc-100/50 hidden md:block" />
+        <div className="absolute top-0 bottom-0 left-[80%] w-[1px] bg-zinc-100/50 hidden md:block" />
+
+        <div className="mx-auto max-w-5xl px-4 sm:px-6 relative z-10">
+          <div className="max-w-3xl animate-slide-up">
+            <span className="inline-flex items-center gap-1.5 rounded-md bg-accent-custom/5 border border-accent-custom/10 px-3 py-1 text-[10px] font-black text-accent-custom uppercase tracking-widest mb-6">
+              <span className="h-1.5 w-1.5 rounded-full bg-accent-custom animate-ping" />
+              Digital Craftsmanship
             </span>
-            <h1 className="text-4xl sm:text-5xl font-black tracking-tight text-foreground leading-tight">
+            <h1 className="text-4xl sm:text-6xl font-extrabold tracking-tight text-foreground leading-tight uppercase font-sans">
               {homeData.subtitle}
             </h1>
-            <p className="mt-6 text-lg sm:text-xl text-foreground/75 font-medium leading-relaxed">
+            <p className="mt-8 text-lg sm:text-xl text-neutral-gray font-medium leading-relaxed max-w-2xl">
               {homeData.tagline}
             </p>
-            <div className="mt-8 flex flex-col sm:flex-row gap-4">
+            <div className="mt-10 flex flex-col sm:flex-row gap-4">
               <Link
                 href={homeData.heroActionPath || '/our-work'}
-                className="inline-flex h-11 items-center justify-center rounded-xl bg-foreground px-6 text-sm font-bold text-background hover:bg-accent-custom transition-colors cursor-pointer shadow-xs"
+                className="inline-flex h-12 items-center justify-center rounded-lg bg-foreground px-8 text-xs font-black text-background uppercase tracking-wider hover:bg-accent-custom transition-all duration-300 shadow-sm hover:scale-[1.01]"
               >
                 {homeData.heroActionText || 'Explore Our Work'}
               </Link>
               <Link
                 href="/contact"
-                className="inline-flex h-11 items-center justify-center rounded-xl border border-border-custom px-6 text-sm font-bold text-foreground hover:bg-border-custom/30 transition-colors cursor-pointer"
+                className="inline-flex h-12 items-center justify-center rounded-lg border border-zinc-200 px-8 text-xs font-black text-foreground uppercase tracking-wider hover:bg-zinc-50 transition-colors"
               >
                 Get in Touch
               </Link>
@@ -46,124 +52,128 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* Intro Philosophy Section (Scroll animation enabled) */}
-      <section className="py-20 bg-background scroll-reveal">
+      {/* Intro Philosophy Section (Scroll animation and thin borders) */}
+      <section className="py-24 bg-white border-b border-zinc-100 scroll-reveal relative">
         <div className="mx-auto max-w-5xl px-4 sm:px-6">
-          <div className="grid md:grid-cols-12 gap-8 items-baseline">
-            <h2 className="text-xl font-extrabold text-foreground md:col-span-4 uppercase tracking-wider">
-              {homeData.title}
-            </h2>
+          <div className="grid md:grid-cols-12 gap-8 md:gap-16 items-start">
+            <div className="md:col-span-4 space-y-2">
+              <span className="text-[10px] font-black text-accent-custom uppercase tracking-widest block">Philosophy</span>
+              <h2 className="text-2xl font-black text-foreground uppercase tracking-tight leading-none">
+                {homeData.title}
+              </h2>
+            </div>
             <div 
-              className="text-base text-foreground/80 md:col-span-8 space-y-4 leading-relaxed prose"
+              className="text-base text-zinc-600 md:col-span-8 space-y-6 leading-relaxed prose max-w-none"
               dangerouslySetInnerHTML={{ __html: homeData.content }}
             />
           </div>
         </div>
       </section>
 
-      {/* What We Do Services Snippet (Clickable and Cover graphic enabled) */}
-      <section className="py-20 border-y border-border-custom bg-[#FAF8F5]/50 scroll-reveal">
+      {/* Services & Expertise (Minimal layout separated by 1px thin grid lines) */}
+      <section className="py-24 bg-white border-b border-zinc-100 scroll-reveal">
         <div className="mx-auto max-w-5xl px-4 sm:px-6">
-          <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-12">
+          <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-16">
             <div>
-              <h2 className="text-2xl font-black tracking-tight text-foreground">Services & Expertise</h2>
-              <p className="text-sm text-foreground/70 mt-1">Practical ways we create digital value.</p>
+              <span className="text-[10px] font-black text-accent-custom uppercase tracking-widest block mb-2">Capabilities</span>
+              <h2 className="text-3xl font-black tracking-tight text-foreground uppercase">Services & Expertise</h2>
             </div>
-            <Link href="/what-we-do" className="mt-3 sm:mt-0 inline-flex items-center gap-1.5 text-sm font-bold text-foreground hover:underline">
-              All services <LucideIcon name="ArrowRight" className="h-4 w-4" />
+            <Link 
+              href="/what-we-do" 
+              className="mt-4 sm:mt-0 inline-flex items-center gap-1.5 text-xs font-black text-foreground uppercase tracking-wider hover:text-accent-custom transition-colors"
+            >
+              All services <LucideIcon name="ArrowRight" className="h-3.5 w-3.5 text-accent-custom" />
             </Link>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-6">
-            {services.map((service) => (
+          {/* Thin border separated structural cards */}
+          <div className="grid md:grid-cols-3 border border-zinc-100 rounded-lg overflow-hidden divide-y md:divide-y-0 md:divide-x divide-zinc-100 bg-white">
+            {services.map((service, index) => (
               <Link 
                 key={service.slug} 
                 href={`/what-we-do#${service.slug}`}
-                className="group flex flex-col p-5 rounded-xl border border-border-custom bg-background hover:border-foreground/20 hover:shadow-xs transition-all duration-200 cursor-pointer"
+                className="group flex flex-col p-8 hover:bg-zinc-50/50 transition-all duration-300 cursor-pointer"
               >
-                {/* Thin graphic cover in different aspect ratio (2.2/1) than Work case studies */}
-                {service.image ? (
-                  <div className="w-full aspect-[2.2/1] rounded-lg overflow-hidden border border-border-custom bg-zinc-50 mb-5 relative group-hover:opacity-95 transition-opacity">
-                    <img 
-                      src={service.image} 
-                      alt={service.title} 
-                      className="h-full w-full object-cover group-hover:scale-102 transition-transform duration-300"
-                    />
-                    {/* Floating Icon badge on bottom left of the graphic */}
-                    <div className="absolute bottom-2 left-2 flex h-8 w-8 items-center justify-center rounded-lg bg-foreground text-background border border-border-custom shadow-xs">
-                      <LucideIcon name={service.icon} className="h-4 w-4" />
-                    </div>
+                <div className="flex justify-between items-start mb-8">
+                  {/* Accent colored icon */}
+                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-zinc-50 border border-zinc-100 text-accent-custom group-hover:bg-accent-custom group-hover:text-white group-hover:border-accent-custom transition-all duration-300">
+                    <LucideIcon name={service.icon} className="h-5 w-5" />
                   </div>
-                ) : (
-                  /* Fallback if no graphic exists */
-                  <div className="w-full aspect-[2.2/1] rounded-lg bg-zinc-100 mb-5 flex items-center justify-center relative border border-border-custom">
-                    <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-foreground text-background">
-                      <LucideIcon name={service.icon} className="h-4.5 w-4.5" />
-                    </div>
-                  </div>
-                )}
+                  <span className="text-xs font-black text-zinc-300 group-hover:text-accent-custom/30 transition-colors">0{index + 1}</span>
+                </div>
                 
-                <h3 className="text-base font-extrabold text-foreground mb-2 group-hover:text-accent-custom transition-colors">
+                <h3 className="text-base font-black text-foreground mb-3 group-hover:text-accent-custom transition-colors uppercase tracking-tight">
                   {service.title}
                 </h3>
-                <p className="text-xs text-foreground/70 leading-relaxed flex-1">
+                <p className="text-xs text-neutral-gray leading-relaxed flex-1">
                   {service.summary}
                 </p>
+                <div className="mt-8 flex items-center gap-1 text-[10px] font-black uppercase text-foreground group-hover:text-accent-custom transition-colors">
+                  <span>Explore Capablity</span>
+                  <LucideIcon name="ArrowRight" className="h-3 w-3 translate-x-0 group-hover:translate-x-1 transition-transform" />
+                </div>
               </Link>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Selected Work Summary Grid (Scroll animations enabled) */}
-      <section className="py-20 bg-background scroll-reveal">
+      {/* Selected Work Summary Grid (Parallax-esque cover cards with bold borders) */}
+      <section className="py-24 bg-white border-b border-zinc-100 scroll-reveal">
         <div className="mx-auto max-w-5xl px-4 sm:px-6">
-          <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-12">
+          <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-16">
             <div>
-              <h2 className="text-2xl font-black tracking-tight text-foreground">Selected Work</h2>
-              <p className="text-sm text-foreground/70 mt-1">Prototyped tools, experiments, and refresh work.</p>
+              <span className="text-[10px] font-black text-accent-custom uppercase tracking-widest block mb-2">Showcase</span>
+              <h2 className="text-3xl font-black tracking-tight text-foreground uppercase">Selected Work</h2>
             </div>
-            <Link href="/our-work" className="mt-3 sm:mt-0 inline-flex items-center gap-1.5 text-sm font-bold text-foreground hover:underline">
-              All projects <LucideIcon name="ArrowRight" className="h-4 w-4" />
+            <Link 
+              href="/our-work" 
+              className="mt-4 sm:mt-0 inline-flex items-center gap-1.5 text-xs font-black text-foreground uppercase tracking-wider hover:text-accent-custom transition-colors"
+            >
+              All projects <LucideIcon name="ArrowRight" className="h-3.5 w-3.5 text-accent-custom" />
             </Link>
           </div>
 
-          <div className="grid md:grid-cols-2 gap-8">
+          <div className="grid md:grid-cols-2 gap-12">
             {work.map((project) => (
               <Link 
                 key={project.slug} 
                 href={`/our-work/${project.slug}`}
-                className="group flex flex-col p-5 rounded-xl border border-border-custom bg-background shadow-xs hover:border-foreground/20 transition-all duration-200"
+                className="group flex flex-col cursor-pointer"
               >
-                {/* Visual Cover Image Panel */}
-                <div className="w-full aspect-[1.8/1] rounded-lg mb-5 relative overflow-hidden border border-border-custom bg-zinc-50 shadow-2xs">
+                {/* Visual Cover Image Panel with thin outline */}
+                <div className="w-full aspect-[1.8/1] rounded-lg mb-6 relative overflow-hidden border border-zinc-100 bg-zinc-50 shadow-2xs group-hover:border-zinc-200 transition-colors">
                   {project.coverImage ? (
                     <img 
                       src={project.coverImage} 
                       alt={project.title} 
-                      className="h-full w-full object-cover group-hover:scale-102 transition-transform duration-300"
+                      className="h-full w-full object-cover group-hover:scale-102 transition-transform duration-500"
                     />
                   ) : (
-                    <div className="absolute inset-0 bg-gradient-to-tr from-foreground/95 to-foreground/80 flex flex-col justify-end p-5">
-                      <span className="text-[10px] font-bold text-background/60 tracking-wider uppercase mb-1">{project.client}</span>
-                      <h3 className="text-lg font-extrabold text-background leading-snug">{project.title}</h3>
+                    <div className="absolute inset-0 bg-zinc-950 flex flex-col justify-end p-6">
+                      <span className="text-[10px] font-bold text-white/50 tracking-wider uppercase mb-1">{project.client}</span>
+                      <h3 className="text-lg font-black text-white uppercase leading-snug">{project.title}</h3>
                     </div>
                   )}
                 </div>
 
-                {/* Title & Client for cover image projects */}
-                {project.coverImage && (
-                  <div className="mb-3">
-                    <span className="text-[9px] font-bold text-foreground/50 tracking-wider uppercase block mb-1">{project.client}</span>
-                    <h3 className="text-lg font-black text-foreground group-hover:text-accent-custom transition-colors leading-snug">{project.title}</h3>
+                {/* Text meta styled clean */}
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between text-[10px] font-black text-neutral-gray uppercase tracking-widest">
+                    <span>{project.client}</span>
+                    <span className="text-accent-custom">{project.category}</span>
                   </div>
-                )}
-                <p className="text-sm text-foreground/75 leading-relaxed mb-4 flex-1">{project.summary}</p>
-                <div className="flex flex-wrap gap-2 items-center justify-between pt-3 border-t border-border-custom/50">
-                  <span className="text-[10px] font-bold text-foreground/50 uppercase tracking-wide bg-border-custom/50 px-2 py-0.5 rounded-md">
-                    {project.category}
-                  </span>
-                  <span className="text-[10px] font-bold text-foreground/50">{project.status}</span>
+                  <h3 className="text-xl font-black text-foreground uppercase group-hover:text-accent-custom transition-colors leading-snug tracking-tight">
+                    {project.title}
+                  </h3>
+                  <p className="text-xs text-neutral-gray leading-relaxed max-w-xl">
+                    {project.summary}
+                  </p>
+                  <div className="pt-2">
+                    <span className="inline-flex items-center gap-1 text-[10px] font-black uppercase text-foreground group-hover:text-accent-custom transition-colors">
+                      Read case study <LucideIcon name="ArrowRight" className="h-3 w-3 translate-x-0 group-hover:translate-x-1 transition-transform" />
+                    </span>
+                  </div>
                 </div>
               </Link>
             ))}
@@ -171,29 +181,27 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* Observations Summary Index (Scroll animations enabled) */}
-      <section className="py-20 border-t border-border-custom bg-[#FAF8F5]/30 scroll-reveal">
+      {/* Observations Summary Index (Tresmares styled column grid) */}
+      <section className="py-24 bg-white border-b border-zinc-100 scroll-reveal">
         <div className="mx-auto max-w-5xl px-4 sm:px-6">
-          <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-12">
+          <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-16">
             <div>
-              <h2 className="text-2xl font-black tracking-tight text-foreground">
+              <span className="text-[10px] font-black text-accent-custom uppercase tracking-widest block mb-2">Observations</span>
+              <h2 className="text-3xl font-black tracking-tight text-foreground uppercase">
                 {homeData.observationsTitle || 'Observations'}
               </h2>
-              <p className="text-sm text-foreground/70 mt-1">
-                {homeData.observationsSubtitle || 'Notes on simplicity, engineering, and design.'}
-              </p>
             </div>
             <a 
               href="https://substack.com" 
               target="_blank" 
               rel="noopener noreferrer" 
-              className="mt-3 sm:mt-0 inline-flex items-center gap-1.5 text-sm font-bold text-foreground hover:underline"
+              className="mt-4 sm:mt-0 inline-flex items-center gap-1.5 text-xs font-black text-foreground uppercase tracking-wider hover:text-accent-custom transition-colors"
             >
-              Follow on Substack <LucideIcon name="ExternalLink" className="h-4 w-4" />
+              Follow on Substack <LucideIcon name="ExternalLink" className="h-3.5 w-3.5 text-accent-custom" />
             </a>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-6">
+          <div className="grid md:grid-cols-3 gap-8">
             {observations.map((post) => {
               const targetUrl = post.externalSubstackUrl || post.youtubeUrl || 'https://substack.com';
               const isVideo = !!post.youtubeUrl && !post.externalSubstackUrl;
@@ -204,30 +212,30 @@ export default async function HomePage() {
                   href={targetUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="group flex flex-col p-5 rounded-xl border border-border-custom bg-background shadow-xs hover:border-foreground/20 transition-all duration-200"
+                  className="group flex flex-col p-6 rounded-lg border border-zinc-100 bg-white hover:border-zinc-200 transition-all duration-300"
                 >
-                  <div className="flex items-center justify-between text-[10px] font-bold text-foreground/50 uppercase mb-3">
+                  <div className="flex items-center justify-between text-[9px] font-black text-neutral-gray uppercase tracking-widest mb-4">
                     <time>{new Date(post.date).toLocaleDateString('en-US', { year: 'numeric', month: 'short' })}</time>
-                    <span className="flex items-center gap-1">
+                    <span className="flex items-center gap-1 text-accent-custom">
                       <LucideIcon name={isVideo ? 'Youtube' : 'BookOpen'} className="h-3 w-3" />
                       {isVideo ? 'Video' : 'Article'}
                     </span>
                   </div>
-                  <h3 className="text-sm font-bold text-foreground leading-snug mb-2 group-hover:underline">
+                  <h3 className="text-sm font-black text-foreground uppercase leading-snug mb-3 group-hover:text-accent-custom transition-colors tracking-tight">
                     {post.title}
                   </h3>
-                  <p className="text-xs text-foreground/70 leading-relaxed flex-1 mb-4">{post.summary}</p>
+                  <p className="text-xs text-neutral-gray leading-relaxed flex-1 mb-4">{post.summary}</p>
                   
-                  <div className="flex flex-wrap gap-1.5 mb-4">
+                  <div className="flex flex-wrap gap-1 mb-4">
                     {post.tags.slice(0, 2).map((tag) => (
-                      <span key={tag} className="text-[9px] font-semibold text-foreground/60 bg-border-custom/30 px-1.5 py-0.5 rounded-md">
+                      <span key={tag} className="text-[8px] font-black uppercase text-foreground/60 bg-zinc-50 border border-zinc-100 px-1.5 py-0.5 rounded">
                         {tag}
                       </span>
                     ))}
                   </div>
                   
-                  <span className="inline-flex items-center gap-1 text-xs font-bold text-foreground group-hover:translate-x-0.5 transition-transform mt-auto">
-                    {isVideo ? 'Watch Video' : 'Read Article'} <LucideIcon name="ArrowUpRight" className="h-3.5 w-3.5" />
+                  <span className="inline-flex items-center gap-1 text-[10px] font-black uppercase text-foreground group-hover:text-accent-custom transition-colors mt-auto">
+                    {isVideo ? 'Watch Video' : 'Read Article'} <LucideIcon name="ArrowUpRight" className="h-3 w-3" />
                   </span>
                 </a>
               );
@@ -236,17 +244,21 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* CTA Section (Scroll animations enabled) */}
-      <section className="py-20 bg-foreground text-background border-t border-border-custom scroll-reveal">
-        <div className="mx-auto max-w-5xl px-4 sm:px-6 text-center space-y-6">
-          <h2 className="text-2xl font-black tracking-tight sm:text-3xl">Let's build simple solutions.</h2>
-          <p className="mx-auto max-w-lg text-sm text-background/70 leading-relaxed font-medium">
+      {/* Modern, solid dark CTA Section (Inspired by Tresmares) */}
+      <section className="py-24 bg-foreground text-background relative overflow-hidden">
+        {/* Small subtle morphing blob overlay */}
+        <div className="morphing-blob absolute bottom-[-100px] left-[-100px] opacity-10" />
+
+        <div className="mx-auto max-w-5xl px-4 sm:px-6 text-center space-y-8 relative z-10 scroll-reveal">
+          <span className="text-[10px] font-black text-accent-custom uppercase tracking-widest block">Collaborate</span>
+          <h2 className="text-3xl font-black tracking-tight sm:text-4xl uppercase">Let's build simple solutions.</h2>
+          <p className="mx-auto max-w-lg text-sm text-zinc-400 leading-relaxed font-medium">
             If you share our appreciation for clean, focused, and high-performance digital solutions, we would love to connect.
           </p>
-          <div className="pt-2">
+          <div className="pt-4">
             <Link
               href="/contact"
-              className="inline-flex h-11 items-center justify-center rounded-xl bg-background px-8 text-sm font-bold text-foreground hover:bg-border-custom transition-colors shadow-xs cursor-pointer"
+              className="inline-flex h-12 items-center justify-center rounded-lg bg-background px-8 text-xs font-black text-foreground uppercase tracking-wider hover:bg-accent-custom hover:text-white transition-colors shadow-sm cursor-pointer"
             >
               Start a Conversation
             </Link>

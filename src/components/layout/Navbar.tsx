@@ -49,7 +49,7 @@ export function Navbar({ settings, navigation }: NavbarProps) {
               >
                 {link.label}
                 {isActive && (
-                  <span className="absolute -bottom-[21px] left-0 right-0 h-0.5 bg-foreground" />
+                  <span className="absolute bottom-[-21px] left-1/2 -translate-x-1/2 h-1.5 w-1.5 rounded-full bg-accent-custom" />
                 )}
               </Link>
             );
