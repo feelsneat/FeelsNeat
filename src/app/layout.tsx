@@ -47,7 +47,7 @@ export default async function RootLayout({
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col bg-white text-zinc-900 dark:bg-zinc-950 dark:text-zinc-100 transition-colors duration-200">
+      <body className="min-h-full flex flex-col bg-background text-foreground transition-colors duration-200">
         <ScrollObserver />
         <Navbar settings={settings} navigation={navigation} />
         <div className="flex-1 flex flex-col">

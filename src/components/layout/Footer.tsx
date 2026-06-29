@@ -26,7 +26,7 @@ export function Footer({ settings, navigation }: FooterProps) {
           {/* Logo & Description */}
           <div className="space-y-6">
             <Link href="/" className="flex items-center gap-3 group w-fit">
-              <div className="flex h-7 w-7 items-center justify-center overflow-hidden rounded-md bg-white border border-border-custom">
+              <div className="flex h-7 w-7 items-center justify-center overflow-hidden rounded-md bg-zinc-900 border border-border-custom">
                 <img 
                   src="/logo.png" 
                   alt="FeelsNeat Logo" 
