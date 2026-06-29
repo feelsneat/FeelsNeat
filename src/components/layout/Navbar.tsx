@@ -13,6 +13,8 @@ interface NavbarProps {
 
 export function Navbar({ settings, navigation }: NavbarProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const [lastScrollY, setLastScrollY] = useState(0);
+  const [isVisible, setIsVisible] = useState(true);
   const pathname = usePathname();
 
   // Close mobile menu on route change
@@ -20,12 +22,41 @@ export function Navbar({ settings, navigation }: NavbarProps) {
     setIsOpen(false);
   }, [pathname]);
 
+  // Handle header show/hide on scroll direction (Tresmares Capital UX flow)
+  useEffect(() => {
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY;
+
+      // Always show at the very top of the page
+      if (currentScrollY < 15) {
+        setIsVisible(true);
+        setLastScrollY(currentScrollY);
+        return;
+      }
+
+      // Hide when scrolling down, show when scrolling up
+      if (currentScrollY > lastScrollY) {
+        setIsVisible(false);
+      } else {
+        setIsVisible(true);
+      }
+      setLastScrollY(currentScrollY);
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [lastScrollY]);
+
   // Separate regular links from Contact link to render it as a solid black block action button (Tresmares style)
   const regularLinks = navigation.headerLinks.filter(l => l.path !== '/contact');
   const hasContactLink = navigation.headerLinks.some(l => l.path === '/contact');
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-zinc-100 bg-white/95 backdrop-blur-md">
+    <header 
+      className={`sticky top-0 z-50 w-full border-b border-zinc-100 bg-white/95 backdrop-blur-md transition-transform duration-300 ease-in-out ${
+        isVisible ? 'translate-y-0' : '-translate-y-full'
+      }`}
+    >
       {/* Outer grid boundary line layout */}
       <div className="mx-auto flex h-16 max-w-5xl items-center justify-between px-4 sm:px-6 relative">
         {/* Logo */}

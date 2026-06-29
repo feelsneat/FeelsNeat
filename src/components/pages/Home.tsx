@@ -14,13 +14,13 @@ export default async function HomePage() {
     <div className="flex flex-col w-full bg-background overflow-hidden">
       {/* 
         PREMIUM HERO SECTION (Tresmares Capital SOTD Visual Style)
-        Features a full-screen high-contrast grayscale architectural image background
+        Features a full-screen high-contrast grayscale sky and clouds background image
         with massive typography overlay and bottom-right aligned narrative blocks.
       */}
       <section className="relative h-[85vh] sm:h-[90vh] flex items-center bg-zinc-950 text-white overflow-hidden border-b border-zinc-900">
-        {/* Grayscale background image generated for high contrast perspective */}
+        {/* Grayscale sky & clouds background image generated for premium contrast */}
         <div 
-          className="absolute inset-0 bg-cover bg-center grayscale opacity-80 z-0" 
+          className="absolute inset-0 bg-cover bg-center grayscale opacity-75 z-0" 
           style={{ backgroundImage: "url('/images/hero-bg.jpg')" }}
         />
         
@@ -107,50 +107,46 @@ export default async function HomePage() {
             </Link>
           </div>
 
-          {/* Split grid layout */}
-          <div className="grid md:grid-cols-12 gap-12 items-center">
+          {/* Split grid layout with layered horizontal red bar */}
+          <div className="grid md:grid-cols-12 gap-8 items-center relative min-h-[500px]">
             {/* Left Column: Menu Text List */}
-            <div className="md:col-span-4 space-y-8">
-              <div className="space-y-4">
-                <span className="text-[9px] font-black text-accent-custom uppercase tracking-widest block">Menu Selection</span>
-                <nav className="flex flex-col divide-y divide-zinc-100 border-y border-zinc-100">
-                  {services.map((service, idx) => (
-                    <Link
-                      key={service.slug}
-                      href={`/what-we-do#${service.slug}`}
-                      className="group flex items-center justify-between py-3.5 text-xs font-black uppercase tracking-wider text-neutral-gray hover:text-foreground transition-colors"
-                    >
-                      <span className="flex items-center gap-2">
-                        <span className="text-[9px] text-accent-custom">0{idx + 1}.</span>
-                        {service.title}
-                      </span>
-                      <LucideIcon name="ArrowUpRight" className="h-3 w-3 opacity-0 group-hover:opacity-100 transition-opacity text-accent-custom" />
-                    </Link>
-                  ))}
-                </nav>
-              </div>
+            <div className="md:col-span-4 space-y-4 relative z-20">
+              <span className="text-[10px] font-black text-accent-custom uppercase tracking-widest block">Menu Selection</span>
+              <nav className="flex flex-col divide-y divide-zinc-100 border-y border-zinc-100 bg-white/80 backdrop-blur-xs p-2 rounded-lg">
+                {services.map((service, idx) => (
+                  <Link
+                    key={service.slug}
+                    href={`/what-we-do#${service.slug}`}
+                    className="group flex items-center justify-between py-4 px-2 text-xs font-black uppercase tracking-wider text-neutral-gray hover:text-foreground transition-colors"
+                  >
+                    <span className="flex items-center gap-2">
+                      <span className="text-[9px] text-accent-custom">0{idx + 1}.</span>
+                      {service.title}
+                    </span>
+                    <LucideIcon name="ArrowUpRight" className="h-3.5 w-3.5 opacity-0 group-hover:opacity-100 transition-opacity text-accent-custom" />
+                  </Link>
+                ))}
+              </nav>
             </div>
 
-            {/* Center Column: Grayscale image with Solid Red Bar Overlay (Visual replica) */}
-            <div className="md:col-span-4 flex justify-center">
-              <div className="relative w-full max-w-[280px] aspect-[1/1.2] rounded-lg overflow-hidden border border-zinc-150 bg-zinc-50 flex items-center justify-center shadow-xs">
-                {/* Botanical Grayscale image background */}
-                <img 
-                  src="/images/services-stem.jpg" 
-                  alt="Botanical Stem Silhouette" 
-                  className="absolute inset-0 h-full w-full object-cover grayscale opacity-90"
-                />
-                
-                {/* Solid bright red horizontal bar crossing the center exactly like the screen recording */}
-                <div className="absolute left-0 right-0 h-16 bg-[#E30613] mix-blend-normal opacity-100 shadow-md z-10 border-y border-[#B9050F]" />
-              </div>
+            {/* Center Column: Grayscale image with Full-Width-esque Solid Red Bar */}
+            <div className="md:col-span-4 flex justify-center relative h-[450px] overflow-visible">
+              {/* Solid bright red horizontal bar crossing the entire center grid section behind glassmorphism columns */}
+              <div className="absolute left-[-40%] right-[-40%] top-1/2 -translate-y-1/2 h-24 bg-[#E30613] z-0 shadow-md border-y border-[#B9050F]" />
+              
+              {/* Botanical Grayscale image floating directly on background */}
+              <img 
+                src="/images/services-stem.jpg" 
+                alt="Botanical Stem Silhouette" 
+                className="h-full w-auto object-contain grayscale opacity-95 relative z-10 select-none"
+              />
             </div>
 
             {/* Right Column: Key metrics and technical capability notes */}
-            <div className="md:col-span-4 space-y-6">
-              <div className="p-6 bg-zinc-50 rounded-lg border border-zinc-100/60 space-y-6">
+            <div className="md:col-span-4 space-y-6 relative z-20">
+              <div className="p-8 bg-white/90 backdrop-blur-xs rounded-lg border border-zinc-100 shadow-sm space-y-6">
                 <div>
-                  <span className="text-[8px] font-black text-accent-custom uppercase tracking-widest block mb-1">Standard</span>
+                  <span className="text-[9px] font-black text-accent-custom uppercase tracking-widest block mb-1">Standard</span>
                   <h4 className="text-xl font-extrabold text-foreground uppercase leading-none tracking-tight">Clarity & Usability</h4>
                 </div>
                 <div className="space-y-4 text-xs text-neutral-gray leading-relaxed">
@@ -161,9 +157,9 @@ export default async function HomePage() {
                     No complex software jargon. We build interfaces that are clean, fast, and satisfying to use.
                   </p>
                 </div>
-                <div className="pt-2 border-t border-zinc-200/50 flex flex-wrap gap-1.5">
-                  <span className="px-2 py-0.5 bg-white border border-zinc-200 text-[8px] font-black uppercase text-foreground/70 rounded">100% Custom</span>
-                  <span className="px-2 py-0.5 bg-white border border-zinc-200 text-[8px] font-black uppercase text-foreground/70 rounded">High Perf</span>
+                <div className="pt-4 border-t border-zinc-100 flex flex-wrap gap-1.5">
+                  <span className="px-2.5 py-1 bg-zinc-50 border border-zinc-200 text-[8px] font-black uppercase text-foreground/75 rounded">100% Custom</span>
+                  <span className="px-2.5 py-1 bg-zinc-50 border border-zinc-200 text-[8px] font-black uppercase text-foreground/75 rounded">High Perf</span>
                 </div>
               </div>
             </div>
