@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { motion, AnimatePresence } from 'framer-motion';
 import { LucideIcon } from '../ui/LucideIcon';
 import { SiteSettings, NavigationConfig } from '@/lib/cms';
 
@@ -50,11 +49,7 @@ export function Navbar({ settings, navigation }: NavbarProps) {
               >
                 {link.label}
                 {isActive && (
-                  <motion.span
-                    layoutId="activeNav"
-                    className="absolute -bottom-[21px] left-0 right-0 h-0.5 bg-foreground"
-                    transition={{ type: 'spring', stiffness: 380, damping: 30 }}
-                  />
+                  <span className="absolute -bottom-[21px] left-0 right-0 h-0.5 bg-foreground" />
                 )}
               </Link>
             );
@@ -71,36 +66,29 @@ export function Navbar({ settings, navigation }: NavbarProps) {
         </button>
       </div>
 
-      {/* Mobile nav panel */}
-      <AnimatePresence>
-        {isOpen && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-            className="border-b border-border-custom bg-background md:hidden"
-          >
-            <nav className="flex flex-col gap-4 px-4 py-6 sm:px-6">
-              {navigation.headerLinks.map((link) => {
-                const isActive = pathname === link.path || (link.path !== '/' && pathname.startsWith(link.path));
-                return (
-                  <Link
-                    key={link.path}
-                    href={link.path}
-                    className={`text-sm font-semibold transition-colors ${
-                      isActive
-                        ? 'text-foreground'
-                        : 'text-foreground/60 hover:text-foreground'
-                    }`}
-                  >
-                    {link.label}
-                  </Link>
-                );
-              })}
-            </nav>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {/* Mobile nav panel (CSS transition) */}
+      {isOpen && (
+        <div className="border-b border-border-custom bg-background md:hidden animate-fade-in">
+          <nav className="flex flex-col gap-4 px-4 py-6 sm:px-6">
+            {navigation.headerLinks.map((link) => {
+              const isActive = pathname === link.path || (link.path !== '/' && pathname.startsWith(link.path));
+              return (
+                <Link
+                  key={link.path}
+                  href={link.path}
+                  className={`text-sm font-semibold transition-colors ${
+                    isActive
+                      ? 'text-foreground'
+                      : 'text-foreground/60 hover:text-foreground'
+                  }`}
+                >
+                  {link.label}
+                </Link>
+              );
+            })}
+          </nav>
+        </div>
+      )}
     </header>
   );
 }

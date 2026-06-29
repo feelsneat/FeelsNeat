@@ -1,35 +1,14 @@
-import { cookies } from 'next/headers';
-import { verifySession } from '@/lib/auth';
 import { AdminDashboard } from '@/components/interactive/AdminDashboard';
-import { getSettings } from '@/lib/cms';
 
 export const runtime = 'edge';
 
 interface AdminPageProps {
-  searchParams: Promise<{
-    error?: string;
-    email?: string;
-  }>;
+  userEmail: string | null;
+  error?: string;
+  email?: string;
 }
 
-export async function generateMetadata() {
-  const settings = await getSettings();
-  return { title: `CMS Admin | ${settings.siteName}` };
-}
-
-export default async function AdminPage({ searchParams }: AdminPageProps) {
-  const { error, email } = await searchParams;
-  const cookieStore = await cookies();
-  const sessionCookie = cookieStore.get('feelsneat_session');
-  const authSecret = process.env.AUTH_SECRET;
-
-  let userEmail: string | null = null;
-  if (sessionCookie && sessionCookie.value && authSecret) {
-    const session = await verifySession(sessionCookie.value, authSecret);
-    if (session) {
-      userEmail = session.email;
-    }
-  }
+export default async function AdminPage({ userEmail, error, email }: AdminPageProps) {
 
   // If not logged in, render the secure authentication prompt
   if (!userEmail) {

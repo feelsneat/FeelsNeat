@@ -1,31 +1,14 @@
-import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { getWorkBySlug } from '@/lib/cms';
 import { LucideIcon } from '@/components/ui/LucideIcon';
 
-export const runtime = 'edge';
-
-interface ProjectPageProps {
-  params: Promise<{
-    slug: string;
-  }>;
+interface ProjectDetailPageProps {
+  projectSlug: string;
 }
 
-export async function generateMetadata({ params }: ProjectPageProps): Promise<Metadata> {
-  const { slug } = await params;
-  const project = await getWorkBySlug(slug);
-  if (!project) return { title: 'Project Not Found' };
-
-  return {
-    title: project.title,
-    description: project.summary,
-  };
-}
-
-export default async function ProjectDetailPage({ params }: ProjectPageProps) {
-  const { slug } = await params;
-  const project = await getWorkBySlug(slug);
+export default async function ProjectDetailPage({ projectSlug }: ProjectDetailPageProps) {
+  const project = await getWorkBySlug(projectSlug);
 
   if (!project) {
     notFound();

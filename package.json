@@ -10,7 +10,6 @@
     "pages:build": "npx @cloudflare/next-on-pages"
   },
   "dependencies": {
-    "framer-motion": "^12.42.0",
     "gray-matter": "^4.0.3",
     "lucide-react": "^1.22.0",
     "marked": "^18.0.5",
