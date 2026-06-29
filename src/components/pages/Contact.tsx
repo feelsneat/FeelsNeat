@@ -19,6 +19,8 @@ export default async function ContactPage() {
       case 'twitter': return 'Twitter';
       case 'github': return 'Github';
       case 'linkedin': return 'Linkedin';
+      case 'youtube': return 'Youtube';
+      case 'substack': return 'BookOpen';
       default: return 'Link';
     }
   };
