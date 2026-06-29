@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
+import { ScrollObserver } from "@/components/layout/ScrollObserver";
 import { getSettings, getNavigation } from "@/lib/cms";
 
 const geistSans = Geist({
@@ -47,6 +48,7 @@ export default async function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col bg-white text-zinc-900 dark:bg-zinc-950 dark:text-zinc-100 transition-colors duration-200">
+        <ScrollObserver />
         <Navbar settings={settings} navigation={navigation} />
         <div className="flex-1 flex flex-col">
           {children}
