@@ -18,16 +18,20 @@ export default async function HomePage() {
         with massive typography overlay and bottom-right aligned narrative blocks.
       */}
       <section className="relative h-screen flex items-center bg-zinc-950 text-white overflow-hidden">
-        {/* Confirmed sunset wildflower sidewalk background image */}
-        <div 
-          className="absolute inset-0 bg-cover bg-center grayscale-20 opacity-80 z-0" 
-          style={{ backgroundImage: "url('/images/hero-bg.jpg')" }}
-        />
+        {/* Confirmed sunset wildflower sidewalk background image - positioned on the right to prevent zoom crops */}
+        <div className="absolute right-0 top-0 bottom-0 w-full md:w-[65%] h-full z-0 overflow-hidden select-none">
+          <img 
+            src="/images/hero-bg.jpg" 
+            alt="Sunset wildflowers on sidewalk" 
+            className="h-full w-full object-cover object-center grayscale-15 opacity-80"
+          />
+          {/* Subtle warm overlay to enrich sunset hues */}
+          <div className="absolute inset-0 bg-amber-500/5 mix-blend-overlay" />
+        </div>
         
-        {/* Dark subtle gradient shadow overlays to guarantee copy readability */}
-        <div className="absolute inset-0 bg-gradient-to-r from-zinc-950/70 via-zinc-950/40 to-transparent z-10" />
-        <div className="absolute inset-0 bg-gradient-to-t from-zinc-950/80 via-transparent to-zinc-950/20 z-10" />
-
+        {/* Left-to-right fade gradient overlay to blend into the solid dark background of the text column */}
+        <div className="absolute inset-0 bg-gradient-to-r from-zinc-950 via-zinc-950/45 to-transparent z-10" />
+        
         {/* Smooth visual gradient transition to prevent hard line break into white page sections */}
         <div className="absolute bottom-0 left-0 right-0 h-48 bg-gradient-to-t from-white via-white/40 to-transparent z-15 pointer-events-none" />
 

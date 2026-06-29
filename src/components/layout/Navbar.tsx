@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { LucideIcon } from '../ui/LucideIcon';
@@ -13,9 +13,9 @@ interface NavbarProps {
 
 export function Navbar({ settings, navigation }: NavbarProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const [lastScrollY, setLastScrollY] = useState(0);
   const [isVisible, setIsVisible] = useState(true);
   const [isAtTop, setIsAtTop] = useState(true);
+  const lastScrollY = useRef(0);
   const pathname = usePathname();
 
   // Close mobile menu on route change
@@ -23,35 +23,38 @@ export function Navbar({ settings, navigation }: NavbarProps) {
     setIsOpen(false);
   }, [pathname]);
 
-  // Handle header show/hide on scroll direction & transparent background at top
+  // Handle header show/hide on scroll direction (using Ref to prevent event listener churn)
   useEffect(() => {
+    // Set initial values
+    lastScrollY.current = window.scrollY;
+    setIsAtTop(window.scrollY < 60);
+
     const handleScroll = () => {
       const currentScrollY = window.scrollY;
 
       // Determine if navbar is at the very top of the page
       setIsAtTop(currentScrollY < 60);
 
-      // Always show at the very top of the page
+      // Always show at the very top of the page to avoid hiding glitches
       if (currentScrollY < 15) {
         setIsVisible(true);
-        setLastScrollY(currentScrollY);
+        lastScrollY.current = currentScrollY;
         return;
       }
 
       // Hide when scrolling down, show when scrolling up
-      if (currentScrollY > lastScrollY) {
+      if (currentScrollY > lastScrollY.current) {
         setIsVisible(false);
       } else {
         setIsVisible(true);
       }
-      setLastScrollY(currentScrollY);
+      
+      lastScrollY.current = currentScrollY;
     };
 
     window.addEventListener('scroll', handleScroll, { passive: true });
-    // Initialize correct state on mount
-    handleScroll();
     return () => window.removeEventListener('scroll', handleScroll);
-  }, [lastScrollY]);
+  }, []);
 
   // Separate regular links from Contact link
   const regularLinks = navigation.headerLinks.filter(l => l.path !== '/contact');
@@ -80,7 +83,7 @@ export function Navbar({ settings, navigation }: NavbarProps) {
 
   return (
     <header 
-      className={`fixed top-0 left-0 right-0 z-50 w-full border-b transition-all duration-300 ease-in-out ${headerTheme} ${
+      className={`fixed top-0 left-0 right-0 z-50 w-full border-b transform transition-transform duration-300 ease-in-out ${headerTheme} ${
         isVisible ? 'translate-y-0' : '-translate-y-full'
       }`}
     >
