@@ -48,27 +48,66 @@ export default async function WhatWeDoPage() {
 
               {/* Service description */}
               <div className="md:col-span-8 space-y-6">
-                <p className="text-base font-semibold text-foreground/80 leading-relaxed">
+                <p className="text-base font-bold text-foreground leading-relaxed">
                   {service.summary}
                 </p>
+
+                {/* Main Service Image Graphic */}
+                {service.image && (
+                  <div className="w-full aspect-[2.1/1] rounded-xl overflow-hidden border border-border-custom bg-zinc-50 shadow-2xs">
+                    <img 
+                      src={service.image} 
+                      alt={service.title} 
+                      className="h-full w-full object-cover"
+                    />
+                  </div>
+                )}
+
+                {/* Detailed description */}
                 <div 
                   className="text-sm text-foreground/70 space-y-4 leading-relaxed prose max-w-none"
                   dangerouslySetInnerHTML={{ __html: service.content }}
                 />
-                
-                {/* Optional Image or External Resource link */}
-                {service.externalUrl && (
-                  <div className="pt-2">
+
+                {/* Service Gallery Images */}
+                {service.additionalImages && service.additionalImages.length > 0 && (
+                  <div className="pt-4 space-y-3">
+                    <h4 className="text-[10px] font-bold text-foreground/50 uppercase tracking-wider">Service Gallery</h4>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                      {service.additionalImages.map((imgUrl, imgIdx) => (
+                        <div key={imgIdx} className="aspect-[1.5/1] rounded-lg overflow-hidden border border-border-custom bg-white shadow-3xs">
+                          <img 
+                            src={imgUrl} 
+                            alt={`${service.title} gallery image ${imgIdx + 1}`} 
+                            className="h-full w-full object-cover hover:scale-103 transition-transform duration-300"
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Tags and Action Links */}
+                <div className="flex flex-wrap items-center justify-between gap-4 pt-6 border-t border-border-custom/50">
+                  <div className="flex flex-wrap gap-1">
+                    {(service.tags || []).map((tag) => (
+                      <span key={tag} className="inline-flex items-center rounded-md bg-border-custom/40 px-2 py-0.5 text-[9px] font-bold text-foreground/60">
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+
+                  {service.externalUrl && (
                     <a 
                       href={service.externalUrl}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="inline-flex items-center gap-1 text-xs font-bold text-foreground hover:underline"
                     >
-                      Explore service resource <LucideIcon name="ArrowUpRight" className="h-3.5 w-3.5" />
+                      Explore resource <LucideIcon name="ArrowUpRight" className="h-3.5 w-3.5" />
                     </a>
-                  </div>
-                )}
+                  )}
+                </div>
               </div>
             </div>
           ))}

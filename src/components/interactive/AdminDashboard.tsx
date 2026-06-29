@@ -378,6 +378,11 @@ export function AdminDashboard({ userEmail }: AdminDashboardProps) {
     }));
   };
 
+  const handleServiceTagsChange = (slug: string, tagsStr: string) => {
+    const tags = tagsStr.split(',').map((t) => t.trim()).filter(Boolean);
+    handleServiceChange(slug, 'tags', tags);
+  };
+
   const handleAddService = () => {
     const slug = `new-service-${Date.now()}`;
     const newService = {
@@ -389,6 +394,8 @@ export function AdminDashboard({ userEmail }: AdminDashboardProps) {
       content: 'Detailed description of how we create value...',
       image: '',
       externalUrl: '',
+      additionalImages: [],
+      tags: [],
     };
     setDb((prev: any) => ({
       ...prev,
@@ -856,6 +863,24 @@ export function AdminDashboard({ userEmail }: AdminDashboardProps) {
                       className="w-full rounded-lg border border-border-custom bg-white px-3 py-2 text-xs focus:border-foreground focus:outline-none"
                     />
                   </div>
+
+                  <div>
+                    <label className="block text-[10px] font-bold text-foreground/60 mb-1">Tags (Comma-separated)</label>
+                    <input
+                      type="text"
+                      value={(selectedService.tags || []).join(', ')}
+                      onChange={(e) => handleServiceTagsChange(selectedService.slug, e.target.value)}
+                      className="w-full rounded-lg border border-border-custom bg-white px-3 py-2 text-xs focus:border-foreground focus:outline-none"
+                    />
+                  </div>
+
+                  <div>
+                    <GalleryManager
+                      images={selectedService.additionalImages || []}
+                      onChange={(imgs) => handleServiceChange(selectedService.slug, 'additionalImages', imgs)}
+                    />
+                  </div>
+
                   <div>
                     <label className="block text-[10px] font-bold text-foreground/60 mb-1">Detailed Description (Markdown)</label>
                     <textarea

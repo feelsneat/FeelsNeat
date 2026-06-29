@@ -109,11 +109,29 @@ export default async function HomePage() {
                 href={`/our-work/${project.slug}`}
                 className="group flex flex-col p-5 rounded-xl border border-border-custom bg-background shadow-xs hover:border-foreground/20 transition-colors"
               >
-                {/* Visual Cover Gradient Panel */}
-                <div className="w-full aspect-[1.8/1] rounded-lg bg-gradient-to-tr from-foreground/95 to-foreground/80 mb-5 flex flex-col justify-end p-5 relative overflow-hidden">
-                  <span className="text-[10px] font-bold text-background/60 tracking-wider uppercase mb-1">{project.client}</span>
-                  <h3 className="text-lg font-extrabold text-background leading-snug">{project.title}</h3>
+                {/* Visual Cover Image Panel */}
+                <div className="w-full aspect-[1.8/1] rounded-lg mb-5 relative overflow-hidden border border-border-custom bg-zinc-50 shadow-2xs">
+                  {project.coverImage ? (
+                    <img 
+                      src={project.coverImage} 
+                      alt={project.title} 
+                      className="h-full w-full object-cover group-hover:scale-102 transition-transform duration-300"
+                    />
+                  ) : (
+                    <div className="absolute inset-0 bg-gradient-to-tr from-foreground/95 to-foreground/80 flex flex-col justify-end p-5">
+                      <span className="text-[10px] font-bold text-background/60 tracking-wider uppercase mb-1">{project.client}</span>
+                      <h3 className="text-lg font-extrabold text-background leading-snug">{project.title}</h3>
+                    </div>
+                  )}
                 </div>
+
+                {/* Title & Client for cover image projects */}
+                {project.coverImage && (
+                  <div className="mb-3">
+                    <span className="text-[9px] font-bold text-foreground/50 tracking-wider uppercase block mb-1">{project.client}</span>
+                    <h3 className="text-lg font-black text-foreground group-hover:text-accent-custom transition-colors leading-snug">{project.title}</h3>
+                  </div>
+                )}
                 <p className="text-sm text-foreground/75 leading-relaxed mb-4 flex-1">{project.summary}</p>
                 <div className="flex flex-wrap gap-2 items-center justify-between pt-3 border-t border-border-custom/50">
                   <span className="text-[10px] font-bold text-foreground/50 uppercase tracking-wide bg-border-custom/50 px-2 py-0.5 rounded-md">

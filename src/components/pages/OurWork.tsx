@@ -34,11 +34,29 @@ export default async function OurWorkPage() {
               href={`/our-work/${project.slug}`}
               className="group flex flex-col p-5 rounded-xl border border-border-custom bg-background hover:border-foreground/20 transition-all duration-200 shadow-xs"
             >
-              {/* Cover Gradient Visualizer */}
-              <div className="w-full aspect-[1.8/1] rounded-lg bg-gradient-to-br from-foreground/95 to-foreground/80 mb-5 flex flex-col justify-end p-5 relative overflow-hidden">
-                <span className="text-[10px] font-bold text-background/60 tracking-wider uppercase mb-1">{project.client}</span>
-                <h2 className="text-xl font-extrabold text-background leading-snug">{project.title}</h2>
+              {/* Cover Image Visualizer */}
+              <div className="w-full aspect-[1.8/1] rounded-lg mb-5 relative overflow-hidden border border-border-custom bg-zinc-50 shadow-2xs">
+                {project.coverImage ? (
+                  <img 
+                    src={project.coverImage} 
+                    alt={project.title} 
+                    className="h-full w-full object-cover group-hover:scale-102 transition-transform duration-300"
+                  />
+                ) : (
+                  <div className="absolute inset-0 bg-gradient-to-br from-foreground/95 to-foreground/80 flex flex-col justify-end p-5">
+                    <span className="text-[10px] font-bold text-background/60 tracking-wider uppercase mb-1">{project.client}</span>
+                    <h2 className="text-xl font-extrabold text-background leading-snug">{project.title}</h2>
+                  </div>
+                )}
               </div>
+
+              {/* Title & Client for cover image projects */}
+              {project.coverImage && (
+                <div className="mb-3">
+                  <span className="text-[9px] font-bold text-foreground/50 tracking-wider uppercase block mb-1">{project.client}</span>
+                  <h2 className="text-lg font-black text-foreground group-hover:text-accent-custom transition-colors leading-snug">{project.title}</h2>
+                </div>
+              )}
 
               {/* Text Meta */}
               <div className="flex-1 flex flex-col justify-between">

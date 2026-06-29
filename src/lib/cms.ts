@@ -43,6 +43,8 @@ export interface ServiceItem {
   content: string;
   image?: string;
   externalUrl?: string;
+  additionalImages?: string[];
+  tags?: string[];
 }
 
 export interface WorkItem {
