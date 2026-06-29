@@ -3,6 +3,264 @@
 import { useState, useEffect } from 'react';
 import { LucideIcon } from '../ui/LucideIcon';
 
+function ImageUploader({ 
+  label, 
+  value, 
+  onChange, 
+  placeholder 
+}: { 
+  label: string; 
+  value: string; 
+  onChange: (val: string) => void; 
+  placeholder?: string;
+}) {
+  const uploaderId = `uploader-${label.replace(/\s+/g, '-').toLowerCase()}-${Math.random().toString(36).substr(2, 9)}`;
+
+  const handleFile = (file: File) => {
+    if (!file.type.startsWith('image/')) {
+      alert('Please upload an image file.');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const MAX_WIDTH = 1200;
+        const MAX_HEIGHT = 1200;
+        let width = img.width;
+        let height = img.height;
+
+        if (width > height) {
+          if (width > MAX_WIDTH) {
+            height *= MAX_WIDTH / width;
+            width = MAX_WIDTH;
+          }
+        } else {
+          if (height > MAX_HEIGHT) {
+            width *= MAX_HEIGHT / height;
+            height = MAX_HEIGHT;
+          }
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        if (ctx) {
+          ctx.drawImage(img, 0, 0, width, height);
+          const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
+          onChange(dataUrl);
+        } else {
+          onChange(e.target?.result as string);
+        }
+      };
+      img.src = e.target?.result as string;
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const onFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      handleFile(e.target.files[0]);
+    }
+  };
+
+  return (
+    <div className="space-y-1">
+      <label className="block text-[10px] font-bold text-foreground/60 mb-1 uppercase tracking-wider">{label}</label>
+      
+      <div className="flex flex-col sm:flex-row gap-3 items-center bg-zinc-50/50 border border-border-custom rounded-xl p-3">
+        {/* Thumbnail Preview */}
+        {value ? (
+          <div className="relative group w-16 h-16 rounded-lg overflow-hidden border border-border-custom bg-white flex-shrink-0 shadow-2xs">
+            <img src={value} alt="Preview" className="w-full h-full object-cover" />
+            <button
+              type="button"
+              onClick={() => onChange('')}
+              className="absolute inset-0 bg-black/60 flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transition-opacity duration-200 cursor-pointer"
+            >
+              <LucideIcon name="Trash2" className="h-4 w-4" />
+            </button>
+          </div>
+        ) : (
+          <div className="w-16 h-16 rounded-lg border border-dashed border-border-custom bg-white flex-shrink-0 flex flex-col items-center justify-center text-foreground/30 text-[9px] uppercase font-bold tracking-wide">
+            Empty
+          </div>
+        )}
+
+        <div className="flex-1 w-full space-y-2">
+          <div className="flex items-center gap-2">
+            <label
+              htmlFor={uploaderId}
+              className="inline-flex h-8 items-center justify-center gap-1.5 rounded-lg border border-border-custom bg-white px-3 text-[11px] font-bold text-foreground hover:bg-zinc-50 transition-colors cursor-pointer shadow-3xs"
+            >
+              <LucideIcon name="Feather" className="h-3.5 w-3.5" />
+              <span>Choose Image File</span>
+            </label>
+            <input
+              type="file"
+              id={uploaderId}
+              accept="image/*"
+              onChange={onFileChange}
+              className="hidden"
+            />
+            {value && (
+              <span className="text-[9px] font-bold text-green-700 bg-green-50 border border-green-100 rounded-md px-1.5 py-0.5 uppercase tracking-wide">
+                Linked
+              </span>
+            )}
+          </div>
+
+          <input
+            type="text"
+            value={value}
+            onChange={(e) => onChange(e.target.value)}
+            placeholder={placeholder || "Paste image URL or upload above..."}
+            className="w-full rounded-lg border border-border-custom bg-white px-3 py-1.5 text-xs focus:border-foreground focus:outline-none"
+          />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function GalleryManager({ 
+  images = [], 
+  onChange 
+}: { 
+  images: string[]; 
+  onChange: (imgs: string[]) => void;
+}) {
+  const uploaderId = `uploader-gallery-${Math.random().toString(36).substr(2, 9)}`;
+  const [newUrl, setNewUrl] = useState('');
+
+  const handleFile = (file: File) => {
+    if (!file.type.startsWith('image/')) {
+      alert('Please upload an image file.');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const MAX_WIDTH = 1200;
+        const MAX_HEIGHT = 1200;
+        let width = img.width;
+        let height = img.height;
+
+        if (width > height) {
+          if (width > MAX_WIDTH) {
+            height *= MAX_WIDTH / width;
+            width = MAX_WIDTH;
+          }
+        } else {
+          if (height > MAX_HEIGHT) {
+            width *= MAX_HEIGHT / height;
+            height = MAX_HEIGHT;
+          }
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        if (ctx) {
+          ctx.drawImage(img, 0, 0, width, height);
+          const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
+          onChange([...images, dataUrl]);
+        } else {
+          onChange([...images, e.target?.result as string]);
+        }
+      };
+      img.src = e.target?.result as string;
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const onFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) {
+      Array.from(e.target.files).forEach(handleFile);
+    }
+  };
+
+  const removeImage = (idxToRemove: number) => {
+    onChange(images.filter((_, idx) => idx !== idxToRemove));
+  };
+
+  const addUrl = () => {
+    if (newUrl.trim()) {
+      onChange([...images, newUrl.trim()]);
+      setNewUrl('');
+    }
+  };
+
+  return (
+    <div className="space-y-2">
+      <label className="block text-[10px] font-bold text-foreground/60 uppercase tracking-wider">Project Gallery Images</label>
+      
+      {images.length > 0 ? (
+        <div className="grid grid-cols-4 sm:grid-cols-6 gap-2 border border-border-custom rounded-xl p-3 bg-zinc-50/50">
+          {images.map((img, idx) => (
+            <div key={idx} className="relative group aspect-[4/3] rounded-lg overflow-hidden border border-border-custom bg-white shadow-3xs">
+              <img src={img} alt={`Gallery ${idx + 1}`} className="w-full h-full object-cover" />
+              <button
+                type="button"
+                onClick={() => removeImage(idx)}
+                className="absolute inset-0 bg-black/60 flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transition-opacity duration-200 cursor-pointer"
+              >
+                <LucideIcon name="Trash2" className="h-4 w-4" />
+              </button>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div className="border border-dashed border-border-custom rounded-xl p-4 text-center text-[10px] text-foreground/40 bg-zinc-50/20 font-bold uppercase tracking-wider">
+          No gallery images uploaded
+        </div>
+      )}
+
+      <div className="flex flex-col sm:flex-row gap-2 items-center bg-zinc-50/50 border border-border-custom rounded-xl p-3">
+        <div className="w-full sm:w-auto">
+          <label
+            htmlFor={uploaderId}
+            className="inline-flex h-8 w-full sm:w-auto items-center justify-center gap-1.5 rounded-lg border border-border-custom bg-white px-3 text-[11px] font-bold text-foreground hover:bg-zinc-50 transition-colors cursor-pointer shadow-3xs"
+          >
+            <LucideIcon name="Feather" className="h-3.5 w-3.5" />
+            <span>Upload Photos</span>
+          </label>
+          <input
+            type="file"
+            id={uploaderId}
+            accept="image/*"
+            multiple
+            onChange={onFileChange}
+            className="hidden"
+          />
+        </div>
+
+        <div className="flex-1 w-full flex gap-2">
+          <input
+            type="text"
+            value={newUrl}
+            onChange={(e) => setNewUrl(e.target.value)}
+            placeholder="Or paste external image URL..."
+            className="flex-1 rounded-lg border border-border-custom bg-white px-3 py-1.5 text-xs focus:border-foreground focus:outline-none"
+          />
+          <button
+            type="button"
+            onClick={addUrl}
+            className="h-8 rounded-lg bg-foreground px-3 text-[11px] font-bold text-background hover:bg-accent-custom transition-colors cursor-pointer"
+          >
+            Add URL
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 interface AdminDashboardProps {
   userEmail: string;
 }
@@ -394,12 +652,11 @@ export function AdminDashboard({ userEmail }: AdminDashboardProps) {
                     />
                   </div>
                   <div>
-                    <label className="block text-[10px] font-bold text-foreground/50 mb-1">Logo Asset Path (e.g. logo.png)</label>
-                    <input
-                      type="text"
+                    <ImageUploader
+                      label="Logo Asset Path (e.g. logo.png)"
                       value={db.settings.logo.icon}
-                      onChange={(e) => updateLogo('icon', e.target.value)}
-                      className="w-full rounded-lg border border-border-custom bg-zinc-50/50 px-3 py-2 text-xs focus:border-foreground focus:bg-white focus:outline-none"
+                      onChange={(val) => updateLogo('icon', val)}
+                      placeholder="e.g. /logo.png or uploaded image"
                     />
                   </div>
                 </div>
@@ -571,13 +828,11 @@ export function AdminDashboard({ userEmail }: AdminDashboardProps) {
                   
                   <div className="grid sm:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-[10px] font-bold text-foreground/60 mb-1">Image Graphic URL (optional)</label>
-                      <input
-                        type="text"
+                      <ImageUploader
+                        label="Image Graphic URL (optional)"
                         value={selectedService.image || ''}
-                        onChange={(e) => handleServiceChange(selectedService.slug, 'image', e.target.value)}
-                        className="w-full rounded-lg border border-border-custom bg-white px-3 py-2 text-xs focus:border-foreground focus:outline-none"
-                        placeholder="e.g. /images/service.png"
+                        onChange={(val) => handleServiceChange(selectedService.slug, 'image', val)}
+                        placeholder="e.g. /images/service.png or uploaded image"
                       />
                     </div>
                     <div>
@@ -711,13 +966,11 @@ export function AdminDashboard({ userEmail }: AdminDashboardProps) {
 
                   <div className="grid sm:grid-cols-3 gap-4">
                     <div>
-                      <label className="block text-[10px] font-bold text-foreground/60 mb-1">Main Cover Image URL</label>
-                      <input
-                        type="text"
-                        value={selectedWork.coverImage}
-                        onChange={(e) => handleWorkChange(selectedWork.slug, 'coverImage', e.target.value)}
-                        className="w-full rounded-lg border border-border-custom bg-white px-3 py-2 text-xs focus:border-foreground focus:outline-none"
-                        placeholder="e.g. /images/cover.jpg"
+                      <ImageUploader
+                        label="Main Cover Image URL"
+                        value={selectedWork.coverImage || ''}
+                        onChange={(val) => handleWorkChange(selectedWork.slug, 'coverImage', val)}
+                        placeholder="e.g. /images/cover.jpg or uploaded image"
                       />
                     </div>
                     <div className="sm:col-span-2">
@@ -732,26 +985,21 @@ export function AdminDashboard({ userEmail }: AdminDashboardProps) {
                     </div>
                   </div>
 
-                  <div className="grid sm:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-[10px] font-bold text-foreground/60 mb-1">Tags (Comma-separated)</label>
-                      <input
-                        type="text"
-                        value={selectedWork.tags.join(', ')}
-                        onChange={(e) => handleWorkTagsChange(selectedWork.slug, e.target.value)}
-                        className="w-full rounded-lg border border-border-custom bg-white px-3 py-2 text-xs focus:border-foreground focus:outline-none"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-[10px] font-bold text-foreground/60 mb-1">Gallery Additional Images (Comma-separated URLs)</label>
-                      <input
-                        type="text"
-                        value={(selectedWork.additionalImages || []).join(', ')}
-                        onChange={(e) => handleWorkAdditionalImagesChange(selectedWork.slug, e.target.value)}
-                        className="w-full rounded-lg border border-border-custom bg-white px-3 py-2 text-xs focus:border-foreground focus:outline-none"
-                        placeholder="e.g. /img1.jpg, /img2.jpg"
-                      />
-                    </div>
+                  <div>
+                    <label className="block text-[10px] font-bold text-foreground/60 mb-1">Tags (Comma-separated)</label>
+                    <input
+                      type="text"
+                      value={selectedWork.tags.join(', ')}
+                      onChange={(e) => handleWorkTagsChange(selectedWork.slug, e.target.value)}
+                      className="w-full rounded-lg border border-border-custom bg-white px-3 py-2 text-xs focus:border-foreground focus:outline-none"
+                    />
+                  </div>
+
+                  <div>
+                    <GalleryManager
+                      images={selectedWork.additionalImages || []}
+                      onChange={(imgs) => handleWorkChange(selectedWork.slug, 'additionalImages', imgs)}
+                    />
                   </div>
 
                   <div>
