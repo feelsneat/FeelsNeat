@@ -6,53 +6,69 @@ export const runtime = 'edge';
 
 export default async function HomePage() {
   const homeData = await getPage('home');
-  const services = (await getServices()).slice(0, 3);
+  const services = (await getServices()).slice(0, 4); // Fetch up to 4 services for layout flexibility
   const work = (await getWork()).slice(0, 2);
   const observations = (await getObservations()).slice(0, 3); // Show up to 3 observations
 
   return (
     <div className="flex flex-col w-full bg-background overflow-hidden">
-      {/* Premium Hero Section with Morphing Red Blob (Tresmares Capital style) */}
-      <section className="relative overflow-hidden py-28 md:py-36 bg-white border-b border-zinc-100">
-        {/* Animated Morphing red blobs in the background */}
-        <div className="morphing-blob-large absolute -top-40 -right-40" />
-        <div className="morphing-blob absolute top-1/2 left-1/3 opacity-50" />
+      {/* 
+        PREMIUM HERO SECTION (Tresmares Capital SOTD Visual Style)
+        Features a full-screen high-contrast grayscale architectural image background
+        with massive typography overlay and bottom-right aligned narrative blocks.
+      */}
+      <section className="relative h-[85vh] sm:h-[90vh] flex items-center bg-zinc-950 text-white overflow-hidden border-b border-zinc-900">
+        {/* Grayscale background image generated for high contrast perspective */}
+        <div 
+          className="absolute inset-0 bg-cover bg-center grayscale opacity-80 z-0" 
+          style={{ backgroundImage: "url('/images/hero-bg.jpg')" }}
+        />
         
-        {/* Subtle architectural vertical layout line */}
-        <div className="absolute top-0 bottom-0 left-[20%] w-[1px] bg-zinc-100/50 hidden md:block" />
-        <div className="absolute top-0 bottom-0 left-[80%] w-[1px] bg-zinc-100/50 hidden md:block" />
+        {/* Dark subtle gradient shadow overlays to guarantee copy readability */}
+        <div className="absolute inset-0 bg-gradient-to-r from-zinc-950/70 via-zinc-950/40 to-transparent z-10" />
+        <div className="absolute inset-0 bg-gradient-to-t from-zinc-950/80 via-transparent to-zinc-950/20 z-10" />
 
-        <div className="mx-auto max-w-5xl px-4 sm:px-6 relative z-10">
-          <div className="max-w-3xl animate-slide-up">
-            <span className="inline-flex items-center gap-1.5 rounded-md bg-accent-custom/5 border border-accent-custom/10 px-3 py-1 text-[10px] font-black text-accent-custom uppercase tracking-widest mb-6">
+        <div className="mx-auto max-w-5xl w-full px-4 sm:px-6 relative z-20 h-full flex flex-col justify-between py-16 sm:py-24">
+          {/* Top Label */}
+          <div>
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/20 px-3 py-1 text-[10px] font-black text-white uppercase tracking-widest animate-fade-in">
               <span className="h-1.5 w-1.5 rounded-full bg-accent-custom animate-ping" />
-              Digital Craftsmanship
+              Active Exploration Studio
             </span>
-            <h1 className="text-4xl sm:text-6xl font-extrabold tracking-tight text-foreground leading-tight uppercase font-sans">
-              {homeData.subtitle}
+          </div>
+
+          {/* Middle: Massive Bold Typography (Visual Flow of SOTD website) */}
+          <div className="max-w-3xl my-auto pt-10 animate-slide-up">
+            <h1 className="text-5xl sm:text-7xl font-extrabold tracking-tighter leading-none uppercase drop-shadow-lg text-white font-sans select-none">
+              DESIGN <br />
+              FOR <span className="text-accent-custom">CLARITY.</span>
             </h1>
-            <p className="mt-8 text-lg sm:text-xl text-neutral-gray font-medium leading-relaxed max-w-2xl">
-              {homeData.tagline}
-            </p>
-            <div className="mt-10 flex flex-col sm:flex-row gap-4">
-              <Link
-                href={homeData.heroActionPath || '/our-work'}
-                className="inline-flex h-12 items-center justify-center rounded-lg bg-foreground px-8 text-xs font-black text-background uppercase tracking-wider hover:bg-accent-custom transition-all duration-300 shadow-sm hover:scale-[1.01]"
-              >
-                {homeData.heroActionText || 'Explore Our Work'}
-              </Link>
-              <Link
-                href="/contact"
-                className="inline-flex h-12 items-center justify-center rounded-lg border border-zinc-200 px-8 text-xs font-black text-foreground uppercase tracking-wider hover:bg-zinc-50 transition-colors"
-              >
-                Get in Touch
-              </Link>
+          </div>
+
+          {/* Bottom Row: Left "Scroll" and Right "Description Narrative & Action" */}
+          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-6 pt-6 border-t border-white/15 w-full">
+            <span className="text-[10px] font-black text-white/50 uppercase tracking-widest hidden sm:inline-block">
+              [ Scroll to explore ]
+            </span>
+
+            <div className="sm:text-right space-y-4 max-w-sm ml-auto">
+              <p className="text-xs sm:text-sm text-white/80 leading-relaxed font-medium">
+                {homeData.tagline}
+              </p>
+              <div className="pt-2 flex justify-start sm:justify-end gap-4">
+                <Link
+                  href="/our-work"
+                  className="inline-flex items-center gap-1.5 text-xs font-black uppercase tracking-widest text-white hover:text-accent-custom transition-colors border-b border-white hover:border-accent-custom pb-0.5"
+                >
+                  Explore Showcase <LucideIcon name="ArrowRight" className="h-3.5 w-3.5 text-accent-custom" />
+                </Link>
+              </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Intro Philosophy Section (Scroll animation and thin borders) */}
+      {/* Intro Philosophy Section (Generous clean padding) */}
       <section className="py-24 bg-white border-b border-zinc-100 scroll-reveal relative">
         <div className="mx-auto max-w-5xl px-4 sm:px-6">
           <div className="grid md:grid-cols-12 gap-8 md:gap-16 items-start">
@@ -70,10 +86,15 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* Services & Expertise (Minimal layout separated by 1px thin grid lines) */}
-      <section className="py-24 bg-white border-b border-zinc-100 scroll-reveal">
+      {/* 
+        SERVICES CAPABILITIES SECTION WITH SOLID RED BAR OVERLAY (SOTD visual replica)
+        Recreates the exact design layout: Left menu text list, center botanical silhouette 
+        with horizontal solid red bar crossing it, right side key metrics and tags.
+      */}
+      <section className="py-28 bg-white border-b border-zinc-100 scroll-reveal">
         <div className="mx-auto max-w-5xl px-4 sm:px-6">
-          <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-16">
+          {/* Header */}
+          <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-20">
             <div>
               <span className="text-[10px] font-black text-accent-custom uppercase tracking-widest block mb-2">Capabilities</span>
               <h2 className="text-3xl font-black tracking-tight text-foreground uppercase">Services & Expertise</h2>
@@ -82,38 +103,70 @@ export default async function HomePage() {
               href="/what-we-do" 
               className="mt-4 sm:mt-0 inline-flex items-center gap-1.5 text-xs font-black text-foreground uppercase tracking-wider hover:text-accent-custom transition-colors"
             >
-              All services <LucideIcon name="ArrowRight" className="h-3.5 w-3.5 text-accent-custom" />
+              All capabilities <LucideIcon name="ArrowRight" className="h-3.5 w-3.5 text-accent-custom" />
             </Link>
           </div>
 
-          {/* Thin border separated structural cards */}
-          <div className="grid md:grid-cols-3 border border-zinc-100 rounded-lg overflow-hidden divide-y md:divide-y-0 md:divide-x divide-zinc-100 bg-white">
-            {services.map((service, index) => (
-              <Link 
-                key={service.slug} 
-                href={`/what-we-do#${service.slug}`}
-                className="group flex flex-col p-8 hover:bg-zinc-50/50 transition-all duration-300 cursor-pointer"
-              >
-                <div className="flex justify-between items-start mb-8">
-                  {/* Accent colored icon */}
-                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-zinc-50 border border-zinc-100 text-accent-custom group-hover:bg-accent-custom group-hover:text-white group-hover:border-accent-custom transition-all duration-300">
-                    <LucideIcon name={service.icon} className="h-5 w-5" />
-                  </div>
-                  <span className="text-xs font-black text-zinc-300 group-hover:text-accent-custom/30 transition-colors">0{index + 1}</span>
-                </div>
+          {/* Split grid layout */}
+          <div className="grid md:grid-cols-12 gap-12 items-center">
+            {/* Left Column: Menu Text List */}
+            <div className="md:col-span-4 space-y-8">
+              <div className="space-y-4">
+                <span className="text-[9px] font-black text-accent-custom uppercase tracking-widest block">Menu Selection</span>
+                <nav className="flex flex-col divide-y divide-zinc-100 border-y border-zinc-100">
+                  {services.map((service, idx) => (
+                    <Link
+                      key={service.slug}
+                      href={`/what-we-do#${service.slug}`}
+                      className="group flex items-center justify-between py-3.5 text-xs font-black uppercase tracking-wider text-neutral-gray hover:text-foreground transition-colors"
+                    >
+                      <span className="flex items-center gap-2">
+                        <span className="text-[9px] text-accent-custom">0{idx + 1}.</span>
+                        {service.title}
+                      </span>
+                      <LucideIcon name="ArrowUpRight" className="h-3 w-3 opacity-0 group-hover:opacity-100 transition-opacity text-accent-custom" />
+                    </Link>
+                  ))}
+                </nav>
+              </div>
+            </div>
+
+            {/* Center Column: Grayscale image with Solid Red Bar Overlay (Visual replica) */}
+            <div className="md:col-span-4 flex justify-center">
+              <div className="relative w-full max-w-[280px] aspect-[1/1.2] rounded-lg overflow-hidden border border-zinc-150 bg-zinc-50 flex items-center justify-center shadow-xs">
+                {/* Botanical Grayscale image background */}
+                <img 
+                  src="/images/services-stem.jpg" 
+                  alt="Botanical Stem Silhouette" 
+                  className="absolute inset-0 h-full w-full object-cover grayscale opacity-90"
+                />
                 
-                <h3 className="text-base font-black text-foreground mb-3 group-hover:text-accent-custom transition-colors uppercase tracking-tight">
-                  {service.title}
-                </h3>
-                <p className="text-xs text-neutral-gray leading-relaxed flex-1">
-                  {service.summary}
-                </p>
-                <div className="mt-8 flex items-center gap-1 text-[10px] font-black uppercase text-foreground group-hover:text-accent-custom transition-colors">
-                  <span>Explore Capablity</span>
-                  <LucideIcon name="ArrowRight" className="h-3 w-3 translate-x-0 group-hover:translate-x-1 transition-transform" />
+                {/* Solid bright red horizontal bar crossing the center exactly like the screen recording */}
+                <div className="absolute left-0 right-0 h-16 bg-[#E30613] mix-blend-normal opacity-100 shadow-md z-10 border-y border-[#B9050F]" />
+              </div>
+            </div>
+
+            {/* Right Column: Key metrics and technical capability notes */}
+            <div className="md:col-span-4 space-y-6">
+              <div className="p-6 bg-zinc-50 rounded-lg border border-zinc-100/60 space-y-6">
+                <div>
+                  <span className="text-[8px] font-black text-accent-custom uppercase tracking-widest block mb-1">Standard</span>
+                  <h4 className="text-xl font-extrabold text-foreground uppercase leading-none tracking-tight">Clarity & Usability</h4>
                 </div>
-              </Link>
-            ))}
+                <div className="space-y-4 text-xs text-neutral-gray leading-relaxed">
+                  <p>
+                    We structure products and platforms in three axes—meaningful design, performance engineering, and simple workflows.
+                  </p>
+                  <p>
+                    No complex software jargon. We build interfaces that are clean, fast, and satisfying to use.
+                  </p>
+                </div>
+                <div className="pt-2 border-t border-zinc-200/50 flex flex-wrap gap-1.5">
+                  <span className="px-2 py-0.5 bg-white border border-zinc-200 text-[8px] font-black uppercase text-foreground/70 rounded">100% Custom</span>
+                  <span className="px-2 py-0.5 bg-white border border-zinc-200 text-[8px] font-black uppercase text-foreground/70 rounded">High Perf</span>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </section>
