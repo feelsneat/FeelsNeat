@@ -1,0 +1,24 @@
+{
+  "siteName": "FeelsNeat",
+  "siteTitle": "FeelsNeat — Thoughtfully Designed Products & Resources",
+  "siteDescription": "We create simple, well-designed digital products, practical tools, creative experiments, and useful resources that prioritize clarity, usability, and craftsmanship.",
+  "logo": {
+    "text": "FeelsNeat",
+    "icon": "logo.png"
+  },
+  "contactEmail": "hello@feelsneat.com",
+  "socials": [
+    {
+      "platform": "Twitter",
+      "url": "https://twitter.com/feelsneat"
+    },
+    {
+      "platform": "GitHub",
+      "url": "https://github.com/feelsneat"
+    },
+    {
+      "platform": "LinkedIn",
+      "url": "https://linkedin.com/company/feelsneat"
+    }
+  ]
+}

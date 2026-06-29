@@ -1,0 +1,30 @@
+{
+  "headerLinks": [
+    { "label": "Home", "path": "/" },
+    { "label": "What We Do", "path": "/what-we-do" },
+    { "label": "Our Work", "path": "/our-work" },
+    { "label": "Observations", "path": "/observations" },
+    { "label": "About", "path": "/about" },
+    { "label": "Contact", "path": "/contact" }
+  ],
+  "footerLinks": [
+    {
+      "title": "Pages",
+      "items": [
+        { "label": "Home", "path": "/" },
+        { "label": "What We Do", "path": "/what-we-do" },
+        { "label": "Our Work", "path": "/our-work" },
+        { "label": "Observations", "path": "/observations" },
+        { "label": "About", "path": "/about" },
+        { "label": "Contact", "path": "/contact" }
+      ]
+    },
+    {
+      "title": "Contact",
+      "items": [
+        { "label": "Email", "path": "mailto:hello@feelsneat.com" },
+        { "label": "General Inquiry", "path": "/contact" }
+      ]
+    }
+  ]
+}
