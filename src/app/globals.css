@@ -159,3 +159,101 @@ body {
 .thin-grid-line {
   border-color: rgba(255, 255, 255, 0.06);
 }
+
+/* Admin Workspace Overrides for Premium Dark Mode */
+.admin-workspace-theme {
+  background-color: #0A0A0C !important;
+  color: #F4F4F5 !important;
+}
+
+.admin-workspace-theme .bg-white {
+  background-color: #0E0E12 !important;
+  border-color: #1F1F23 !important;
+}
+
+.admin-workspace-theme .bg-zinc-50\/50,
+.admin-workspace-theme .bg-zinc-50 {
+  background-color: #060608 !important;
+}
+
+.admin-workspace-theme input,
+.admin-workspace-theme textarea,
+.admin-workspace-theme select {
+  background-color: #050507 !important;
+  color: #F4F4F5 !important;
+  border-color: #1F1F23 !important;
+}
+
+.admin-workspace-theme input:focus,
+.admin-workspace-theme textarea:focus,
+.admin-workspace-theme select:focus {
+  border-color: #E30613 !important;
+  outline: none !important;
+}
+
+.admin-workspace-theme input::placeholder,
+.admin-workspace-theme textarea::placeholder {
+  color: #52525B !important;
+}
+
+.admin-workspace-theme label,
+.admin-workspace-theme .text-zinc-700,
+.admin-workspace-theme .text-zinc-650,
+.admin-workspace-theme .text-zinc-600,
+.admin-workspace-theme .text-zinc-550,
+.admin-workspace-theme .text-zinc-500,
+.admin-workspace-theme .text-foreground\/70,
+.admin-workspace-theme .text-foreground\/50 {
+  color: #A1A1AA !important;
+}
+
+.admin-workspace-theme h1,
+.admin-workspace-theme h2,
+.admin-workspace-theme h3,
+.admin-workspace-theme h4 {
+  color: #F4F4F5 !important;
+}
+
+.admin-workspace-theme .border-border-custom,
+.admin-workspace-theme .border-zinc-200,
+.admin-workspace-theme .border-zinc-150 {
+  border-color: #1F1F23 !important;
+}
+
+.admin-workspace-theme .bg-zinc-100 {
+  background-color: #1F1F23 !important;
+  color: #F4F4F5 !important;
+}
+
+.admin-workspace-theme .hover\:bg-zinc-50:hover {
+  background-color: rgba(255, 255, 255, 0.05) !important;
+}
+
+.admin-workspace-theme button.bg-white {
+  background-color: #1F1F23 !important;
+  color: #E4E4E7 !important;
+  border-color: #27272A !important;
+}
+
+.admin-workspace-theme button.bg-white:hover {
+  background-color: #27272A !important;
+}
+
+.admin-workspace-theme .bg-red-50 {
+  background-color: rgba(239, 68, 68, 0.1) !important;
+  color: #FCA5A5 !important;
+  border-color: rgba(239, 68, 68, 0.2) !important;
+}
+
+.admin-workspace-theme .bg-red-50:hover {
+  background-color: rgba(239, 68, 68, 0.2) !important;
+}
+
+.admin-workspace-theme .text-zinc-900 {
+  color: #F4F4F5 !important;
+}
+
+.admin-workspace-theme .border-zinc-150 {
+  border-color: #1F1F23 !important;
+}
+

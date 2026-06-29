@@ -74,7 +74,7 @@ export default async function AdminPage({ userEmail, error, email }: AdminPagePr
   }
 
   return (
-    <main className="flex-1 w-full bg-zinc-50 dark:bg-zinc-950 py-12 border-b border-zinc-100 dark:border-zinc-800/40">
+    <main className="flex-1 w-full bg-[#0A0A0C] py-12 border-b border-zinc-900 admin-workspace-theme">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <AdminDashboard userEmail={userEmail} />
       </div>
