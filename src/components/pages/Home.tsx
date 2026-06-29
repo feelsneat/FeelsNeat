@@ -17,24 +17,25 @@ export default async function HomePage() {
         Features a full-screen high-contrast grayscale sky and clouds background image
         with massive typography overlay and bottom-right aligned narrative blocks.
       */}
-      <section className="relative h-screen flex items-center bg-white text-zinc-900 overflow-hidden">
-        {/* Clean morning productivity workspace background image */}
+      <section className="relative h-screen flex items-center bg-zinc-950 text-white overflow-hidden">
+        {/* Confirmed sunset wildflower sidewalk background image */}
         <div 
-          className="absolute inset-0 bg-cover bg-center opacity-90 z-0" 
+          className="absolute inset-0 bg-cover bg-center grayscale-20 opacity-80 z-0" 
           style={{ backgroundImage: "url('/images/hero-bg.jpg')" }}
         />
         
-        {/* Soft light vignette overlay */}
-        <div className="absolute inset-0 bg-white/10 z-10" />
+        {/* Dark subtle gradient shadow overlays to guarantee copy readability */}
+        <div className="absolute inset-0 bg-gradient-to-r from-zinc-950/70 via-zinc-950/40 to-transparent z-10" />
+        <div className="absolute inset-0 bg-gradient-to-t from-zinc-950/80 via-transparent to-zinc-950/20 z-10" />
 
         {/* Smooth visual gradient transition to prevent hard line break into white page sections */}
-        <div className="absolute bottom-0 left-0 right-0 h-48 bg-gradient-to-t from-white via-white/50 to-transparent z-15 pointer-events-none" />
+        <div className="absolute bottom-0 left-0 right-0 h-48 bg-gradient-to-t from-white via-white/40 to-transparent z-15 pointer-events-none" />
 
         {/* Full-width container matching navbar grids exactly */}
         <div className="w-full px-6 sm:px-10 md:px-14 relative z-20 h-full flex flex-col justify-between pt-28 pb-16 sm:pb-24">
           {/* Top Label */}
           <div>
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-zinc-900/5 border border-zinc-900/10 px-3 py-1 text-[10px] font-black text-zinc-900 uppercase tracking-widest animate-fade-in">
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/20 px-3 py-1 text-[10px] font-black text-white uppercase tracking-widest animate-fade-in">
               <span className="h-1.5 w-1.5 rounded-full bg-accent-custom animate-ping" />
               Active Exploration Studio
             </span>
@@ -42,26 +43,26 @@ export default async function HomePage() {
 
           {/* Middle: Massive Bold Typography (Visual Flow of SOTD website) */}
           <div className="max-w-3xl my-auto pt-10 animate-slide-up">
-            <h1 className="text-5xl sm:text-7xl font-extrabold tracking-tighter leading-none uppercase text-zinc-950 font-sans select-none">
+            <h1 className="text-5xl sm:text-7xl font-extrabold tracking-tighter leading-none uppercase drop-shadow-md text-white font-sans select-none">
               DESIGN <br />
               FOR <span className="text-accent-custom">CLARITY.</span>
             </h1>
           </div>
 
           {/* Bottom Row: Left "Scroll" and Right "Description Narrative & Action" */}
-          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-6 pt-6 border-t border-zinc-200 w-full">
-            <span className="text-[10px] font-black text-zinc-400 uppercase tracking-widest hidden sm:inline-block">
+          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-6 pt-6 border-t border-white/15 w-full">
+            <span className="text-[10px] font-black text-white/50 uppercase tracking-widest hidden sm:inline-block">
               [ Scroll to explore ]
             </span>
 
             <div className="sm:text-right space-y-4 max-w-sm ml-auto">
-              <p className="text-xs sm:text-sm text-zinc-800 leading-relaxed font-medium">
+              <p className="text-xs sm:text-sm text-white/80 leading-relaxed font-medium">
                 {homeData.tagline}
               </p>
               <div className="pt-2 flex justify-start sm:justify-end gap-4">
                 <Link
                   href="/our-work"
-                  className="inline-flex items-center gap-1.5 text-xs font-black uppercase tracking-widest text-zinc-950 hover:text-accent-custom transition-colors border-b border-zinc-950 hover:border-accent-custom pb-0.5"
+                  className="inline-flex items-center gap-1.5 text-xs font-black uppercase tracking-widest text-white hover:text-accent-custom transition-colors border-b border-white hover:border-accent-custom pb-0.5"
                 >
                   Explore Showcase <LucideIcon name="ArrowRight" className="h-3.5 w-3.5 text-accent-custom" />
                 </Link>
