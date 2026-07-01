@@ -68,6 +68,26 @@ export function SubstackFeed() {
     return text.length > 140 ? text.substring(0, 140) + '...' : text;
   };
 
+  // Helper to dynamically extract image thumbnails from RSS data
+  const getThumbnail = (post: SubstackPost) => {
+    // 1. Check if rss2json directly parsed a thumbnail image
+    if (post.thumbnail && post.thumbnail.startsWith('http')) {
+      return post.thumbnail;
+    }
+    // 2. Otherwise extract first <img> tag src from post content or description HTML
+    try {
+      const htmlContent = post.content || post.description || '';
+      const doc = new DOMParser().parseFromString(htmlContent, 'text/html');
+      const img = doc.querySelector('img');
+      if (img && img.src && img.src.startsWith('http')) {
+        return img.src;
+      }
+    } catch (e) {
+      console.warn('Error parsing inline thumbnail image:', e);
+    }
+    return null;
+  };
+
   if (error) {
     return (
       <div className="rounded-2xl border border-zinc-200 bg-white p-8 sm:p-12 text-center shadow-md max-w-2xl mx-auto scroll-reveal">
@@ -103,52 +123,63 @@ export function SubstackFeed() {
                 key={idx}
                 className="flex flex-col rounded-2xl border border-zinc-200 bg-white p-6 shadow-md animate-pulse space-y-4 min-h-[300px]"
               >
+                <div className="w-full aspect-[16/9] rounded-xl bg-zinc-100 animate-pulse mb-2" />
                 <div className="h-3 w-1/3 bg-zinc-200 rounded" />
                 <div className="space-y-2">
                   <div className="h-5 bg-zinc-200 rounded w-11/12" />
                   <div className="h-5 bg-zinc-200 rounded w-8/12" />
                 </div>
-                <div className="space-y-2 pt-2">
-                  <div className="h-3 bg-zinc-150 rounded" />
-                  <div className="h-3 bg-zinc-150 rounded" />
-                  <div className="h-3 bg-zinc-150 rounded w-10/12" />
-                </div>
                 <div className="h-4 bg-zinc-200 rounded w-1/4 pt-4 mt-auto" />
               </div>
             ))
-          : posts.map((post) => (
-              <article
-                key={post.guid}
-                className="group flex flex-col rounded-2xl border border-zinc-200 bg-white p-6 shadow-md hover:border-[#E30613] hover:shadow-lg transition-all duration-300 min-h-[300px]"
-              >
-                {/* Date stamp */}
-                <span className="text-[10px] font-black text-[#E30613] uppercase tracking-wider block mb-3">
-                  {formatDate(post.pubDate)}
-                </span>
-                
-                {/* Post Title */}
-                <h3 className="text-base font-bold text-[#000000] leading-snug group-hover:text-[#E30613] transition-colors duration-200 tracking-tight uppercase mb-3">
-                  {post.title}
-                </h3>
-                
-                {/* Snippet Excerpt */}
-                <p className="text-xs text-[#000000] leading-relaxed mb-6 flex-grow font-black uppercase">
-                  {cleanDescription(post.description)}
-                </p>
-                
-                {/* Read Button */}
-                <div className="pt-2">
-                  <a
-                    href={post.link}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1.5 text-xs font-black text-[#000000] uppercase tracking-wider group-hover:text-[#E30613] transition-colors border-b border-[#000000] group-hover:border-[#E30613] pb-0.5"
-                  >
-                    Read Article <LucideIcon name="ArrowRight" className="h-3 w-3" />
-                  </a>
-                </div>
-              </article>
-            ))}
+          : posts.map((post) => {
+              const thumbnail = getThumbnail(post);
+              return (
+                <article
+                  key={post.guid}
+                  className="group flex flex-col rounded-2xl border border-zinc-200 bg-white p-6 shadow-md hover:border-[#E30613] hover:shadow-lg transition-all duration-300 min-h-[300px]"
+                >
+                  {/* Optional Image Thumbnail */}
+                  {thumbnail && (
+                    <div className="w-full aspect-[16/9] rounded-xl overflow-hidden mb-4 border border-zinc-100 bg-zinc-50 relative select-none">
+                      <img
+                        src={thumbnail}
+                        alt={post.title}
+                        className="h-full w-full object-cover group-hover:scale-102 transition-transform duration-500"
+                        loading="lazy"
+                      />
+                    </div>
+                  )}
+
+                  {/* Date stamp */}
+                  <span className="text-[10px] font-black text-[#E30613] uppercase tracking-wider block mb-3">
+                    {formatDate(post.pubDate)}
+                  </span>
+                  
+                  {/* Post Title */}
+                  <h3 className="text-base font-bold text-[#000000] leading-snug group-hover:text-[#E30613] transition-colors duration-200 tracking-tight uppercase mb-3">
+                    {post.title}
+                  </h3>
+                  
+                  {/* Snippet Excerpt */}
+                  <p className="text-xs text-[#000000] leading-relaxed mb-6 flex-grow font-black uppercase">
+                    {cleanDescription(post.description)}
+                  </p>
+                  
+                  {/* Read Button */}
+                  <div className="pt-2">
+                    <a
+                      href={post.link}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1.5 text-xs font-black text-[#000000] uppercase tracking-wider group-hover:text-[#E30613] transition-colors border-b border-[#000000] group-hover:border-[#E30613] pb-0.5"
+                    >
+                      Read Article <LucideIcon name="ArrowRight" className="h-3 w-3" />
+                    </a>
+                  </div>
+                </article>
+              );
+            })}
       </div>
     </div>
   );

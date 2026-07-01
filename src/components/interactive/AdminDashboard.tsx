@@ -605,7 +605,7 @@ export function AdminDashboard({ userEmail }: AdminDashboardProps) {
         <div className="flex flex-wrap gap-2.5">
           <button
             onClick={handleSyncFromCodebase}
-            className="inline-flex h-9 items-center justify-center rounded-lg border border-border-custom bg-zinc-900 text-foreground px-4 text-xs font-bold hover:bg-zinc-800 cursor-pointer"
+            className="inline-flex h-9 items-center justify-center rounded-lg border border-border-custom bg-zinc-900 text-white px-4 text-xs font-bold hover:bg-zinc-800 cursor-pointer"
           >
             Sync from Codebase
           </button>
