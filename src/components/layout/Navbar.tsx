@@ -55,24 +55,24 @@ export function Navbar({ settings, navigation }: NavbarProps) {
   const regularLinks = navigation.headerLinks.filter(l => l.path !== '/contact');
   const hasContactLink = navigation.headerLinks.some(l => l.path === '/contact');
 
-  // Dynamic theme classes optimized for Light Warm Journal Vibe
+  // Dynamic theme classes optimized for Premium Dark Theme Vibe
   const headerTheme = isAtTop
-    ? 'bg-transparent border-transparent text-[#1E1E1E]'
-    : 'bg-white/80 border-zinc-200/50 text-[#1E1E1E] shadow-3xs backdrop-blur-md';
+    ? 'bg-transparent border-transparent text-[#F4F4F5]'
+    : 'bg-[#0A0A0C]/90 border-white/10 text-[#F4F4F5] shadow-md backdrop-blur-md';
 
   const logoBorderTheme = isAtTop
-    ? 'bg-zinc-100 border-zinc-200'
-    : 'bg-zinc-50 border-zinc-200';
+    ? 'bg-white/5 border-white/10'
+    : 'bg-white/10 border-white/20';
 
   const navLinkTheme = isAtTop
-    ? 'text-[#1E1E1E]/80 hover:text-[#6E8270]'
-    : 'text-[#5F5F5F] hover:text-[#1E1E1E]';
+    ? 'text-[#F4F4F5]/80 hover:text-[#E30613]'
+    : 'text-[#F4F4F5]/70 hover:text-[#E30613]';
 
-  const contactButtonTheme = 'bg-[#1E1E1E] text-[#FAFAFA] hover:bg-[#6E8270] hover:text-white transition-colors duration-300 rounded-lg shadow-3xs';
+  const contactButtonTheme = 'bg-[#E30613] text-white hover:bg-white hover:text-black transition-colors duration-300 rounded-lg shadow-sm';
 
   const mobileToggleTheme = isAtTop
-    ? 'border-zinc-200/60 text-[#1E1E1E]/80 hover:text-[#1E1E1E]'
-    : 'border-zinc-200 text-[#1E1E1E]/80 hover:text-[#1E1E1E]';
+    ? 'border-white/10 text-[#F4F4F5]/80 hover:text-[#F4F4F5]'
+    : 'border-white/20 text-[#F4F4F5]/80 hover:text-[#F4F4F5]';
 
   return (
     <header 
@@ -108,7 +108,7 @@ export function Navbar({ settings, navigation }: NavbarProps) {
               >
                 {link.label}
                 {isActive && (
-                  <span className="absolute bottom-0 left-0 right-0 h-[2.5px] bg-[#6E8270] rounded-t-full" />
+                  <span className="absolute bottom-0 left-0 right-0 h-[2.5px] bg-[#E30613] rounded-t-full" />
                 )}
               </Link>
             );
@@ -117,7 +117,7 @@ export function Navbar({ settings, navigation }: NavbarProps) {
 
         {/* Contact button */}
         {hasContactLink && (
-          <div className={`hidden md:flex items-center h-full border-l ${isAtTop ? 'border-zinc-200/40' : 'border-zinc-200'} pl-6 ml-6`}>
+          <div className={`hidden md:flex items-center h-full border-l ${isAtTop ? 'border-white/10' : 'border-white/20'} pl-6 ml-6`}>
             <Link
               href="/contact"
               className={`inline-flex h-9 items-center justify-center px-5 text-[10px] font-black uppercase tracking-widest ${contactButtonTheme}`}
@@ -139,7 +139,7 @@ export function Navbar({ settings, navigation }: NavbarProps) {
 
       {/* Mobile nav panel */}
       {isOpen && (
-        <div className="border-b bg-white/95 text-[#1E1E1E] border-zinc-200 md:hidden animate-fade-in backdrop-blur-md">
+        <div className="border-b bg-[#0A0A0C]/95 text-[#F4F4F5] border-white/10 md:hidden animate-fade-in backdrop-blur-md">
           <nav className="flex flex-col gap-4 px-6 py-6 sm:px-10">
             {navigation.headerLinks.map((link) => {
               const isActive = pathname === link.path || (link.path !== '/' && pathname.startsWith(link.path));
@@ -149,8 +149,8 @@ export function Navbar({ settings, navigation }: NavbarProps) {
                   href={link.path}
                   className={`text-xs font-black uppercase tracking-widest transition-colors ${
                     isActive
-                      ? 'text-[#6E8270]'
-                      : 'text-[#5F5F5F] hover:text-[#1E1E1E]'
+                      ? 'text-[#E30613]'
+                      : 'text-[#F4F4F5]/70 hover:text-[#F4F4F5]'
                   }`}
                 >
                   {link.label}

@@ -22,24 +22,24 @@ export function Footer({ settings, navigation }: FooterProps) {
   };
 
   return (
-    <footer className="w-full border-t border-zinc-200 bg-[#FAFAFA]">
+    <footer className="w-full border-t border-white/10 bg-[#0A0A0C]">
       <div className="mx-auto max-w-5xl px-4 py-12 sm:px-6 lg:py-16">
         <div className="xl:grid xl:grid-cols-3 xl:gap-8">
           {/* Logo & Description */}
           <div className="space-y-6">
             <Link href="/" className="flex items-center gap-3 group w-fit">
-              <div className="flex h-7 w-7 items-center justify-center overflow-hidden rounded-md bg-zinc-100 border border-zinc-200">
+              <div className="flex h-7 w-7 items-center justify-center overflow-hidden rounded-md bg-white/5 border border-white/10">
                 <img 
                   src="/logo.png" 
                   alt="FeelsNeat Logo" 
                   className="h-full w-full object-cover"
                 />
               </div>
-              <span className="text-base font-bold tracking-tight text-[#1E1E1E] uppercase tracking-wider">
+              <span className="text-base font-bold tracking-tight text-[#F4F4F5] uppercase tracking-wider">
                 {settings.siteName}
               </span>
             </Link>
-            <p className="max-w-md text-sm leading-relaxed text-[#5F5F5F]">
+            <p className="max-w-md text-sm leading-relaxed text-[#F4F4F5]">
               {settings.siteDescription}
             </p>
             {/* Social Links */}
@@ -50,7 +50,7 @@ export function Footer({ settings, navigation }: FooterProps) {
                   href={social.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-[#5F5F5F]/70 hover:text-[#1E1E1E] transition-colors"
+                  className="text-[#F4F4F5]/60 hover:text-[#E30613] transition-colors"
                   aria-label={`Visit FeelsNeat on ${social.platform}`}
                 >
                   <LucideIcon name={getSocialIcon(social.platform)} className="h-4.5 w-4.5" />
@@ -64,7 +64,7 @@ export function Footer({ settings, navigation }: FooterProps) {
             {/* Links columns */}
             {navigation.footerLinks.map((section, idx) => (
               <div key={idx} className="space-y-4">
-                <h3 className="text-xs font-bold tracking-wider text-[#1E1E1E] uppercase">
+                <h3 className="text-xs font-bold tracking-wider text-[#F4F4F5] uppercase">
                   {section.title}
                 </h3>
                 <ul className="space-y-3">
@@ -72,7 +72,7 @@ export function Footer({ settings, navigation }: FooterProps) {
                     <li key={itemIdx}>
                       <Link
                         href={item.path}
-                        className="text-sm text-[#5F5F5F] hover:text-[#1E1E1E] transition-colors font-medium"
+                        className="text-sm text-[#F4F4F5]/80 hover:text-[#E30613] transition-colors font-medium"
                       >
                         {item.label}
                       </Link>
@@ -84,10 +84,10 @@ export function Footer({ settings, navigation }: FooterProps) {
 
             {/* Mini Newsletter Embed Column */}
             <div className="col-span-2 sm:col-span-1 space-y-4">
-              <h3 className="text-xs font-bold tracking-wider text-[#1E1E1E] uppercase">
+              <h3 className="text-xs font-bold tracking-wider text-[#F4F4F5] uppercase">
                 Systems Letter
               </h3>
-              <p className="text-xs text-[#5F5F5F] leading-relaxed">
+              <p className="text-xs text-[#F4F4F5] leading-relaxed">
                 Join our private newsletter for updates on visual systems and workflow productivity templates.
               </p>
               <div className="pt-1">
@@ -95,7 +95,7 @@ export function Footer({ settings, navigation }: FooterProps) {
                   href="https://feelsneat.substack.com"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex h-9 items-center justify-center rounded-lg bg-[#1E1E1E] hover:bg-[#6E8270] text-[#FAFAFA] hover:text-white px-4 text-[10px] font-black uppercase tracking-widest transition-colors duration-300 shadow-xs cursor-pointer"
+                  className="inline-flex h-9 items-center justify-center rounded-lg bg-[#E30613] hover:bg-white hover:text-black text-white px-4 text-[10px] font-black uppercase tracking-widest transition-colors duration-300 shadow-sm cursor-pointer"
                 >
                   Join Publication
                 </a>
@@ -105,19 +105,19 @@ export function Footer({ settings, navigation }: FooterProps) {
         </div>
 
         {/* Bottom Panel */}
-        <div className="mt-12 border-t border-zinc-200 pt-8 space-y-4">
+        <div className="mt-12 border-t border-white/10 pt-8 space-y-4">
           <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
-            <p className="text-xs text-[#5F5F5F]/80">
+            <p className="text-xs text-[#F4F4F5]/50">
               &copy; {currentYear} {settings.siteName}. All rights reserved.
             </p>
-            <p className="text-xs text-[#5F5F5F]/70 flex items-center gap-1.5 font-medium">
-              <LucideIcon name="Feather" className="h-3.5 w-3.5 text-[#6E8270]" /> Timeless Craftsmanship.
+            <p className="text-xs text-[#F4F4F5]/60 flex items-center gap-1.5 font-medium">
+              <LucideIcon name="Feather" className="h-3.5 w-3.5 text-[#E30613]" /> Timeless Craftsmanship.
             </p>
           </div>
           
           {/* Regulatory Compliance Label */}
-          <div className="border-t border-zinc-200/50 pt-4 text-center sm:text-left">
-            <p className="text-[9px] font-bold text-[#5F5F5F]/60 tracking-wide leading-normal">
+          <div className="border-t border-white/5 pt-4 text-center sm:text-left">
+            <p className="text-[9px] font-bold text-[#F4F4F5]/40 tracking-wide leading-normal">
               Supply covered under LUT ARN — Supply meant for export without payment of IGST under Section 16 of the IGST Act, 2017.
             </p>
           </div>

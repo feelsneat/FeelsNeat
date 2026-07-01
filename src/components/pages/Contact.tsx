@@ -26,7 +26,7 @@ export default async function ContactPage() {
   };
 
   return (
-    <main className="flex-1 w-full bg-[#FAFAFA] py-20 sm:py-28 border-b border-zinc-200/50 relative">
+    <main className="flex-1 w-full bg-[#0A0A0C] py-20 sm:py-28 border-b border-white/10 relative">
       {/* Morphing background shapes */}
       <div className="morphing-blob absolute top-20 left-10 opacity-30" />
 
@@ -35,27 +35,27 @@ export default async function ContactPage() {
           {/* Page Info */}
           <div className="lg:col-span-5 space-y-10 scroll-reveal">
             <div>
-              <span className="text-[10px] font-black text-[#6E8270] uppercase tracking-widest block mb-3">Connect</span>
-              <h1 className="text-3xl sm:text-5xl font-extrabold tracking-tight text-[#1E1E1E] uppercase leading-none">
+              <span className="text-[10px] font-black text-[#E30613] uppercase tracking-widest block mb-3">Connect</span>
+              <h1 className="text-3xl sm:text-5xl font-extrabold tracking-tight text-[#F4F4F5] uppercase leading-none">
                 {pageData.title}
               </h1>
-              <p className="mt-6 text-base text-[#5F5F5F] leading-relaxed font-medium">
+              <p className="mt-6 text-base text-[#F4F4F5] leading-relaxed font-medium">
                 {pageData.subtitle}
               </p>
             </div>
 
             <div 
-              className="text-sm text-[#5F5F5F] leading-relaxed prose max-w-none font-medium"
+              className="text-sm text-[#F4F4F5] leading-relaxed prose max-w-none font-medium"
               dangerouslySetInnerHTML={{ __html: pageData.content }}
             />
 
             {/* Direct Connect Info */}
-            <div className="pt-10 border-t border-zinc-200 space-y-8">
+            <div className="pt-10 border-t border-white/10 space-y-8">
               <div className="space-y-2">
-                <h3 className="text-[10px] font-black tracking-widest text-[#6E8270] uppercase">
+                <h3 className="text-[10px] font-black tracking-widest text-[#E30613] uppercase">
                   {pageData.infoTitle || 'Connections'}
                 </h3>
-                <p className="text-xs text-[#5F5F5F] leading-relaxed">
+                <p className="text-xs text-[#F4F4F5] leading-relaxed">
                   {pageData.infoText}
                 </p>
               </div>
@@ -63,9 +63,9 @@ export default async function ContactPage() {
               <div className="flex flex-col gap-3">
                 <a 
                   href={`mailto:${settings.contactEmail}`} 
-                  className="flex items-center gap-3 text-sm text-[#1E1E1E] hover:text-[#6E8270] transition-colors w-fit font-bold"
+                  className="flex items-center gap-3 text-sm text-[#F4F4F5] hover:text-[#E30613] transition-colors w-fit font-bold"
                 >
-                  <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-zinc-100 border border-zinc-200 text-[#6E8270] shadow-xs">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-white/5 border border-white/10 text-[#E30613] shadow-sm">
                     <LucideIcon name="Mail" className="h-4.5 w-4.5" />
                   </div>
                   <span>{settings.contactEmail}</span>
@@ -80,7 +80,7 @@ export default async function ContactPage() {
                     href={social.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex h-9 w-9 items-center justify-center rounded-lg bg-zinc-100 border border-zinc-200 text-[#5F5F5F] hover:text-[#6E8270] hover:border-[#6E8270]/25 hover:bg-zinc-200 transition-all duration-300 shadow-xs"
+                    className="flex h-9 w-9 items-center justify-center rounded-lg bg-white/5 border border-white/10 text-[#F4F4F5] hover:text-[#E30613] hover:border-[#E30613]/25 hover:bg-white/10 transition-all duration-300 shadow-sm"
                     aria-label={`Visit FeelsNeat on ${social.platform}`}
                   >
                     <LucideIcon name={getSocialIcon(social.platform)} className="h-4.5 w-4.5" />

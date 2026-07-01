@@ -1,12 +1,10 @@
 @import "tailwindcss";
 
 :root {
-  --background: #FAFAFA; /* Off-white/warm cream base */
-  --foreground: #1E1E1E; /* Deep charcoal text */
-  --border: #EBEBEB; /* Soft light border line */
-  --accent: #6E8270; /* Soft Sage Green */
-  --accent-blue: #5B7086; /* Soft Slate Blue */
-  --neutral-gray: #5F5F5F; /* Muted typography gray */
+  --background: #0A0A0C; /* Premium dark slate/off-black */
+  --foreground: #F4F4F5; /* Bright off-white typography */
+  --border: #1F1F23; /* Dark slate borders */
+  --accent: #E30613; /* Tresmares Capital Bright Red Accent */
   
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
@@ -17,8 +15,6 @@
   --color-foreground: var(--foreground);
   --color-border-custom: var(--border);
   --color-accent-custom: var(--accent);
-  --color-accent-blue: var(--accent-blue);
-  --color-neutral-gray: var(--neutral-gray);
   
   --font-sans: var(--font-sans);
   --font-mono: var(--font-mono);
@@ -31,7 +27,7 @@ body {
   letter-spacing: -0.01em;
 }
 
-/* Custom styled prose classes for Markdown content rendering (Light Mode Optimized) */
+/* Custom styled prose classes for Markdown content rendering (Dark Mode Optimized) */
 .prose {
   line-height: 1.7;
 }
@@ -44,11 +40,11 @@ body {
 .prose h1 { font-size: 1.85rem; margin-top: 2rem; margin-bottom: 1rem; }
 .prose h2 { font-size: 1.35rem; margin-top: 1.75rem; margin-bottom: 0.75rem; }
 .prose h3 { font-size: 1.15rem; margin-top: 1.5rem; margin-bottom: 0.5rem; }
-.prose p { margin-bottom: 1.25rem; color: var(--neutral-gray); }
+.prose p { margin-bottom: 1.25rem; color: #A1A1AA; }
 .prose ul, .prose ol { margin-bottom: 1.25rem; padding-left: 1.5rem; }
 .prose ul { list-style-type: disc; }
 .prose ol { list-style-type: decimal; }
-.prose li { margin-bottom: 0.5rem; color: var(--neutral-gray); }
+.prose li { margin-bottom: 0.5rem; color: #A1A1AA; }
 .prose blockquote {
   border-left: 3px solid var(--accent);
   padding-left: 1rem;
@@ -57,15 +53,15 @@ body {
   margin-bottom: 1.25rem;
 }
 .prose code {
-  background-color: #F1F1F1;
-  color: #1E1E1E;
+  background-color: #1A1A1E;
+  color: #F4F4F5;
   padding: 0.125rem 0.25rem;
   border-radius: 0.25rem;
   font-family: var(--font-mono);
   font-size: 0.875rem;
 }
 .prose pre {
-  background-color: #F8F8F8;
+  background-color: #0E0E12;
   border: 1px solid var(--border);
   padding: 1rem;
   border-radius: 0.5rem;
@@ -122,7 +118,7 @@ body {
   animation: slideUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
-/* Morphing Accent Graphic Shape Background (Light Warm Sage/Slate) */
+/* Morphing Red Graphic Shape Background (Optimized for Dark Theme) */
 @keyframes morph {
   0% {
     border-radius: 42% 58% 70% 30% / 45% 45% 55% 55%;
@@ -142,7 +138,7 @@ body {
   position: absolute;
   width: 400px;
   height: 400px;
-  background: linear-gradient(135deg, rgba(110, 130, 112, 0.07) 0%, rgba(91, 112, 134, 0.03) 100%);
+  background: linear-gradient(135deg, rgba(227, 6, 19, 0.1) 0%, rgba(227, 6, 19, 0.02) 100%);
   filter: blur(40px);
   animation: morph 15s linear infinite;
   pointer-events: none;
@@ -152,50 +148,50 @@ body {
 .morphing-blob-large {
   width: 600px;
   height: 600px;
-  background: linear-gradient(135deg, rgba(110, 130, 112, 0.05) 0%, rgba(91, 112, 134, 0.02) 100%);
+  background: linear-gradient(135deg, rgba(227, 6, 19, 0.08) 0%, rgba(227, 6, 19, 0.01) 100%);
   filter: blur(55px);
   animation: morph 18s linear infinite;
 }
 
-/* Thin Grid layout style details (Light Theme Friendly) */
+/* Thin Grid layout style details (Dark Theme Friendly) */
 .thin-grid-line {
-  border-color: rgba(0, 0, 0, 0.05);
+  border-color: rgba(255, 255, 255, 0.06);
 }
 
-/* Admin Workspace Overrides for Clean Light Mode */
+/* Admin Workspace Overrides for Premium Dark Mode */
 .admin-workspace-theme {
-  background-color: #FAFAFA !important;
-  color: #1E1E1E !important;
+  background-color: #0A0A0C !important;
+  color: #F4F4F5 !important;
 }
 
 .admin-workspace-theme .bg-white {
-  background-color: #FFFFFF !important;
-  border-color: #EBEBEB !important;
+  background-color: #0E0E12 !important;
+  border-color: #1F1F23 !important;
 }
 
 .admin-workspace-theme .bg-zinc-50\/50,
 .admin-workspace-theme .bg-zinc-50 {
-  background-color: #F7F7F7 !important;
+  background-color: #060608 !important;
 }
 
 .admin-workspace-theme input,
 .admin-workspace-theme textarea,
 .admin-workspace-theme select {
-  background-color: #FFFFFF !important;
-  color: #1E1E1E !important;
-  border-color: #E2E2E2 !important;
+  background-color: #050507 !important;
+  color: #F4F4F5 !important;
+  border-color: #1F1F23 !important;
 }
 
 .admin-workspace-theme input:focus,
 .admin-workspace-theme textarea:focus,
 .admin-workspace-theme select:focus {
-  border-color: #6E8270 !important;
+  border-color: #E30613 !important;
   outline: none !important;
 }
 
 .admin-workspace-theme input::placeholder,
 .admin-workspace-theme textarea::placeholder {
-  color: #A1A1AA !important;
+  color: #52525B !important;
 }
 
 .admin-workspace-theme label,
@@ -206,55 +202,55 @@ body {
 .admin-workspace-theme .text-zinc-500,
 .admin-workspace-theme .text-foreground\/70,
 .admin-workspace-theme .text-foreground\/50 {
-  color: #5F5F5F !important;
+  color: #A1A1AA !important;
 }
 
 .admin-workspace-theme h1,
 .admin-workspace-theme h2,
 .admin-workspace-theme h3,
 .admin-workspace-theme h4 {
-  color: #1E1E1E !important;
+  color: #F4F4F5 !important;
 }
 
 .admin-workspace-theme .border-border-custom,
 .admin-workspace-theme .border-zinc-200,
 .admin-workspace-theme .border-zinc-150 {
-  border-color: #EBEBEB !important;
+  border-color: #1F1F23 !important;
 }
 
 .admin-workspace-theme .bg-zinc-100 {
-  background-color: #F3F3F3 !important;
-  color: #1E1E1E !important;
+  background-color: #1F1F23 !important;
+  color: #F4F4F5 !important;
 }
 
 .admin-workspace-theme .hover\:bg-zinc-50:hover {
-  background-color: rgba(0, 0, 0, 0.03) !important;
+  background-color: rgba(255, 255, 255, 0.05) !important;
 }
 
 .admin-workspace-theme button.bg-white {
-  background-color: #FFFFFF !important;
-  color: #5F5F5F !important;
-  border-color: #E2E2E2 !important;
+  background-color: #1F1F23 !important;
+  color: #E4E4E7 !important;
+  border-color: #27272A !important;
 }
 
 .admin-workspace-theme button.bg-white:hover {
-  background-color: #F9F9F9 !important;
+  background-color: #27272A !important;
 }
 
 .admin-workspace-theme .bg-red-50 {
-  background-color: rgba(239, 68, 68, 0.05) !important;
-  color: #DC2626 !important;
-  border-color: rgba(239, 68, 68, 0.1) !important;
+  background-color: rgba(239, 68, 68, 0.1) !important;
+  color: #FCA5A5 !important;
+  border-color: rgba(239, 68, 68, 0.2) !important;
 }
 
 .admin-workspace-theme .bg-red-50:hover {
-  background-color: rgba(239, 68, 68, 0.08) !important;
+  background-color: rgba(239, 68, 68, 0.2) !important;
 }
 
 .admin-workspace-theme .text-zinc-900 {
-  color: #1E1E1E !important;
+  color: #F4F4F5 !important;
 }
 
 .admin-workspace-theme .border-zinc-150 {
-  border-color: #EBEBEB !important;
+  border-color: #1F1F23 !important;
 }
