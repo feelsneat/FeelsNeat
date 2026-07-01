@@ -94,7 +94,13 @@ async function getContentDb() {
     if (env && env.FEELSNEAT_CMS_KV) {
       const kvData = await env.FEELSNEAT_CMS_KV.get('content_db');
       if (kvData) {
-        return JSON.parse(kvData);
+        const parsed = JSON.parse(kvData);
+        // Force sync socials and products from codebase fallback to prevent stale cache bugs
+        parsed.settings.socials = db.settings.socials;
+        if (!parsed.products || parsed.products.length === 0) {
+          parsed.products = db.products;
+        }
+        return parsed;
       }
     }
   } catch (e) {

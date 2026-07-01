@@ -55,7 +55,13 @@ export async function GET(req: NextRequest) {
     if (env && env.FEELSNEAT_CMS_KV) {
       const kvData = await env.FEELSNEAT_CMS_KV.get('content_db');
       if (kvData) {
-        return NextResponse.json(JSON.parse(kvData));
+        const parsed = JSON.parse(kvData);
+        // Force sync socials and products from codebase fallback to prevent stale cache bugs
+        parsed.settings.socials = localDb.settings.socials;
+        if (!parsed.products || parsed.products.length === 0) {
+          parsed.products = localDb.products;
+        }
+        return NextResponse.json(parsed);
       }
     }
   } catch (e) {
