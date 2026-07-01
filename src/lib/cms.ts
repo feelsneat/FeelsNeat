@@ -146,3 +146,18 @@ export async function getObservationBySlug(slug: string): Promise<ObservationIte
   const contentDb = await getContentDb();
   return contentDb.observations.find((o: any) => o.slug === slug);
 }
+
+export interface ProductItem {
+  id: string;
+  category: 'notion' | 'trackers' | 'resumes';
+  title: string;
+  price: string;
+  features: string[];
+  mockupText: string;
+  etsyUrl: string;
+}
+
+export async function getProducts(): Promise<ProductItem[]> {
+  const contentDb = await getContentDb();
+  return contentDb.products || [];
+}

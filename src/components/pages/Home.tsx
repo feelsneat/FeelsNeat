@@ -1,4 +1,4 @@
-import { getPage } from '@/lib/cms';
+import { getPage, getProducts } from '@/lib/cms';
 import { ProductShowcase } from '@/components/interactive/ProductShowcase';
 import { SubstackFeed } from '@/components/interactive/SubstackFeed';
 import { LucideIcon } from '@/components/ui/LucideIcon';
@@ -7,6 +7,7 @@ export const runtime = 'edge';
 
 export default async function HomePage() {
   const homeData = await getPage('home');
+  const products = await getProducts();
 
   return (
     <div className="flex flex-col w-full bg-[#0A0A0C] overflow-hidden relative">
@@ -77,7 +78,7 @@ export default async function HomePage() {
           </div>
 
           {/* Showcase Tabs */}
-          <ProductShowcase />
+          <ProductShowcase products={products} />
         </div>
       </section>
 

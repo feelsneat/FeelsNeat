@@ -1,16 +1,20 @@
 'use client';
 
 import { useState } from 'react';
-import { PRODUCTS, DigitalProduct } from '@/lib/products';
+import { ProductItem } from '@/lib/cms';
 import { LucideIcon } from '../ui/LucideIcon';
 
 type TabCategory = 'notion' | 'trackers' | 'resumes';
 
-export function ProductShowcase() {
+interface ProductShowcaseProps {
+  products: ProductItem[];
+}
+
+export function ProductShowcase({ products }: ProductShowcaseProps) {
   const [activeTab, setActiveTab] = useState<TabCategory>('notion');
 
   // Filter items based on active category
-  const filteredProducts = PRODUCTS.filter((p) => p.category === activeTab);
+  const filteredProducts = products.filter((p) => p.category === activeTab);
 
   // Tab definitions
   const tabs = [

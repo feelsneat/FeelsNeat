@@ -268,14 +268,15 @@ interface AdminDashboardProps {
 export function AdminDashboard({ userEmail }: AdminDashboardProps) {
   const [db, setDb] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'settings' | 'pages' | 'services' | 'work' | 'observations'>('settings');
+  const [activeTab, setActiveTab] = useState<'settings' | 'pages' | 'services' | 'work' | 'observations' | 'products'>('settings');
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'success' | 'error'>('idle');
   const [saveMessage, setSaveMessage] = useState('');
 
-  // Selected item sub-states for Lists (Services, Work, Observations)
+  // Selected item sub-states for Lists (Services, Work, Observations, Products)
   const [selectedWorkSlug, setSelectedWorkSlug] = useState<string | null>(null);
   const [selectedObservationSlug, setSelectedObservationSlug] = useState<string | null>(null);
   const [selectedServiceSlug, setSelectedServiceSlug] = useState<string | null>(null);
+  const [selectedProductId, setSelectedProductId] = useState<string | null>(null);
 
   useEffect(() => {
     async function loadContent() {
@@ -532,6 +533,47 @@ export function AdminDashboard({ userEmail }: AdminDashboardProps) {
     }
   };
 
+  // List management updates: Products
+  const handleProductChange = (id: string, field: string, value: any) => {
+    setDb((prev: any) => ({
+      ...prev,
+      products: (prev.products || []).map((p: any) => (p.id === id ? { ...p, [field]: value } : p)),
+    }));
+  };
+
+  const handleProductFeaturesChange = (id: string, featuresStr: string) => {
+    const features = featuresStr.split('\n').map((f) => f.trim()).filter(Boolean);
+    handleProductChange(id, 'features', features);
+  };
+
+  const handleAddProduct = () => {
+    const id = `new-product-${Date.now()}`;
+    const newProduct = {
+      id,
+      category: 'notion',
+      title: 'New Digital Product',
+      price: '$19.00',
+      features: ['Feature detail line 1', 'Feature detail line 2'],
+      mockupText: 'Notion Framework preview',
+      etsyUrl: 'https://feelsneat.etsy.com',
+    };
+    setDb((prev: any) => ({
+      ...prev,
+      products: [...(prev.products || []), newProduct],
+    }));
+    setSelectedProductId(id);
+  };
+
+  const handleDeleteProduct = (id: string) => {
+    if (confirm('Are you sure you want to delete this product?')) {
+      setDb((prev: any) => ({
+        ...prev,
+        products: (prev.products || []).filter((p: any) => p.id !== id),
+      }));
+      if (selectedProductId === id) setSelectedProductId(null);
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center py-24 text-center">
@@ -544,6 +586,7 @@ export function AdminDashboard({ userEmail }: AdminDashboardProps) {
   const selectedWork = db.work.find((w: any) => w.slug === selectedWorkSlug);
   const selectedObservation = db.observations.find((o: any) => o.slug === selectedObservationSlug);
   const selectedService = db.services.find((s: any) => s.slug === selectedServiceSlug);
+  const selectedProduct = (db.products || []).find((p: any) => p.id === selectedProductId);
 
   return (
     <div className="space-y-6">
@@ -611,6 +654,7 @@ export function AdminDashboard({ userEmail }: AdminDashboardProps) {
             { id: 'services', label: 'What We Do', icon: 'Cpu' },
             { id: 'work', label: 'Our Work (Portfolio)', icon: 'Briefcase' },
             { id: 'observations', label: 'Observations Blog', icon: 'Bookmark' },
+            { id: 'products', label: 'Etsy Products', icon: 'ShoppingBag' },
           ].map((tab) => (
             <button
               key={tab.id}
@@ -1208,6 +1252,119 @@ export function AdminDashboard({ userEmail }: AdminDashboardProps) {
                 </div>
               ) : (
                 <p className="text-xs text-zinc-500 italic text-center py-6">Select an article to edit or click Add Article.</p>
+              )}
+            </div>
+          )}
+
+          {/* TAB: ETSY PRODUCTS */}
+          {activeTab === 'products' && (
+            <div className="space-y-6">
+              <div className="flex justify-between items-center border-b border-border-custom pb-3">
+                <h2 className="text-base font-extrabold text-foreground">Etsy Products Listing</h2>
+                <button
+                  onClick={handleAddProduct}
+                  className="inline-flex h-7 items-center justify-center rounded-lg bg-foreground px-3 text-[10px] font-bold text-background hover:bg-accent-custom cursor-pointer"
+                >
+                  Add Product
+                </button>
+              </div>
+              
+              <div className="flex flex-wrap gap-2 mb-6">
+                {(db.products || []).map((product: any) => (
+                  <div key={product.id} className="flex items-center rounded-lg border border-border-custom overflow-hidden">
+                    <button
+                      onClick={() => setSelectedProductId(product.id)}
+                      className={`px-3 py-1.5 text-xs font-semibold cursor-pointer border-r border-border-custom transition-colors ${
+                        selectedProductId === product.id
+                          ? 'bg-foreground text-background'
+                          : 'text-foreground/70 hover:bg-zinc-50'
+                      }`}
+                    >
+                      {product.title}
+                    </button>
+                    <button
+                      onClick={() => handleDeleteProduct(product.id)}
+                      className="p-1.5 text-red-500 hover:bg-red-50 cursor-pointer"
+                      title="Delete product"
+                    >
+                      <LucideIcon name="Trash2" className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+
+              {selectedProduct ? (
+                <div className="space-y-4 p-4 rounded-xl border border-border-custom bg-zinc-50/35">
+                  <div className="grid sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-[10px] font-bold text-foreground/60 mb-1">Product Title</label>
+                      <input
+                        type="text"
+                        value={selectedProduct.title}
+                        onChange={(e) => handleProductChange(selectedProduct.id, 'title', e.target.value)}
+                        className="w-full rounded-lg border border-border-custom bg-white px-3 py-2 text-xs focus:border-foreground focus:outline-none text-[#1E1E1E]"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-bold text-foreground/60 mb-1">Price Label</label>
+                      <input
+                        type="text"
+                        value={selectedProduct.price}
+                        onChange={(e) => handleProductChange(selectedProduct.id, 'price', e.target.value)}
+                        className="w-full rounded-lg border border-border-custom bg-white px-3 py-2 text-xs focus:border-foreground focus:outline-none text-[#1E1E1E]"
+                        placeholder="$29.00"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid sm:grid-cols-3 gap-4">
+                    <div>
+                      <label className="block text-[10px] font-bold text-foreground/60 mb-1">Category</label>
+                      <select
+                        value={selectedProduct.category}
+                        onChange={(e) => handleProductChange(selectedProduct.id, 'category', e.target.value)}
+                        className="w-full rounded-lg border border-border-custom bg-white px-3 py-2 text-xs focus:border-foreground focus:outline-none text-[#1E1E1E]"
+                      >
+                        <option value="notion">Notion Templates</option>
+                        <option value="trackers">Spreadsheet Trackers</option>
+                        <option value="resumes">Printables & Resumes</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-bold text-foreground/60 mb-1">Mockup Text</label>
+                      <input
+                        type="text"
+                        value={selectedProduct.mockupText}
+                        onChange={(e) => handleProductChange(selectedProduct.id, 'mockupText', e.target.value)}
+                        className="w-full rounded-lg border border-border-custom bg-white px-3 py-2 text-xs focus:border-foreground focus:outline-none text-[#1E1E1E]"
+                        placeholder="Notion Framework preview"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-bold text-foreground/60 mb-1">Etsy Listing URL</label>
+                      <input
+                        type="text"
+                        value={selectedProduct.etsyUrl}
+                        onChange={(e) => handleProductChange(selectedProduct.id, 'etsyUrl', e.target.value)}
+                        className="w-full rounded-lg border border-border-custom bg-white px-3 py-2 text-xs focus:border-foreground focus:outline-none text-[#1E1E1E]"
+                        placeholder="https://..."
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-[10px] font-bold text-foreground/60 mb-1">Features Checklist (One per line)</label>
+                    <textarea
+                      rows={4}
+                      value={(selectedProduct.features || []).join('\n')}
+                      onChange={(e) => handleProductFeaturesChange(selectedProduct.id, e.target.value)}
+                      className="w-full rounded-lg border border-border-custom bg-white px-3 py-2 text-xs focus:border-foreground focus:outline-none font-mono text-[#1E1E1E]"
+                      placeholder="Feature line 1&#10;Feature line 2"
+                    />
+                  </div>
+                </div>
+              ) : (
+                <p className="text-xs text-zinc-500 italic text-center py-6">Select a product to edit or click Add Product.</p>
               )}
             </div>
           )}
