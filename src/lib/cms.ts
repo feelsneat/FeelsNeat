@@ -149,7 +149,7 @@ export async function getObservationBySlug(slug: string): Promise<ObservationIte
 
 export interface ProductItem {
   id: string;
-  category: 'notion' | 'trackers' | 'resumes';
+  category: 'career' | 'finance' | 'productivity' | 'content';
   title: string;
   price: string;
   features: string[];

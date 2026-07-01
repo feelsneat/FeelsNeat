@@ -1,0 +1,72 @@
+[
+  {
+    "id": "star-interview",
+    "category": "career",
+    "title": "STAR Interview Prep Dashboard",
+    "price": "$19.00",
+    "features": [
+      "STAR Framework Database",
+      "Situation/Task/Action/Result organizer",
+      "40+ Practice Behavior Prompts",
+      "Interview Tracker & Logbook"
+    ],
+    "mockupText": "STAR Prep Dashboard Mockup",
+    "etsyUrl": "https://feelsneat.etsy.com"
+  },
+  {
+    "id": "ats-tech-resume",
+    "category": "career",
+    "title": "ATS-Friendly Tech Resume Template",
+    "price": "$12.00",
+    "features": [
+      "ATS Scanner Optimized Formatting",
+      "Modern Single-Page Layout Grid",
+      "Action Verb Sentence Builders",
+      "LaTeX / PDF Export Guide"
+    ],
+    "mockupText": "ATS Tech Resume Preview",
+    "etsyUrl": "https://feelsneat.etsy.com"
+  },
+  {
+    "id": "side-hustle-bookkeeping",
+    "category": "finance",
+    "title": "Side-Hustle Bookkeeping Sheet",
+    "price": "$15.00",
+    "features": [
+      "Automated Expense Charting",
+      "Visual Profit & Loss Graphs",
+      "Etsy & Stripe Invoice Import Log",
+      "Multi-currency Conversion Engine"
+    ],
+    "mockupText": "Bookkeeping Sheet Layout",
+    "etsyUrl": "https://feelsneat.etsy.com"
+  },
+  {
+    "id": "life-dashboard",
+    "category": "productivity",
+    "title": "All-in-One Life Dashboard",
+    "price": "$24.00",
+    "features": [
+      "Daily Habit Tracker & Log",
+      "Weekly Planner & Goals Board",
+      "ADHD-friendly Visual Schedule",
+      "Clean Life Compass Wheel"
+    ],
+    "mockupText": "Notion Life Dashboard Preview",
+    "etsyUrl": "https://feelsneat.etsy.com"
+  },
+  {
+    "id": "creator-os",
+    "category": "content",
+    "title": "TikTok Creator OS",
+    "price": "$29.00",
+    "features": [
+      "Visual Workspace Manager",
+      "Content Planning Pipeline",
+      "Asset Library & Repository",
+      "Revenue & Sponsorship Tracker"
+    ],
+    "mockupText": "Notion Content Calendar Grid",
+    "etsyUrl": "https://feelsneat.etsy.com"
+  }
+]

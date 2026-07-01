@@ -550,7 +550,7 @@ export function AdminDashboard({ userEmail }: AdminDashboardProps) {
     const id = `new-product-${Date.now()}`;
     const newProduct = {
       id,
-      category: 'notion',
+      category: 'career',
       title: 'New Digital Product',
       price: '$19.00',
       features: ['Feature detail line 1', 'Feature detail line 2'],
@@ -1325,9 +1325,10 @@ export function AdminDashboard({ userEmail }: AdminDashboardProps) {
                         onChange={(e) => handleProductChange(selectedProduct.id, 'category', e.target.value)}
                         className="w-full rounded-lg border border-border-custom bg-white px-3 py-2 text-xs focus:border-foreground focus:outline-none text-[#1E1E1E]"
                       >
-                        <option value="notion">Notion Templates</option>
-                        <option value="trackers">Spreadsheet Trackers</option>
-                        <option value="resumes">Printables & Resumes</option>
+                        <option value="career">Career & Development</option>
+                        <option value="finance">Finance & Business</option>
+                        <option value="productivity">Productivity & Life</option>
+                        <option value="content">Content & Creator</option>
                       </select>
                     </div>
                     <div>

@@ -93,13 +93,21 @@ function buildContent() {
   // Sort by date descending
   observations.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
+  // 7. Load Products
+  let products = [];
+  const productsPath = path.join(contentDir, 'products.json');
+  if (fs.existsSync(productsPath)) {
+    products = JSON.parse(fs.readFileSync(productsPath, 'utf-8'));
+  }
+
   const db = {
     settings,
     navigation,
     pages,
     services,
     work,
-    observations
+    observations,
+    products
   };
 
   fs.writeFileSync(
