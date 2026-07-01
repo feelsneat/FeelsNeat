@@ -65,23 +65,33 @@ export function ProductShowcase({ products }: ProductShowcaseProps) {
               className="group flex flex-col rounded-2xl border border-zinc-200 bg-white p-6 shadow-md hover:border-[#E30613] hover:shadow-lg transition-all duration-300 relative overflow-hidden"
             >
               {/* Minimalist Device Mockup Placeholder Frame */}
-              <div className="w-full aspect-[16/10] rounded-xl bg-zinc-50 border border-zinc-150 relative overflow-hidden flex flex-col items-center justify-center p-6 mb-6 select-none">
-                {/* Device Frame Bezels Simulation */}
-                <div className="absolute top-3 left-3 flex gap-1">
-                  <span className="h-1.5 w-1.5 rounded-full bg-zinc-300" />
-                  <span className="h-1.5 w-1.5 rounded-full bg-zinc-300" />
-                  <span className="h-1.5 w-1.5 rounded-full bg-zinc-300" />
-                </div>
-                
-                {/* Product title inside frame */}
-                <div className="p-6 bg-white border border-zinc-200 rounded-lg shadow-sm max-w-[85%] text-center transform group-hover:scale-102 transition-transform duration-300">
-                  <span className="text-[8px] font-black text-[#E30613] uppercase tracking-widest block mb-1">
-                    {product.category === 'career' ? 'Career Framework' : product.category === 'finance' ? 'Finance Calculator' : product.category === 'productivity' ? 'Productivity Guide' : 'Creator System'}
-                  </span>
-                  <span className="text-xs font-bold text-[#000000] tracking-tight uppercase block leading-snug">
-                    {product.title}
-                  </span>
-                </div>
+              <div className="w-full aspect-[16/10] rounded-xl bg-zinc-50 border border-zinc-150 relative overflow-hidden flex flex-col items-center justify-center mb-6 select-none">
+                {product.coverImage ? (
+                  <img
+                    src={product.coverImage}
+                    alt={product.title}
+                    className="h-full w-full object-cover group-hover:scale-102 transition-transform duration-500"
+                  />
+                ) : (
+                  <div className="p-6 flex flex-col items-center justify-center h-full w-full">
+                    {/* Device Frame Bezels Simulation */}
+                    <div className="absolute top-3 left-3 flex gap-1">
+                      <span className="h-1.5 w-1.5 rounded-full bg-zinc-300" />
+                      <span className="h-1.5 w-1.5 rounded-full bg-zinc-300" />
+                      <span className="h-1.5 w-1.5 rounded-full bg-zinc-300" />
+                    </div>
+                    
+                    {/* Product title inside frame */}
+                    <div className="p-6 bg-white border border-zinc-200 rounded-lg shadow-sm max-w-[85%] text-center transform group-hover:scale-102 transition-transform duration-300">
+                      <span className="text-[8px] font-black text-[#E30613] uppercase tracking-widest block mb-1">
+                        {product.category === 'career' ? 'Career Framework' : product.category === 'finance' ? 'Finance Calculator' : product.category === 'productivity' ? 'Productivity Guide' : 'Creator System'}
+                      </span>
+                      <span className="text-xs font-bold text-[#000000] tracking-tight uppercase block leading-snug">
+                        {product.title}
+                      </span>
+                    </div>
+                  </div>
+                )}
 
                 {/* Instant download alert badge inside preview */}
                 <span className="absolute bottom-3 right-3 inline-flex items-center gap-1 bg-[#E30613]/10 border border-[#E30613]/20 text-[7px] font-black uppercase text-[#E30613] tracking-wider px-2 py-0.5 rounded-md">

@@ -556,6 +556,7 @@ export function AdminDashboard({ userEmail }: AdminDashboardProps) {
       features: ['Feature detail line 1', 'Feature detail line 2'],
       mockupText: 'Notion Framework preview',
       etsyUrl: 'https://feelsneat.etsy.com',
+      coverImage: '',
     };
     setDb((prev: any) => ({
       ...prev,
@@ -1351,6 +1352,15 @@ export function AdminDashboard({ userEmail }: AdminDashboardProps) {
                         placeholder="https://..."
                       />
                     </div>
+                  </div>
+
+                  <div>
+                    <ImageUploader
+                      label="Product Cover Image"
+                      value={selectedProduct.coverImage || ''}
+                      onChange={(img) => handleProductChange(selectedProduct.id, 'coverImage', img)}
+                      placeholder="Paste cover image URL or upload above..."
+                    />
                   </div>
 
                   <div>

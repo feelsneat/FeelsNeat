@@ -155,6 +155,7 @@ export interface ProductItem {
   features: string[];
   mockupText: string;
   etsyUrl: string;
+  coverImage?: string;
 }
 
 export async function getProducts(): Promise<ProductItem[]> {
