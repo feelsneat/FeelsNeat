@@ -9,16 +9,16 @@
   "contactEmail": "hello@feelsneat.com",
   "socials": [
     {
-      "platform": "Twitter",
-      "url": "https://twitter.com/feelsneat"
+      "platform": "YouTube",
+      "url": "https://youtube.com"
     },
     {
       "platform": "GitHub",
       "url": "https://github.com/feelsneat"
     },
     {
-      "platform": "LinkedIn",
-      "url": "https://linkedin.com/company/feelsneat"
+      "platform": "Substack",
+      "url": "https://feelsneat.substack.com"
     }
   ]
 }

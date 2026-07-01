@@ -105,20 +105,13 @@ export function Footer({ settings, navigation }: FooterProps) {
         </div>
 
         {/* Bottom Panel */}
-        <div className="mt-12 border-t border-white/10 pt-8 space-y-4">
+        <div className="mt-12 border-t border-white/10 pt-8">
           <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
             <p className="text-xs text-[#F4F4F5]/50">
               &copy; {currentYear} {settings.siteName}. All rights reserved.
             </p>
             <p className="text-xs text-[#F4F4F5]/60 flex items-center gap-1.5 font-medium">
               <LucideIcon name="Feather" className="h-3.5 w-3.5 text-[#E30613]" /> Timeless Craftsmanship.
-            </p>
-          </div>
-          
-          {/* Regulatory Compliance Label */}
-          <div className="border-t border-white/5 pt-4 text-center sm:text-left">
-            <p className="text-[9px] font-bold text-[#F4F4F5]/40 tracking-wide leading-normal">
-              Supply covered under LUT ARN — Supply meant for export without payment of IGST under Section 16 of the IGST Act, 2017.
             </p>
           </div>
         </div>

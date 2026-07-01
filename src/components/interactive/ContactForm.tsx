@@ -7,7 +7,7 @@ export function ContactForm() {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
-    company: '',
+    phone: '',
     message: '',
   });
 
@@ -40,7 +40,7 @@ export function ContactForm() {
 
       if (response.ok && data.success) {
         setStatus('success');
-        setFormData({ name: '', email: '', company: '', message: '' });
+        setFormData({ name: '', email: '', phone: '', message: '' });
       } else {
         setStatus('error');
         setErrorMsg(data.error || 'Failed to submit form. Please try again.');
@@ -55,16 +55,16 @@ export function ContactForm() {
     <div className="w-full rounded-2xl border border-zinc-200/80 bg-white p-8 shadow-xs relative overflow-hidden transition-all duration-300">
       {status === 'success' ? (
         <div className="flex flex-col items-center justify-center text-center py-12 animate-fade-in">
-          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-accent-custom/5 border border-accent-custom text-accent-custom mb-5">
+          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#E30613]/10 border border-[#E30613]/30 text-[#E30613] mb-5">
             <LucideIcon name="Check" className="h-5 w-5" />
           </div>
-          <h3 className="text-base font-black text-foreground uppercase tracking-tight mb-2">Message Sent</h3>
-          <p className="text-xs text-neutral-gray max-w-xs leading-relaxed">
+          <h3 className="text-base font-black text-[#000000] uppercase tracking-tight mb-2">Message Sent</h3>
+          <p className="text-xs text-[#000000] max-w-xs leading-relaxed font-black uppercase">
             Thank you for reaching out. We will read your message and reply within one business day.
           </p>
           <button
             onClick={() => setStatus('idle')}
-            className="mt-6 text-xs font-black uppercase text-accent-custom hover:underline cursor-pointer"
+            className="mt-6 text-xs font-black uppercase text-[#E30613] hover:underline cursor-pointer"
           >
             Send another message
           </button>
@@ -72,15 +72,15 @@ export function ContactForm() {
       ) : (
         <form onSubmit={handleSubmit} className="space-y-6 animate-fade-in">
           {status === 'error' && (
-            <div className="rounded bg-rose-50/50 border border-rose-200 p-4 text-xs text-rose-800 flex gap-2 items-center">
-              <LucideIcon name="AlertCircle" className="h-4.5 w-4.5 shrink-0 text-accent-custom" />
-              <span>{errorMsg}</span>
+            <div className="rounded bg-rose-50/50 border border-rose-200 p-4 text-xs text-rose-855 flex gap-2 items-center">
+              <LucideIcon name="AlertCircle" className="h-4.5 w-4.5 shrink-0 text-[#E30613]" />
+              <span className="text-[#E30613] font-bold">{errorMsg}</span>
             </div>
           )}
 
           <div>
-            <label htmlFor="name" className="block text-[10px] font-black text-foreground mb-2 uppercase tracking-widest">
-              Name <span className="text-accent-custom">*</span>
+            <label htmlFor="name" className="block text-[10px] font-black text-[#000000] mb-2 uppercase tracking-widest">
+              Name <span className="text-[#E30613]">*</span>
             </label>
             <input
               type="text"
@@ -90,15 +90,15 @@ export function ContactForm() {
               value={formData.name}
               onChange={handleChange}
               disabled={status === 'submitting'}
-              className="w-full rounded-lg border border-zinc-200 bg-white px-4 py-3 text-sm text-foreground focus:border-accent-custom focus:outline-none transition-colors disabled:opacity-50"
+              className="w-full rounded-lg border border-zinc-200 bg-white px-4 py-3 text-sm text-[#000000] placeholder-zinc-400 focus:border-[#E30613] focus:outline-none transition-colors disabled:opacity-50"
               placeholder="Your name"
             />
           </div>
 
           <div className="grid sm:grid-cols-2 gap-6">
             <div>
-              <label htmlFor="email" className="block text-[10px] font-black text-foreground mb-2 uppercase tracking-widest">
-                Email Address <span className="text-accent-custom">*</span>
+              <label htmlFor="email" className="block text-[10px] font-black text-[#000000] mb-2 uppercase tracking-widest">
+                Email Address <span className="text-[#E30613]">*</span>
               </label>
               <input
                 type="email"
@@ -108,30 +108,30 @@ export function ContactForm() {
                 value={formData.email}
                 onChange={handleChange}
                 disabled={status === 'submitting'}
-                className="w-full rounded-lg border border-zinc-200 bg-white px-4 py-3 text-sm text-foreground focus:border-accent-custom focus:outline-none transition-colors disabled:opacity-50"
-                placeholder="name@company.com"
+                className="w-full rounded-lg border border-zinc-200 bg-white px-4 py-3 text-sm text-[#000000] placeholder-zinc-400 focus:border-[#E30613] focus:outline-none transition-colors disabled:opacity-50"
+                placeholder="name@domain.com"
               />
             </div>
             <div>
-              <label htmlFor="company" className="block text-[10px] font-black text-foreground mb-2 uppercase tracking-widest">
-                Company
+              <label htmlFor="phone" className="block text-[10px] font-black text-[#000000] mb-2 uppercase tracking-widest">
+                Phone Number
               </label>
               <input
-                type="text"
-                id="company"
-                name="company"
-                value={formData.company}
+                type="tel"
+                id="phone"
+                name="phone"
+                value={formData.phone}
                 onChange={handleChange}
                 disabled={status === 'submitting'}
-                className="w-full rounded-lg border border-zinc-200 bg-white px-4 py-3 text-sm text-foreground focus:border-accent-custom focus:outline-none transition-colors disabled:opacity-50"
+                className="w-full rounded-lg border border-zinc-200 bg-white px-4 py-3 text-sm text-[#000000] placeholder-zinc-400 focus:border-[#E30613] focus:outline-none transition-colors disabled:opacity-50"
                 placeholder="Optional"
               />
             </div>
           </div>
 
           <div>
-            <label htmlFor="message" className="block text-[10px] font-black text-foreground mb-2 uppercase tracking-widest">
-              Message <span className="text-accent-custom">*</span>
+            <label htmlFor="message" className="block text-[10px] font-black text-[#000000] mb-2 uppercase tracking-widest">
+              Message <span className="text-[#E30613]">*</span>
             </label>
             <textarea
               id="message"
@@ -141,7 +141,7 @@ export function ContactForm() {
               value={formData.message}
               onChange={handleChange}
               disabled={status === 'submitting'}
-              className="w-full rounded-lg border border-zinc-200 bg-white px-4 py-3 text-sm text-foreground focus:border-accent-custom focus:outline-none transition-colors disabled:opacity-50 resize-none leading-relaxed"
+              className="w-full rounded-lg border border-zinc-200 bg-white px-4 py-3 text-sm text-[#000000] placeholder-zinc-400 focus:border-[#E30613] focus:outline-none transition-colors disabled:opacity-50 resize-none leading-relaxed"
               placeholder="Tell us about your project or inquiry..."
             />
           </div>
@@ -149,11 +149,11 @@ export function ContactForm() {
           <button
             type="submit"
             disabled={status === 'submitting'}
-            className="inline-flex h-12 w-full items-center justify-center rounded-lg bg-foreground text-background font-black uppercase tracking-wider text-xs hover:bg-accent-custom transition-all duration-300 disabled:opacity-75 gap-2 cursor-pointer shadow-sm"
+            className="inline-flex h-12 w-full items-center justify-center rounded-lg bg-[#000000] text-[#FFFFFF] font-black uppercase tracking-wider text-xs hover:bg-[#E30613] hover:text-[#FFFFFF] transition-all duration-300 disabled:opacity-75 gap-2 cursor-pointer shadow-sm"
           >
             {status === 'submitting' ? (
               <>
-                <span className="h-4 w-4 animate-spin rounded-full border-2 border-background border-t-transparent" />
+                <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
                 Sending Message...
               </>
             ) : (
