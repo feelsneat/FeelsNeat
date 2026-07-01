@@ -35,11 +35,11 @@ export function Footer({ settings, navigation }: FooterProps) {
                   className="h-full w-full object-cover"
                 />
               </div>
-              <span className="text-base font-bold tracking-tight text-foreground uppercase tracking-wider">
+              <span className="text-base font-bold tracking-tight text-[#1E1E1E] uppercase tracking-wider">
                 {settings.siteName}
               </span>
             </Link>
-            <p className="max-w-md text-sm leading-relaxed text-neutral-gray">
+            <p className="max-w-md text-sm leading-relaxed text-[#5F5F5F]">
               {settings.siteDescription}
             </p>
             {/* Social Links */}
@@ -50,7 +50,7 @@ export function Footer({ settings, navigation }: FooterProps) {
                   href={social.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-neutral-gray/70 hover:text-foreground transition-colors"
+                  className="text-[#5F5F5F]/70 hover:text-[#1E1E1E] transition-colors"
                   aria-label={`Visit FeelsNeat on ${social.platform}`}
                 >
                   <LucideIcon name={getSocialIcon(social.platform)} className="h-4.5 w-4.5" />
@@ -64,7 +64,7 @@ export function Footer({ settings, navigation }: FooterProps) {
             {/* Links columns */}
             {navigation.footerLinks.map((section, idx) => (
               <div key={idx} className="space-y-4">
-                <h3 className="text-xs font-bold tracking-wider text-foreground uppercase">
+                <h3 className="text-xs font-bold tracking-wider text-[#1E1E1E] uppercase">
                   {section.title}
                 </h3>
                 <ul className="space-y-3">
@@ -72,7 +72,7 @@ export function Footer({ settings, navigation }: FooterProps) {
                     <li key={itemIdx}>
                       <Link
                         href={item.path}
-                        className="text-sm text-neutral-gray hover:text-foreground transition-colors font-medium"
+                        className="text-sm text-[#5F5F5F] hover:text-[#1E1E1E] transition-colors font-medium"
                       >
                         {item.label}
                       </Link>
@@ -84,10 +84,10 @@ export function Footer({ settings, navigation }: FooterProps) {
 
             {/* Mini Newsletter Embed Column */}
             <div className="col-span-2 sm:col-span-1 space-y-4">
-              <h3 className="text-xs font-bold tracking-wider text-foreground uppercase">
+              <h3 className="text-xs font-bold tracking-wider text-[#1E1E1E] uppercase">
                 Systems Letter
               </h3>
-              <p className="text-xs text-neutral-gray leading-relaxed">
+              <p className="text-xs text-[#5F5F5F] leading-relaxed">
                 Join our private newsletter for updates on visual systems and workflow productivity templates.
               </p>
               <div className="pt-1">
@@ -95,7 +95,7 @@ export function Footer({ settings, navigation }: FooterProps) {
                   href="https://feelsneat.substack.com"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex h-9 items-center justify-center rounded-lg bg-foreground hover:bg-accent-custom text-background hover:text-white px-4 text-[10px] font-black uppercase tracking-widest transition-colors duration-300 shadow-3xs cursor-pointer"
+                  className="inline-flex h-9 items-center justify-center rounded-lg bg-[#1E1E1E] hover:bg-[#6E8270] text-[#FAFAFA] hover:text-white px-4 text-[10px] font-black uppercase tracking-widest transition-colors duration-300 shadow-xs cursor-pointer"
                 >
                   Join Publication
                 </a>
@@ -107,17 +107,17 @@ export function Footer({ settings, navigation }: FooterProps) {
         {/* Bottom Panel */}
         <div className="mt-12 border-t border-zinc-200 pt-8 space-y-4">
           <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
-            <p className="text-xs text-neutral-gray/80">
+            <p className="text-xs text-[#5F5F5F]/80">
               &copy; {currentYear} {settings.siteName}. All rights reserved.
             </p>
-            <p className="text-xs text-neutral-gray/70 flex items-center gap-1.5 font-medium">
-              <LucideIcon name="Feather" className="h-3.5 w-3.5 text-accent-custom" /> Timeless Craftsmanship.
+            <p className="text-xs text-[#5F5F5F]/70 flex items-center gap-1.5 font-medium">
+              <LucideIcon name="Feather" className="h-3.5 w-3.5 text-[#6E8270]" /> Timeless Craftsmanship.
             </p>
           </div>
           
           {/* Regulatory Compliance Label */}
           <div className="border-t border-zinc-200/50 pt-4 text-center sm:text-left">
-            <p className="text-[9px] font-bold text-neutral-gray/60 tracking-wide leading-normal">
+            <p className="text-[9px] font-bold text-[#5F5F5F]/60 tracking-wide leading-normal">
               Supply covered under LUT ARN — Supply meant for export without payment of IGST under Section 16 of the IGST Act, 2017.
             </p>
           </div>

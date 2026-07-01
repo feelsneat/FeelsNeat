@@ -71,20 +71,20 @@ export function SubstackFeed() {
   if (error) {
     return (
       <div className="rounded-2xl border border-zinc-200 bg-white p-8 sm:p-12 text-center shadow-xs max-w-2xl mx-auto scroll-reveal">
-        <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-zinc-100 text-neutral-gray mb-4">
+        <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-zinc-100 text-[#5F5F5F] mb-4">
           <LucideIcon name="ShieldAlert" className="h-5 w-5" />
         </div>
-        <h3 className="text-lg font-bold text-foreground uppercase tracking-tight mb-3">
+        <h3 className="text-lg font-bold text-[#1E1E1E] uppercase tracking-tight mb-3">
           Latest Guides Direct on Substack
         </h3>
-        <p className="text-sm text-neutral-gray leading-relaxed mb-6">
+        <p className="text-sm text-[#5F5F5F] leading-relaxed mb-6">
           Check out our latest system guides, productivity frameworks, and visual trackers directly on our Substack publication.
         </p>
         <a
           href="https://feelsneat.substack.com"
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-flex h-10 items-center justify-center rounded-lg bg-accent-custom hover:bg-accent-custom/90 px-6 text-xs font-black uppercase text-white transition-colors cursor-pointer"
+          className="inline-flex h-10 items-center justify-center rounded-lg bg-[#6E8270] hover:bg-[#6E8270]/90 px-6 text-xs font-black uppercase text-white transition-colors cursor-pointer"
         >
           Visit feelsneat.substack.com
         </a>
@@ -101,7 +101,7 @@ export function SubstackFeed() {
             Array.from({ length: 3 }).map((_, idx) => (
               <div
                 key={idx}
-                className="flex flex-col rounded-2xl border border-zinc-200/60 bg-white p-6 shadow-3xs animate-pulse space-y-4 min-h-[300px]"
+                className="flex flex-col rounded-2xl border border-zinc-200 bg-white p-6 shadow-xs animate-pulse space-y-4 min-h-[300px]"
               >
                 <div className="h-3 w-1/3 bg-zinc-200 rounded" />
                 <div className="space-y-2">
@@ -119,20 +119,20 @@ export function SubstackFeed() {
           : posts.map((post) => (
               <article
                 key={post.guid}
-                className="group flex flex-col rounded-2xl border border-zinc-200/60 bg-white p-6 shadow-3xs hover:border-accent-custom hover:shadow-2xs transition-all duration-300 min-h-[300px]"
+                className="group flex flex-col rounded-2xl border border-zinc-200 bg-white p-6 shadow-xs hover:border-[#6E8270] hover:shadow-md transition-all duration-300 min-h-[300px]"
               >
                 {/* Date stamp */}
-                <span className="text-[10px] font-black text-accent-custom uppercase tracking-wider block mb-3">
+                <span className="text-[10px] font-black text-[#6E8270] uppercase tracking-wider block mb-3">
                   {formatDate(post.pubDate)}
                 </span>
                 
                 {/* Post Title */}
-                <h3 className="text-base font-bold text-foreground leading-snug group-hover:text-accent-custom transition-colors duration-200 tracking-tight uppercase mb-3">
+                <h3 className="text-base font-bold text-[#1E1E1E] leading-snug group-hover:text-[#6E8270] transition-colors duration-200 tracking-tight uppercase mb-3">
                   {post.title}
                 </h3>
                 
                 {/* Snippet Excerpt */}
-                <p className="text-xs text-neutral-gray leading-relaxed mb-6 flex-grow">
+                <p className="text-xs text-[#5F5F5F] leading-relaxed mb-6 flex-grow font-medium">
                   {cleanDescription(post.description)}
                 </p>
                 
@@ -142,7 +142,7 @@ export function SubstackFeed() {
                     href={post.link}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1.5 text-xs font-black text-foreground uppercase tracking-wider group-hover:text-accent-custom transition-colors border-b border-foreground group-hover:border-accent-custom pb-0.5"
+                    className="inline-flex items-center gap-1.5 text-xs font-black text-[#1E1E1E] uppercase tracking-wider group-hover:text-[#6E8270] transition-colors border-b border-[#1E1E1E] group-hover:border-[#6E8270] pb-0.5"
                   >
                     Read Article <LucideIcon name="ArrowRight" className="h-3 w-3" />
                   </a>
