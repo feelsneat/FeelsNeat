@@ -6,14 +6,14 @@ export const runtime = 'edge';
 
 export const metadata: Metadata = {
   title: 'Our Work',
-  description: 'A showcase of visual layouts, software engineering, and web tools built by FeelsNeat.',
+  description: 'A showcase of visual layouts, templates, and systems built by FeelsNeat.',
 };
 
 export default async function OurWorkPage() {
   const projects = await getWork();
 
   return (
-    <main className="flex-1 w-full bg-background py-20 sm:py-28 border-b border-border-custom relative">
+    <main className="flex-1 w-full bg-background py-20 sm:py-28 border-b border-zinc-200/50 relative">
       {/* Morphing background shapes */}
       <div className="morphing-blob absolute top-10 left-10 opacity-20" />
       <div className="morphing-blob-large absolute bottom-10 right-10 opacity-30" />
@@ -25,13 +25,13 @@ export default async function OurWorkPage() {
           <h1 className="text-3xl sm:text-5xl font-extrabold tracking-tight text-foreground uppercase">
             Our Work
           </h1>
-          <p className="mt-6 text-lg text-neutral-gray leading-relaxed font-medium">
-            A visual index of everything we design, prototype, and build. This includes digital products, internal developer tools, visual refreshes, and creative code sandbox experiments.
+          <p className="mt-6 text-base sm:text-lg text-neutral-gray leading-relaxed font-medium">
+            A visual index of everything we design, prototype, and build. This includes digital products, internal developer tools, visual refreshes, and creative sandbox experiments.
           </p>
         </div>
 
         {/* Projects Grid with thin borders */}
-        <div className="grid md:grid-cols-2 gap-12 mt-12 border-t border-zinc-900 pt-16">
+        <div className="grid md:grid-cols-2 gap-12 mt-12 border-t border-zinc-200 pt-16">
           {projects.map((project) => (
             <Link 
               key={project.slug}
@@ -39,7 +39,7 @@ export default async function OurWorkPage() {
               className="group flex flex-col cursor-pointer scroll-reveal"
             >
               {/* Cover Image Visualizer */}
-              <div className="w-full aspect-[1.8/1] rounded-lg mb-6 relative overflow-hidden border border-zinc-900 bg-zinc-900/20 shadow-lg group-hover:border-zinc-800 transition-colors">
+              <div className="w-full aspect-[1.8/1] rounded-lg mb-6 relative overflow-hidden border border-zinc-200 bg-zinc-100/50 shadow-3xs group-hover:border-zinc-350 transition-colors">
                 {project.coverImage ? (
                   <img 
                     src={project.coverImage} 
@@ -47,9 +47,9 @@ export default async function OurWorkPage() {
                     className="h-full w-full object-cover group-hover:scale-102 transition-transform duration-500"
                   />
                 ) : (
-                  <div className="absolute inset-0 bg-zinc-950 flex flex-col justify-end p-6">
-                    <span className="text-[10px] font-bold text-white/50 tracking-wider uppercase mb-1">{project.client}</span>
-                    <h2 className="text-xl font-black text-white uppercase leading-snug">{project.title}</h2>
+                  <div className="absolute inset-0 bg-zinc-100 flex flex-col justify-end p-6">
+                    <span className="text-[10px] font-bold text-neutral-gray/60 tracking-wider uppercase mb-1">{project.client}</span>
+                    <h2 className="text-xl font-black text-foreground uppercase leading-snug">{project.title}</h2>
                   </div>
                 )}
               </div>
@@ -60,17 +60,17 @@ export default async function OurWorkPage() {
                   <span>{project.client}</span>
                   <span className="text-accent-custom">{project.category}</span>
                 </div>
-                <h2 className="text-xl font-black text-foreground uppercase group-hover:text-accent-custom transition-colors leading-snug tracking-tight">
+                <h2 className="text-xl font-bold text-foreground uppercase group-hover:text-accent-custom transition-colors leading-snug tracking-tight">
                   {project.title}
                 </h2>
-                <p className="text-xs text-neutral-gray leading-relaxed">
+                <p className="text-xs text-neutral-gray leading-relaxed font-medium">
                   {project.summary}
                 </p>
                 
-                <div className="flex flex-wrap gap-2 items-center justify-between pt-4 border-t border-zinc-900 mt-4">
+                <div className="flex flex-wrap gap-2 items-center justify-between pt-4 border-t border-zinc-200/60 mt-4">
                   <div className="flex flex-wrap gap-1">
                     {(project.tags || []).map((tag) => (
-                      <span key={tag} className="inline-flex items-center rounded-md bg-zinc-900 border border-zinc-800/80 px-2 py-0.5 text-[8px] font-black uppercase text-zinc-300">
+                      <span key={tag} className="inline-flex items-center rounded-md bg-zinc-100 border border-zinc-250 px-2 py-0.5 text-[8px] font-black uppercase text-foreground/80">
                         {tag}
                       </span>
                     ))}

@@ -23,26 +23,21 @@ export function Navbar({ settings, navigation }: NavbarProps) {
     setIsOpen(false);
   }, [pathname]);
 
-  // Handle header show/hide on scroll direction (using Ref to prevent event listener churn)
+  // Handle header show/hide on scroll direction
   useEffect(() => {
-    // Set initial values
     lastScrollY.current = window.scrollY;
     setIsAtTop(window.scrollY < 60);
 
     const handleScroll = () => {
       const currentScrollY = window.scrollY;
-
-      // Determine if navbar is at the very top of the page
       setIsAtTop(currentScrollY < 60);
 
-      // Always show at the very top of the page to avoid hiding glitches
       if (currentScrollY < 15) {
         setIsVisible(true);
         lastScrollY.current = currentScrollY;
         return;
       }
 
-      // Hide when scrolling down, show when scrolling up
       if (currentScrollY > lastScrollY.current) {
         setIsVisible(false);
       } else {
@@ -60,26 +55,24 @@ export function Navbar({ settings, navigation }: NavbarProps) {
   const regularLinks = navigation.headerLinks.filter(l => l.path !== '/contact');
   const hasContactLink = navigation.headerLinks.some(l => l.path === '/contact');
 
-  // Dynamic theme classes optimized for Premium Dark Mode
+  // Dynamic theme classes optimized for Light Warm Journal Vibe
   const headerTheme = isAtTop
-    ? 'bg-transparent border-transparent text-white'
-    : 'bg-zinc-950/90 border-zinc-900/60 text-white/90 shadow-lg backdrop-blur-md';
+    ? 'bg-transparent border-transparent text-foreground'
+    : 'bg-white/80 border-zinc-200/50 text-foreground shadow-3xs backdrop-blur-md';
 
   const logoBorderTheme = isAtTop
-    ? 'bg-white/10 border-white/20'
-    : 'bg-zinc-900 border-zinc-800';
+    ? 'bg-zinc-100 border-zinc-200'
+    : 'bg-zinc-50 border-zinc-200';
 
   const navLinkTheme = isAtTop
-    ? 'text-white/80 hover:text-white'
-    : 'text-zinc-400 hover:text-white';
+    ? 'text-foreground/80 hover:text-accent-custom'
+    : 'text-neutral-gray hover:text-foreground';
 
-  const contactButtonTheme = isAtTop
-    ? 'bg-white text-zinc-950 hover:bg-accent-custom hover:text-white'
-    : 'bg-white text-zinc-950 hover:bg-accent-custom hover:text-white';
+  const contactButtonTheme = 'bg-foreground text-background hover:bg-accent-custom hover:text-white transition-colors duration-300 rounded-lg shadow-3xs';
 
   const mobileToggleTheme = isAtTop
-    ? 'border-white/25 text-white/90 hover:text-white'
-    : 'border-zinc-800 text-white/80 hover:text-white';
+    ? 'border-zinc-200/60 text-foreground/80 hover:text-foreground'
+    : 'border-zinc-200 text-foreground/80 hover:text-foreground';
 
   return (
     <header 
@@ -87,7 +80,7 @@ export function Navbar({ settings, navigation }: NavbarProps) {
         isVisible ? 'translate-y-0' : '-translate-y-full'
       }`}
     >
-      {/* Outer grid boundary line layout: Full screen width alignment matching Tresmares */}
+      {/* Outer grid boundary line layout */}
       <div className="w-full px-6 sm:px-10 md:px-14 flex h-16 items-center justify-between relative">
         {/* Logo */}
         <Link href="/" className="flex items-center gap-3 group h-full py-4 pr-6">
@@ -98,7 +91,7 @@ export function Navbar({ settings, navigation }: NavbarProps) {
               className="h-full w-full object-cover"
             />
           </div>
-          <span className="text-sm font-black tracking-widest uppercase">
+          <span className="text-xs font-black tracking-widest uppercase">
             {settings.siteName}
           </span>
         </Link>
@@ -115,7 +108,7 @@ export function Navbar({ settings, navigation }: NavbarProps) {
               >
                 {link.label}
                 {isActive && (
-                  <span className="absolute bottom-0 left-0 right-0 h-[2.5px] bg-accent-custom" />
+                  <span className="absolute bottom-0 left-0 right-0 h-[2.5px] bg-accent-custom rounded-t-full" />
                 )}
               </Link>
             );
@@ -124,10 +117,10 @@ export function Navbar({ settings, navigation }: NavbarProps) {
 
         {/* Contact button */}
         {hasContactLink && (
-          <div className={`hidden md:flex items-center h-full border-l ${isAtTop ? 'border-white/15' : 'border-zinc-900/60'} pl-6 ml-6`}>
+          <div className={`hidden md:flex items-center h-full border-l ${isAtTop ? 'border-zinc-200/40' : 'border-zinc-200'} pl-6 ml-6`}>
             <Link
               href="/contact"
-              className={`inline-flex h-10 items-center justify-center px-6 text-[10px] font-black uppercase tracking-widest transition-all duration-300 ${contactButtonTheme}`}
+              className={`inline-flex h-9 items-center justify-center px-5 text-[10px] font-black uppercase tracking-widest ${contactButtonTheme}`}
             >
               Contact
             </Link>
@@ -146,7 +139,7 @@ export function Navbar({ settings, navigation }: NavbarProps) {
 
       {/* Mobile nav panel */}
       {isOpen && (
-        <div className={`border-b ${isAtTop ? 'bg-zinc-950/98 text-white border-white/10' : 'bg-zinc-950 text-white border-zinc-900'} md:hidden animate-fade-in`}>
+        <div className="border-b bg-white/95 text-foreground border-zinc-200 md:hidden animate-fade-in backdrop-blur-md">
           <nav className="flex flex-col gap-4 px-6 py-6 sm:px-10">
             {navigation.headerLinks.map((link) => {
               const isActive = pathname === link.path || (link.path !== '/' && pathname.startsWith(link.path));
@@ -157,7 +150,7 @@ export function Navbar({ settings, navigation }: NavbarProps) {
                   className={`text-xs font-black uppercase tracking-widest transition-colors ${
                     isActive
                       ? 'text-accent-custom'
-                      : 'text-zinc-400 hover:text-white'
+                      : 'text-neutral-gray hover:text-foreground'
                   }`}
                 >
                   {link.label}

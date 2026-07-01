@@ -13,15 +13,15 @@ export default async function ObservationsPage() {
   const posts = await getObservations();
 
   return (
-    <main className="flex-1 w-full bg-background py-16 sm:py-24 border-b border-border-custom">
+    <main className="flex-1 w-full bg-background py-20 sm:py-28 border-b border-zinc-200/50">
       <div className="mx-auto max-w-4xl px-4 sm:px-6">
         {/* Page Header */}
         <div className="mb-16">
-          <span className="text-[10px] font-bold text-foreground/50 uppercase tracking-widest block mb-3">Reflections</span>
-          <h1 className="text-3xl sm:text-4xl font-black tracking-tight text-foreground">
+          <span className="text-[10px] font-black text-accent-custom uppercase tracking-widest block mb-3">Reflections</span>
+          <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-foreground uppercase">
             Observations
           </h1>
-          <p className="mt-6 text-lg text-foreground/75 leading-relaxed font-medium">
+          <p className="mt-6 text-base sm:text-lg text-neutral-gray leading-relaxed font-medium">
             A curated index of our thoughts, research, and technical notes from the FeelsNeat journey, hosted on Substack.
           </p>
         </div>
@@ -38,34 +38,34 @@ export default async function ObservationsPage() {
                 href={targetUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="group relative flex flex-col items-start p-6 rounded-xl border border-border-custom bg-background hover:border-foreground/20 transition-all duration-200 shadow-xs"
+                className="group relative flex flex-col items-start p-6 rounded-2xl border border-zinc-200 bg-white hover:border-accent-custom transition-all duration-300 shadow-3xs"
               >
-                <div className="flex items-center justify-between w-full text-[10px] font-bold text-foreground/50 uppercase mb-3">
+                <div className="flex items-center justify-between w-full text-[10px] font-black text-neutral-gray uppercase tracking-wider mb-3">
                   <time>{new Date(post.date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</time>
-                  <span className="flex items-center gap-1">
+                  <span className="flex items-center gap-1 text-accent-custom">
                     <LucideIcon name={isVideo ? 'Youtube' : 'BookOpen'} className="h-3.5 w-3.5" />
                     {isVideo ? 'Video' : 'Article'}
                   </span>
                 </div>
                 
-                <h2 className="text-xl font-extrabold text-foreground mb-3 group-hover:underline">
+                <h2 className="text-lg font-bold text-foreground uppercase tracking-tight leading-snug mb-3 group-hover:text-accent-custom transition-colors duration-200">
                   {post.title}
                 </h2>
                 
-                <p className="text-sm text-foreground/70 leading-relaxed mb-4">
+                <p className="text-xs text-neutral-gray leading-relaxed mb-4 font-medium">
                   {post.summary}
                 </p>
                 
-                <div className="flex flex-wrap gap-4 items-center justify-between w-full pt-4 border-t border-border-custom/50">
+                <div className="flex flex-wrap gap-4 items-center justify-between w-full pt-4 border-t border-zinc-100">
                   <div className="flex flex-wrap gap-1.5">
                     {post.tags.map((tag) => (
-                      <span key={tag} className="text-[9px] font-semibold text-foreground/60 bg-border-custom/30 px-1.5 py-0.5 rounded-md">
+                      <span key={tag} className="text-[8px] font-black uppercase text-foreground/80 bg-zinc-100 border border-zinc-250 px-2 py-0.5 rounded-md">
                         {tag}
                       </span>
                     ))}
                   </div>
-                  <span className="inline-flex items-center gap-1.5 text-xs font-bold text-foreground group-hover:translate-x-0.5 transition-transform">
-                    {isVideo ? 'Watch Video' : 'Read Article'} <LucideIcon name="ArrowUpRight" className="h-3.5 w-3.5" />
+                  <span className="inline-flex items-center gap-1.5 text-xs font-black text-foreground uppercase tracking-wider group-hover:text-accent-custom transition-colors border-b border-foreground group-hover:border-accent-custom pb-0.5">
+                    {isVideo ? 'Watch Video' : 'Read Article'} <LucideIcon name="ArrowRight" className="h-3 w-3" />
                   </span>
                 </div>
               </a>

@@ -52,7 +52,7 @@ export function ContactForm() {
   };
 
   return (
-    <div className="w-full rounded-lg border border-zinc-100 bg-white p-8 shadow-xs relative overflow-hidden transition-all duration-300">
+    <div className="w-full rounded-2xl border border-zinc-200/80 bg-white p-8 shadow-xs relative overflow-hidden transition-all duration-300">
       {status === 'success' ? (
         <div className="flex flex-col items-center justify-center text-center py-12 animate-fade-in">
           <div className="flex h-12 w-12 items-center justify-center rounded-full bg-accent-custom/5 border border-accent-custom text-accent-custom mb-5">

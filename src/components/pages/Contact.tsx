@@ -26,7 +26,7 @@ export default async function ContactPage() {
   };
 
   return (
-    <main className="flex-1 w-full bg-background py-20 sm:py-28 border-b border-border-custom relative">
+    <main className="flex-1 w-full bg-background py-20 sm:py-28 border-b border-zinc-200/50 relative">
       {/* Morphing background shapes */}
       <div className="morphing-blob absolute top-20 left-10 opacity-30" />
 
@@ -45,12 +45,12 @@ export default async function ContactPage() {
             </div>
 
             <div 
-              className="text-sm text-zinc-400 leading-relaxed prose max-w-none"
+              className="text-sm text-neutral-gray leading-relaxed prose max-w-none"
               dangerouslySetInnerHTML={{ __html: pageData.content }}
             />
 
             {/* Direct Connect Info */}
-            <div className="pt-10 border-t border-zinc-900 space-y-8">
+            <div className="pt-10 border-t border-zinc-200 space-y-8">
               <div className="space-y-2">
                 <h3 className="text-[10px] font-black tracking-widest text-accent-custom uppercase">
                   {pageData.infoTitle || 'Connections'}
@@ -65,7 +65,7 @@ export default async function ContactPage() {
                   href={`mailto:${settings.contactEmail}`} 
                   className="flex items-center gap-3 text-sm text-foreground hover:text-accent-custom transition-colors w-fit font-bold"
                 >
-                  <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-zinc-900/40 border border-zinc-800 text-accent-custom">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-zinc-100 border border-zinc-200 text-accent-custom shadow-3xs">
                     <LucideIcon name="Mail" className="h-4.5 w-4.5" />
                   </div>
                   <span>{settings.contactEmail}</span>
@@ -80,7 +80,7 @@ export default async function ContactPage() {
                     href={social.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex h-9 w-9 items-center justify-center rounded-lg bg-zinc-900/40 border border-zinc-800 text-zinc-400 hover:text-accent-custom hover:border-accent-custom/25 hover:bg-zinc-800 transition-all duration-300"
+                    className="flex h-9 w-9 items-center justify-center rounded-lg bg-zinc-100 border border-zinc-200 text-neutral-gray hover:text-accent-custom hover:border-accent-custom/25 hover:bg-zinc-200 transition-all duration-300 shadow-3xs"
                     aria-label={`Visit FeelsNeat on ${social.platform}`}
                   >
                     <LucideIcon name={getSocialIcon(social.platform)} className="h-4.5 w-4.5" />

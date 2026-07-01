@@ -13,28 +13,28 @@ export default async function AdminPage({ userEmail, error, email }: AdminPagePr
   // If not logged in, render the secure authentication prompt
   if (!userEmail) {
     return (
-      <main className="flex-1 flex items-center justify-center bg-zinc-50 dark:bg-zinc-950 py-24 px-4 sm:px-6 lg:px-8">
-        <div className="w-full max-w-md space-y-8 rounded-2xl border border-zinc-200 bg-white p-8 dark:border-zinc-800 dark:bg-zinc-900 shadow-sm text-center">
+      <main className="flex-1 flex items-center justify-center bg-[#FAFAFA] py-24 px-4 sm:px-6 lg:px-8">
+        <div className="w-full max-w-md space-y-8 rounded-2xl border border-zinc-200 bg-white p-8 shadow-3xs text-center">
           <div className="space-y-3">
-            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900 font-black">
+            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-zinc-900 text-white font-black">
               FN
             </div>
-            <h2 className="text-3xl font-extrabold tracking-tight text-zinc-900 dark:text-zinc-50">
+            <h2 className="text-3xl font-extrabold tracking-tight text-zinc-900">
               FeelsNeat CMS
             </h2>
-            <p className="text-sm text-zinc-500 dark:text-zinc-400">
+            <p className="text-sm text-zinc-500">
               Authorized admin workspace. Sign in to edit website content.
             </p>
           </div>
 
           {error === 'unauthorized' && (
-            <div className="rounded-lg bg-red-50 p-4 text-sm text-red-700 dark:bg-red-950/30 dark:text-red-400 text-left">
+            <div className="rounded-lg bg-red-50 p-4 text-sm text-red-700 text-left">
               Email <span className="font-semibold">{email}</span> is not authorized. Please log in with an allowed admin account.
             </div>
           )}
 
           {error && error !== 'unauthorized' && (
-            <div className="rounded-lg bg-red-50 p-4 text-sm text-red-700 dark:bg-red-950/30 dark:text-red-400 text-left">
+            <div className="rounded-lg bg-red-50 p-4 text-sm text-red-700 text-left">
               Authentication failed. Please try again.
             </div>
           )}
@@ -42,7 +42,7 @@ export default async function AdminPage({ userEmail, error, email }: AdminPagePr
           <div className="mt-8 space-y-4">
             <a
               href="/api/auth/login"
-              className="inline-flex h-12 w-full items-center justify-center gap-3 rounded-xl border border-zinc-200 bg-white px-6 font-semibold text-zinc-700 hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-200 dark:hover:bg-zinc-800 transition-colors shadow-sm cursor-pointer"
+              className="inline-flex h-12 w-full items-center justify-center gap-3 rounded-xl border border-zinc-200 bg-white px-6 font-semibold text-zinc-700 hover:bg-zinc-50 transition-colors shadow-3xs cursor-pointer"
             >
               <svg className="h-5 w-5" viewBox="0 0 24 24" width="24" height="24" xmlns="http://www.w3.org/2000/svg">
                 <g transform="matrix(1, 0, 0, 1, 0, 0)">
@@ -57,11 +57,11 @@ export default async function AdminPage({ userEmail, error, email }: AdminPagePr
 
             {/* Development-mode bypass button */}
             {process.env.NODE_ENV === 'development' && (
-              <div className="mt-4 pt-4 border-t border-zinc-150 dark:border-zinc-800">
+              <div className="mt-4 pt-4 border-t border-zinc-200">
                 <p className="text-xs text-zinc-400 mb-2">Development Tooling</p>
                 <a
                   href="/api/auth/dev-login"
-                  className="inline-flex h-10 w-full items-center justify-center rounded-xl bg-zinc-100 text-xs font-semibold text-zinc-700 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700 transition-colors cursor-pointer"
+                  className="inline-flex h-10 w-full items-center justify-center rounded-xl bg-zinc-100 text-xs font-semibold text-zinc-700 hover:bg-zinc-200 transition-colors cursor-pointer"
                 >
                   Bypass OAuth (Dev Auto Sign-In)
                 </a>
@@ -74,7 +74,7 @@ export default async function AdminPage({ userEmail, error, email }: AdminPagePr
   }
 
   return (
-    <main className="flex-1 w-full bg-[#0A0A0C] py-12 border-b border-zinc-900 admin-workspace-theme">
+    <main className="flex-1 w-full bg-[#FAFAFA] py-12 border-b border-zinc-200 admin-workspace-theme">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <AdminDashboard userEmail={userEmail} />
       </div>

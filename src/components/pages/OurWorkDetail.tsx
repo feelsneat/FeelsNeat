@@ -30,7 +30,7 @@ export default async function ProjectDetailPage({ projectSlug }: ProjectDetailPa
   const linkDetails = getLinkDetails(project.externalUrl);
 
   return (
-    <main className="flex-1 w-full bg-background py-20 sm:py-28 border-b border-border-custom relative">
+    <main className="flex-1 w-full bg-background py-20 sm:py-28 border-b border-zinc-200/50 relative">
       {/* Morphing background blob */}
       <div className="morphing-blob absolute top-20 right-10 opacity-20" />
 
@@ -47,19 +47,19 @@ export default async function ProjectDetailPage({ projectSlug }: ProjectDetailPa
         <div className="space-y-6 mb-16 scroll-reveal">
           <div className="flex flex-wrap items-center gap-4 text-[9px] font-black text-neutral-gray uppercase tracking-widest">
             <span>{project.client}</span>
-            <span className="text-zinc-200 font-normal">|</span>
+            <span className="text-zinc-300 font-normal">|</span>
             <span>{project.date}</span>
-            <span className="text-zinc-200 font-normal">|</span>
+            <span className="text-zinc-300 font-normal">|</span>
             <span className="text-accent-custom">{project.category}</span>
-            <span className="text-zinc-200 font-normal">|</span>
-            <span className="bg-zinc-50 border border-zinc-150 px-2 py-0.5 rounded text-[8px]">{project.status}</span>
+            <span className="text-zinc-300 font-normal">|</span>
+            <span className="bg-zinc-100 border border-zinc-250 px-2 py-0.5 rounded text-[8px]">{project.status}</span>
           </div>
           
           <h1 className="text-3xl sm:text-5xl font-extrabold tracking-tight text-foreground leading-tight uppercase">
             {project.title}
           </h1>
           
-          <p className="text-lg text-neutral-gray font-medium leading-relaxed max-w-3xl">
+          <p className="text-base sm:text-lg text-neutral-gray font-medium leading-relaxed max-w-3xl">
             {project.summary}
           </p>
 
@@ -70,7 +70,7 @@ export default async function ProjectDetailPage({ projectSlug }: ProjectDetailPa
                 href={project.externalUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex h-11 items-center justify-center gap-2 rounded-lg bg-foreground px-6 text-xs font-black uppercase tracking-wider text-background hover:bg-accent-custom transition-colors shadow-sm"
+                className="inline-flex h-11 items-center justify-center gap-2 rounded-lg bg-foreground px-6 text-xs font-black uppercase tracking-wider text-background hover:bg-accent-custom transition-colors shadow-3xs"
               >
                 <LucideIcon name={linkDetails.icon} className="h-4 w-4" />
                 <span>{linkDetails.text}</span>
@@ -81,7 +81,7 @@ export default async function ProjectDetailPage({ projectSlug }: ProjectDetailPa
 
         {/* Visual Header / Cover Panel */}
         {project.coverImage ? (
-          <div className="w-full aspect-[2/1] rounded-lg overflow-hidden border border-zinc-900 mb-16 shadow-lg">
+          <div className="w-full aspect-[2/1] rounded-lg overflow-hidden border border-zinc-200 mb-16 shadow-3xs">
             <img 
               src={project.coverImage} 
               alt={project.title} 
@@ -89,19 +89,19 @@ export default async function ProjectDetailPage({ projectSlug }: ProjectDetailPa
             />
           </div>
         ) : (
-          <div className="w-full aspect-[2/1] rounded-lg bg-zinc-950 mb-16 flex items-center justify-center p-8 border border-zinc-900 shadow-lg">
+          <div className="w-full aspect-[2/1] rounded-lg bg-zinc-100 mb-16 flex items-center justify-center p-8 border border-zinc-200 shadow-3xs">
             <div className="text-center space-y-3">
-              <div className="mx-auto h-11 w-11 rounded-lg bg-white/10 flex items-center justify-center text-white backdrop-blur-xs">
-                <LucideIcon name="Briefcase" className="h-5 w-5" />
+              <div className="mx-auto h-11 w-11 rounded-lg bg-white border border-zinc-200 flex items-center justify-center text-foreground shadow-3xs">
+                <LucideIcon name="Briefcase" className="h-5 w-5 text-accent-custom" />
               </div>
-              <span className="text-[10px] font-bold text-white/50 tracking-wider uppercase block">{project.client}</span>
+              <span className="text-[10px] font-bold text-neutral-gray/60 tracking-wider uppercase block">{project.client}</span>
             </div>
           </div>
         )}
 
         {/* Detailed markdown article */}
         <div 
-          className="text-base text-zinc-400 space-y-6 leading-relaxed prose max-w-none scroll-reveal"
+          className="text-sm sm:text-base text-neutral-gray space-y-6 leading-relaxed prose max-w-none scroll-reveal font-medium"
           dangerouslySetInnerHTML={{ __html: project.content }}
         />
 
@@ -111,7 +111,7 @@ export default async function ProjectDetailPage({ projectSlug }: ProjectDetailPa
             <h3 className="text-[9px] font-black text-neutral-gray uppercase tracking-widest">Project Gallery</h3>
             <div className="grid sm:grid-cols-2 gap-8">
               {project.additionalImages.map((imgUrl, imgIdx) => (
-                <div key={imgIdx} className="aspect-[1.5/1] rounded-lg overflow-hidden border border-zinc-900 bg-zinc-900/20 shadow-lg">
+                <div key={imgIdx} className="aspect-[1.5/1] rounded-lg overflow-hidden border border-zinc-200 bg-zinc-100/50 shadow-3xs">
                   <img 
                     src={imgUrl} 
                     alt={`${project.title} gallery image ${imgIdx + 1}`} 
@@ -124,12 +124,12 @@ export default async function ProjectDetailPage({ projectSlug }: ProjectDetailPa
         )}
 
         {/* Project Footer Meta */}
-        <div className="mt-20 pt-12 border-t border-zinc-900 flex flex-col sm:flex-row justify-between gap-8 scroll-reveal">
+        <div className="mt-20 pt-12 border-t border-zinc-200 flex flex-col sm:flex-row justify-between gap-8 scroll-reveal">
           <div>
             <h3 className="text-[9px] font-black text-neutral-gray uppercase tracking-widest mb-3">Core Tags</h3>
             <div className="flex flex-wrap gap-1.5">
               {(project.tags || []).map((tag) => (
-                <span key={tag} className="inline-flex items-center rounded-md bg-zinc-900 border border-zinc-800 px-2.5 py-0.5 text-[8px] font-black uppercase text-foreground/75">
+                <span key={tag} className="inline-flex items-center rounded-md bg-zinc-100 border border-zinc-250 px-2.5 py-0.5 text-[8px] font-black uppercase text-foreground/80">
                   {tag}
                 </span>
               ))}
