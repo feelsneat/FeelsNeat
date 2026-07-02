@@ -135,9 +135,12 @@ export function SubstackFeed() {
           : posts.map((post) => {
               const thumbnail = getThumbnail(post);
               return (
-                <article
+                <a
                   key={post.guid}
-                  className="group flex flex-col rounded-2xl border border-zinc-200 bg-white p-6 shadow-md hover:border-[#E30613] hover:shadow-lg transition-all duration-300 min-h-[300px]"
+                  href={post.link}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="group flex flex-col rounded-2xl border border-zinc-200 bg-white p-6 shadow-md hover:border-[#E30613] hover:shadow-lg transition-all duration-300 min-h-[300px] text-left cursor-pointer"
                 >
                   {/* Optional Image Thumbnail */}
                   {thumbnail && (
@@ -168,16 +171,13 @@ export function SubstackFeed() {
                   
                   {/* Read Button */}
                   <div className="pt-2">
-                    <a
-                      href={post.link}
-                      target="_blank"
-                      rel="noopener noreferrer"
+                    <span
                       className="inline-flex items-center gap-1.5 text-xs font-black text-[#000000] uppercase tracking-wider group-hover:text-[#E30613] transition-colors border-b border-[#000000] group-hover:border-[#E30613] pb-0.5"
                     >
                       Read Article <LucideIcon name="ArrowRight" className="h-3 w-3" />
-                    </a>
+                    </span>
                   </div>
-                </article>
+                </a>
               );
             })}
       </div>
