@@ -1,50 +1,12 @@
-'use client';
-
-import { useState, useEffect } from 'react';
 import { LucideIcon } from '../ui/LucideIcon';
+import { SubstackPost } from '@/lib/substack';
 
-interface SubstackPost {
-  title: string;
-  pubDate: string;
-  link: string;
-  guid: string;
-  author: string;
-  thumbnail: string;
-  description: string;
-  content: string;
+interface SubstackFeedProps {
+  posts: SubstackPost[];
 }
 
-export function SubstackFeed() {
-  const [posts, setPosts] = useState<SubstackPost[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(false);
-
-  useEffect(() => {
-    async function fetchFeed() {
-      try {
-        const res = await fetch(
-          'https://api.rss2json.com/v1/api.json?rss_url=https%3A%2F%2Ffeelsneat.substack.com%2Ffeed'
-        );
-        if (!res.ok) throw new Error('Failed to fetch feed');
-        const data = await res.json();
-        if (data.status === 'ok' && Array.isArray(data.items)) {
-          // Slice the 3 latest posts
-          setPosts(data.items.slice(0, 3));
-        } else {
-          throw new Error('Invalid feed status');
-        }
-      } catch (err) {
-        console.error('Substack RSS fetch error:', err);
-        setError(true);
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    fetchFeed();
-  }, []);
-
-  // Helper to format dates cleanly
+export function SubstackFeed({ posts }: SubstackFeedProps) {
+  // Helper to format dates cleanly on the server
   const formatDate = (dateStr: string) => {
     try {
       const dateObj = new Date(dateStr.replace(' ', 'T'));
@@ -58,39 +20,35 @@ export function SubstackFeed() {
     }
   };
 
-  // Helper to clean descriptions from HTML
-  const cleanDescription = (htmlStr: string) => {
-    if (!htmlStr) return '';
-    // Strip HTML tags
-    const doc = new DOMParser().parseFromString(htmlStr, 'text/html');
-    const text = doc.body.textContent || '';
-    // Limit excerpt size
-    return text.length > 140 ? text.substring(0, 140) + '...' : text;
+  // Inspects content metadata to return clean format indicators (Articles, Videos, Podcasts)
+  const getFormatInfo = (post: SubstackPost) => {
+    const cats = (post.categories || []).map((c) => c.toLowerCase());
+    const contentLower = (post.content || '').toLowerCase();
+    
+    const isVideo = 
+      cats.includes('video') || 
+      contentLower.includes('youtube.com/embed') || 
+      contentLower.includes('youtu.be') || 
+      contentLower.includes('<iframe') && contentLower.includes('video');
+      
+    const isPodcast = 
+      cats.includes('podcast') || 
+      cats.includes('audio') || 
+      contentLower.includes('<audio') || 
+      contentLower.includes('player.substack.com');
+
+    if (isVideo) {
+      return { label: 'Video Exploration', icon: 'Youtube' };
+    }
+    if (isPodcast) {
+      return { label: 'Audio Podcast', icon: 'Volume2' };
+    }
+    return { label: 'Insight Article', icon: 'BookOpen' };
   };
 
-  // Helper to dynamically extract image thumbnails from RSS data
-  const getThumbnail = (post: SubstackPost) => {
-    // 1. Check if rss2json directly parsed a thumbnail image
-    if (post.thumbnail && post.thumbnail.startsWith('http')) {
-      return post.thumbnail;
-    }
-    // 2. Otherwise extract first <img> tag src from post content or description HTML
-    try {
-      const htmlContent = post.content || post.description || '';
-      const doc = new DOMParser().parseFromString(htmlContent, 'text/html');
-      const img = doc.querySelector('img');
-      if (img && img.src && img.src.startsWith('http')) {
-        return img.src;
-      }
-    } catch (e) {
-      console.warn('Error parsing inline thumbnail image:', e);
-    }
-    return null;
-  };
-
-  if (error) {
+  if (!posts || posts.length === 0) {
     return (
-      <div className="rounded-2xl border border-zinc-200 bg-white p-8 sm:p-12 text-center shadow-md max-w-2xl mx-auto scroll-reveal">
+      <div className="rounded-2xl border border-zinc-200 bg-white p-8 sm:p-12 text-center shadow-md max-w-2xl mx-auto">
         <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-zinc-100 text-[#000000] mb-4">
           <LucideIcon name="ShieldAlert" className="h-5 w-5 text-[#E30613]" />
         </div>
@@ -116,70 +74,62 @@ export function SubstackFeed() {
     <div className="space-y-12">
       {/* Cards Stream Grid */}
       <div className="grid md:grid-cols-3 gap-8">
-        {loading
-          ? // Skeleton Pulse Loading Cards to prevent CLS
-            Array.from({ length: 3 }).map((_, idx) => (
-              <div
-                key={idx}
-                className="flex flex-col rounded-2xl border border-zinc-200 bg-white p-6 shadow-md animate-pulse space-y-4 min-h-[300px]"
-              >
-                <div className="w-full aspect-[16/9] rounded-xl bg-zinc-100 animate-pulse mb-2" />
-                <div className="h-3 w-1/3 bg-zinc-200 rounded" />
-                <div className="space-y-2">
-                  <div className="h-5 bg-zinc-200 rounded w-11/12" />
-                  <div className="h-5 bg-zinc-200 rounded w-8/12" />
+        {posts.map((post) => {
+          const format = getFormatInfo(post);
+          return (
+            <a
+              key={post.guid || post.link}
+              href={post.link}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="group flex flex-col rounded-2xl border border-zinc-200 bg-white p-6 shadow-md hover:border-[#E30613] hover:shadow-lg transition-all duration-300 min-h-[320px] text-left cursor-pointer"
+            >
+              {/* Optional Image Thumbnail */}
+              {post.thumbnail && (
+                <div className="w-full aspect-[16/9] rounded-xl overflow-hidden mb-4 border border-zinc-100 bg-zinc-50 relative select-none">
+                  <img
+                    src={post.thumbnail}
+                    alt={post.title}
+                    className="h-full w-full object-cover group-hover:scale-102 transition-transform duration-500"
+                    loading="lazy"
+                  />
                 </div>
-                <div className="h-4 bg-zinc-200 rounded w-1/4 pt-4 mt-auto" />
-              </div>
-            ))
-          : posts.map((post) => {
-              const thumbnail = getThumbnail(post);
-              return (
-                <a
-                  key={post.guid}
-                  href={post.link}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="group flex flex-col rounded-2xl border border-zinc-200 bg-white p-6 shadow-md hover:border-[#E30613] hover:shadow-lg transition-all duration-300 min-h-[300px] text-left cursor-pointer"
-                >
-                  {/* Optional Image Thumbnail */}
-                  {thumbnail && (
-                    <div className="w-full aspect-[16/9] rounded-xl overflow-hidden mb-4 border border-zinc-100 bg-zinc-50 relative select-none">
-                      <img
-                        src={thumbnail}
-                        alt={post.title}
-                        className="h-full w-full object-cover group-hover:scale-102 transition-transform duration-500"
-                        loading="lazy"
-                      />
-                    </div>
-                  )}
+              )}
 
-                  {/* Date stamp */}
-                  <span className="text-[10px] font-black text-[#E30613] uppercase tracking-wider block mb-3">
-                    {formatDate(post.pubDate)}
-                  </span>
-                  
-                  {/* Post Title */}
-                  <h3 className="text-base font-bold text-[#000000] leading-snug group-hover:text-[#E30613] transition-colors duration-200 tracking-tight uppercase mb-3">
-                    {post.title}
-                  </h3>
-                  
-                  {/* Snippet Excerpt */}
-                  <p className="text-xs text-[#000000] leading-relaxed mb-6 flex-grow font-black uppercase">
-                    {cleanDescription(post.description)}
-                  </p>
-                  
-                  {/* Read Button */}
-                  <div className="pt-2">
-                    <span
-                      className="inline-flex items-center gap-1.5 text-xs font-black text-[#000000] uppercase tracking-wider group-hover:text-[#E30613] transition-colors border-b border-[#000000] group-hover:border-[#E30613] pb-0.5"
-                    >
-                      Read Article <LucideIcon name="ArrowRight" className="h-3 w-3" />
-                    </span>
-                  </div>
-                </a>
-              );
-            })}
+              {/* Header Meta: Format badge & publish date */}
+              <div className="flex items-center justify-between gap-2 mb-3">
+                <span className="text-[10px] font-black text-[#E30613] uppercase tracking-wider">
+                  {formatDate(post.pubDate)}
+                </span>
+                
+                {/* Reading time & format icon */}
+                <div className="flex items-center gap-1.5 text-[9px] text-[#000000]/60 font-black uppercase">
+                  <LucideIcon name={format.icon} className="h-3 w-3 text-[#E30613]" />
+                  <span>{post.readingTime || '2 min read'}</span>
+                </div>
+              </div>
+              
+              {/* Post Title */}
+              <h3 className="text-base font-bold text-[#000000] leading-snug group-hover:text-[#E30613] transition-colors duration-200 tracking-tight uppercase mb-3 line-clamp-2">
+                {post.title}
+              </h3>
+              
+              {/* Snippet Excerpt */}
+              <p className="text-xs text-[#000000]/70 leading-relaxed mb-6 flex-grow font-semibold line-clamp-3 uppercase">
+                {post.description}
+              </p>
+              
+              {/* Read Button */}
+              <div className="pt-2 border-t border-zinc-100 mt-auto">
+                <span
+                  className="inline-flex items-center gap-1.5 text-xs font-black text-[#000000] uppercase tracking-wider group-hover:text-[#E30613] transition-colors border-b border-[#000000] group-hover:border-[#E30613] pb-0.5"
+                >
+                  {format.label === 'Video Exploration' ? 'Watch Video' : format.label === 'Audio Podcast' ? 'Listen Episode' : 'Read Article'} <LucideIcon name="ArrowRight" className="h-3 w-3" />
+                </span>
+              </div>
+            </a>
+          );
+        })}
       </div>
     </div>
   );

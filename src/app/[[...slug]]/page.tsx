@@ -2,6 +2,7 @@ import { notFound, redirect } from 'next/navigation';
 import { cookies } from 'next/headers';
 import { verifySession } from '@/lib/auth';
 import { getSettings, getPage, getWorkBySlug, getObservationBySlug } from '@/lib/cms';
+import { fetchSubstackFeed } from '@/lib/substack';
 
 // Import modular pages
 import HomePage from '@/components/pages/Home';
@@ -96,10 +97,21 @@ export default async function CatchAllPage({ params, searchParams }: PageProps) 
       return <ObservationsPage />;
     }
     if (slug.length === 2) {
-      const post = await getObservationBySlug(slug[1]);
-      if (!post) notFound();
-      const targetUrl = post.externalSubstackUrl || post.youtubeUrl || 'https://substack.com';
-      redirect(targetUrl);
+      const targetSlug = slug[1];
+      const livePosts = await fetchSubstackFeed();
+      const matchedPost = livePosts.find(p => p.slug === targetSlug || p.guid === targetSlug);
+      if (matchedPost) {
+        redirect(matchedPost.link);
+      }
+
+      // Fallback lookup from manually entered CMS database
+      const fallbackPost = await getObservationBySlug(targetSlug);
+      if (fallbackPost) {
+        const targetUrl = fallbackPost.externalSubstackUrl || fallbackPost.youtubeUrl || 'https://substack.com';
+        redirect(targetUrl);
+      }
+      
+      notFound();
     }
   }
 
