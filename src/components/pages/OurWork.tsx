@@ -46,14 +46,14 @@ export default async function OurWorkPage() {
             </p>
           </div>
 
-          <div className="grid gap-12">
+          <div className="space-y-8">
             {services.map((service, index) => (
               <div 
                 key={service.slug}
-                className="grid md:grid-cols-12 gap-8 p-6 sm:p-8 rounded-2xl border border-white/5 bg-[#0E0E12]/80 items-center hover:border-white/10 transition-all duration-300"
+                className="rounded-2xl border border-white/5 bg-[#0E0E12]/80 p-8 flex flex-col md:flex-row gap-8 items-center hover:border-white/10 transition-all duration-300"
               >
-                {/* Service Image Block */}
-                <div className="md:col-span-5 w-full aspect-[1.5/1] rounded-xl overflow-hidden border border-white/10 bg-white/5 relative">
+                {/* Image block */}
+                <div className="w-full md:w-1/2 aspect-[1.5/1] rounded-xl overflow-hidden border border-white/10 bg-white/5 relative">
                   {service.image ? (
                     <img 
                       src={service.image} 
@@ -67,37 +67,29 @@ export default async function OurWorkPage() {
                   )}
                 </div>
 
-                {/* Service Content Block */}
-                <div className="md:col-span-7 space-y-4 text-left">
-                  <div className="flex items-center gap-3">
-                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-white/5 border border-white/10 text-[#E30613]">
-                      <LucideIcon name={service.icon || 'Code'} className="h-5 w-5" />
-                    </div>
-                    <div>
-                      <h3 className="text-lg sm:text-xl font-black text-[#F4F4F5] uppercase tracking-tight leading-tight">{service.title}</h3>
-                      <span className="text-[10px] text-[#E30613] uppercase tracking-widest font-black block mt-0.5">Capability 0{index + 1}</span>
-                    </div>
+                {/* Content block */}
+                <div className="w-full md:w-1/2 space-y-6 text-left">
+                  <span className="text-xs font-black text-[#E30613] uppercase tracking-widest block">
+                    Capability 0{index + 1}
+                  </span>
+                  
+                  <h3 className="text-2xl font-black text-[#F4F4F5] uppercase tracking-tight leading-none">
+                    {service.title}
+                  </h3>
+                  
+                  <div className="space-y-4">
+                    <p className="text-sm sm:text-base text-[#F4F4F5]/85 leading-relaxed font-bold uppercase tracking-tight">
+                      {service.summary}
+                    </p>
+                    <div className="text-sm sm:text-base text-[#F4F4F5]/75 space-y-2 leading-relaxed font-semibold"
+                      dangerouslySetInnerHTML={{ __html: service.content }}
+                    />
                   </div>
 
-                  <p className="text-sm sm:text-base font-black text-[#F4F4F5] uppercase tracking-tight leading-normal pt-2">
-                    {service.summary}
-                  </p>
-
-                  <div className="text-sm sm:text-base text-[#F4F4F5]/75 space-y-3 leading-relaxed font-semibold pt-2"
-                    dangerouslySetInnerHTML={{ __html: service.content }}
-                  />
-
-                  <div className="pt-6 border-t border-white/5 flex items-center justify-between mt-6">
-                    <div className="flex flex-wrap gap-1.5">
-                      {(service.tags || []).map((tag) => (
-                        <span key={tag} className="inline-flex items-center rounded-md bg-white/5 border border-white/10 px-2 py-0.5 text-xs text-[#F4F4F5]/70 uppercase font-black">
-                          {tag}
-                        </span>
-                      ))}
-                    </div>
+                  <div className="pt-4 flex gap-4">
                     <Link 
                       href={`/create?service=${service.slug}`}
-                      className="inline-flex h-10 items-center justify-center rounded-lg bg-[#E30613] hover:bg-zinc-900 text-white px-5 text-sm font-black uppercase tracking-wider transition-colors duration-300 cursor-pointer shadow-md"
+                      className="inline-flex h-10 items-center justify-center rounded-lg bg-[#E30613] hover:bg-zinc-900 text-xs font-black uppercase tracking-wider text-white px-6 transition-colors duration-300 shadow-md"
                     >
                       Request Service
                     </Link>
@@ -155,7 +147,7 @@ export default async function OurWorkPage() {
                   </span>
                   <Link
                     href={`/create?product=${product.id}`}
-                    className="inline-flex h-10 items-center justify-center rounded-lg bg-white hover:bg-[#E30613] text-black hover:text-white px-4 text-sm font-black uppercase tracking-wider transition-colors duration-300 cursor-pointer shadow-md"
+                    className="inline-flex h-10 items-center justify-center rounded-lg bg-white hover:bg-[#E30613] text-black hover:text-white px-4 text-xs font-black uppercase tracking-wider text-white transition-colors duration-300 cursor-pointer shadow-md"
                   >
                     Order Template
                   </Link>
@@ -193,10 +185,10 @@ export default async function OurWorkPage() {
               <p className="text-sm sm:text-base text-[#F4F4F5]/75 leading-relaxed font-semibold">
                 Select from Travel, Wedding, Relationship, or Family layouts. Each physical panel features rigid MDF mounting, matte photo prints, and a hidden NFC transmitter.
               </p>
-              <div className="pt-4 border-t border-white/5 flex gap-4">
+              <div className="pt-4 flex gap-4">
                 <Link
                   href="/memories"
-                  className="inline-flex h-10 items-center justify-center rounded-lg bg-[#E30613] hover:bg-[#F4F4F5] text-white hover:text-black px-5 text-sm font-black uppercase tracking-wider transition-colors duration-300 cursor-pointer shadow-md"
+                  className="inline-flex h-10 items-center justify-center rounded-lg bg-[#E30613] hover:bg-zinc-900 text-xs font-black uppercase tracking-wider text-white px-6 transition-colors duration-300 shadow-md"
                 >
                   Explore Memories Collection
                 </Link>
