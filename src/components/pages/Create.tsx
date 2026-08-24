@@ -36,7 +36,7 @@ const DIGITAL_PRODUCTS: Record<string, { title: string; price: string; descripti
 // Services Data
 const SERVICES: Record<string, { title: string; description: string }> = {
   'website-development': {
-    title: 'Website Development',
+    title: 'Social Media-to-Store Development',
     description: 'Instagram shopping catalogs and checkout configurations with automated order routing, WhatsApp, payment gateways, and custom CMS builders.',
   },
   'security-review': {

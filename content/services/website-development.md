@@ -1,5 +1,5 @@
 ---
-title: "Website Development"
+title: "Social Media-to-Store Development"
 icon: "Code"
 order: 1
 summary: "We build custom shopping websites for Instagram pages with automated order notifications, manual WhatsApp routing, payment gateways, and tailored external CMS integration."

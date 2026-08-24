@@ -86,7 +86,7 @@ export async function POST(req: NextRequest) {
       }
       if (product_id === 'website-development' && !instagram_page) {
         return NextResponse.json(
-          { error: 'Instagram Page link / Catalog URL is required for website development services.' },
+          { error: 'Instagram Page link / Catalog URL is required for Social Media-to-Store Development services.' },
           { status: 400 }
         );
       }
