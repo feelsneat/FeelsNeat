@@ -3,6 +3,7 @@
     { "label": "Home", "path": "/" },
     { "label": "What We Do", "path": "/what-we-do" },
     { "label": "Our Work", "path": "/our-work" },
+    { "label": "Memories", "path": "/memories" },
     { "label": "Observations", "path": "/observations" },
     { "label": "About", "path": "/about" },
     { "label": "Contact", "path": "/contact" }
@@ -14,6 +15,7 @@
         { "label": "Home", "path": "/" },
         { "label": "What We Do", "path": "/what-we-do" },
         { "label": "Our Work", "path": "/our-work" },
+        { "label": "Memories", "path": "/memories" },
         { "label": "Observations", "path": "/observations" },
         { "label": "About", "path": "/about" },
         { "label": "Contact", "path": "/contact" }

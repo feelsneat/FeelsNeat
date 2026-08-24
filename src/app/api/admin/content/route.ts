@@ -58,6 +58,7 @@ export async function GET(req: NextRequest) {
         const parsed = JSON.parse(kvData);
         // Force sync socials and products from codebase fallback to prevent stale cache bugs
         parsed.settings.socials = localDb.settings.socials;
+        parsed.navigation = localDb.navigation;
         if (!parsed.products || parsed.products.length === 0) {
           parsed.products = localDb.products;
         }

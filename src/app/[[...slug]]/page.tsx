@@ -13,6 +13,10 @@ import OurWorkPage from '@/components/pages/OurWork';
 import ProjectDetailPage from '@/components/pages/OurWorkDetail';
 import ObservationsPage from '@/components/pages/Observations';
 import AdminPage from '@/components/pages/Admin';
+import MemoriesPage from '@/components/pages/Memories';
+import MemoryProductPage from '@/components/pages/MemoryProduct';
+import CreatePage from '@/components/pages/Create';
+import OrderConfirmationPage from '@/components/pages/Confirmation';
 
 export const runtime = 'edge';
 
@@ -39,6 +43,66 @@ export async function generateMetadata({ params }: { params: Promise<{ slug?: st
   }
   
   const route = slug[0];
+  if (route === 'memories') {
+    if (slug.length === 1) {
+      return {
+        title: `Personalized Memory Canvas | ${settings.siteName}`,
+        description: 'Turn your favorite memories into personalized wall art connected to your Google Photos album with NFC.',
+        openGraph: {
+          title: `Personalized Memory Canvas | ${settings.siteName}`,
+          description: 'Turn your favorite memories into personalized wall art connected to your Google Photos album with NFC.',
+          images: [{ url: 'https://images.unsplash.com/photo-1513519245088-0e12902e5a38?q=80&w=1200' }],
+        }
+      };
+    }
+    if (slug.length === 2) {
+      const categorySlug = slug[1];
+      const categories = {
+        travel: { 
+          title: 'Travel Memory Canvas | Personalized Travel Wall Art',
+          image: 'https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?q=80&w=800'
+        },
+        events: { 
+          title: 'Event Memory Canvas | Personalized Celebration Art',
+          image: 'https://images.unsplash.com/photo-1511795409834-ef04bbd61622?q=80&w=800'
+        },
+        couples: { 
+          title: 'Couple Memory Canvas | Modern Relationship Wall Art',
+          image: 'https://images.unsplash.com/photo-1516589178581-6cd7833ae3b2?q=80&w=800'
+        },
+        family: { 
+          title: 'Family & Life Memory Canvas | Personalized Family Photo Prints',
+          image: 'https://images.unsplash.com/photo-1536640717463-79105414944d?q=80&w=800'
+        }
+      };
+      const cat = (categories as any)[categorySlug];
+      if (cat) {
+        return {
+          title: `${cat.title} | ${settings.siteName}`,
+          description: `Turn your favorite ${categorySlug} photos into personalized wall art connected to your Google Photos memories.`,
+          openGraph: {
+            title: `${cat.title} | ${settings.siteName}`,
+            description: `Turn your favorite ${categorySlug} photos into personalized wall art connected to your Google Photos memories.`,
+            images: [{ url: cat.image }],
+          }
+        };
+      }
+    }
+  }
+  if (route === 'create' && slug.length === 1) {
+    return {
+      title: `Create Your Memory | ${settings.siteName}`,
+      description: 'Configure and customize your personalized photo panels with hidden NFC tags linked to your shared Google Photos.',
+      openGraph: {
+        title: `Create Your Memory | ${settings.siteName}`,
+        description: 'Configure and customize your personalized photo panels with hidden NFC tags linked to your shared Google Photos.',
+        images: [{ url: 'https://images.unsplash.com/photo-1513519245088-0e12902e5a38?q=80&w=1200' }],
+      }
+    };
+  }
+  if (route === 'confirmation' && slug.length === 1) {
+    return { title: `Order Confirmed | ${settings.siteName}` };
+  }
   if (route === 'about') return { title: `About | ${settings.siteName}` };
   if (route === 'contact') return { title: `Contact | ${settings.siteName}` };
   if (route === 'what-we-do') return { title: `What We Do | ${settings.siteName}` };
@@ -79,6 +143,30 @@ export default async function CatchAllPage({ params, searchParams }: PageProps) 
   // 4. What We Do Page (e.g. /what-we-do)
   if (route === 'what-we-do' && slug.length === 1) {
     return <WhatWeDoPage />;
+  }
+
+  // 4.5. Memories Routes (e.g. /memories and /memories/[category])
+  if (route === 'memories') {
+    if (slug.length === 1) {
+      return <MemoriesPage />;
+    }
+    if (slug.length === 2) {
+      const cat = slug[1];
+      if (['travel', 'events', 'couples', 'family'].includes(cat)) {
+        return <MemoryProductPage categorySlug={cat} />;
+      }
+      notFound();
+    }
+  }
+
+  // 4.6. Create Memory Route (e.g. /create)
+  if (route === 'create' && slug.length === 1) {
+    return <CreatePage />;
+  }
+
+  // 4.7. Confirmation Route (e.g. /confirmation)
+  if (route === 'confirmation' && slug.length === 1) {
+    return <OrderConfirmationPage />;
   }
 
   // 5. Our Work Routes (e.g. /our-work and /our-work/[slug])

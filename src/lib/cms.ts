@@ -97,6 +97,7 @@ async function getContentDb() {
         const parsed = JSON.parse(kvData);
         // Force sync socials and products from codebase fallback to prevent stale cache bugs
         parsed.settings.socials = db.settings.socials;
+        parsed.navigation = db.navigation;
         if (!parsed.products || parsed.products.length === 0) {
           parsed.products = db.products;
         }
