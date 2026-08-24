@@ -5,22 +5,87 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { LucideIcon } from '@/components/ui/LucideIcon';
 import { PRODUCT_PRICES } from './Memories';
 
-// Step definitions
-const STEPS = [
-  { id: 1, label: 'Memory' },
-  { id: 2, label: 'Product' },
-  { id: 3, label: 'Photos' },
-  { id: 4, label: 'Album' },
-  { id: 5, label: 'Details' },
-  { id: 6, label: 'Review' },
-];
+// Digital Products Data
+const DIGITAL_PRODUCTS: Record<string, { title: string; price: string; description: string; features: string[] }> = {
+  'ats-resume': {
+    title: 'ATS Tech Resume Template',
+    price: '$19.00',
+    description: 'A modern, single-page, ATS-friendly LaTeX & PDF resume layout built with clean grids and dynamic content builders.',
+    features: ['ATS Scanner Optimized Formatting', 'Modern Single-Page Layout Grid', 'Action Verb Sentence Builders', 'LaTeX / PDF Export Guide']
+  },
+  'side-hustle-bookkeeping': {
+    title: 'Side-Hustle Bookkeeping Sheet',
+    price: '$15.00',
+    description: 'An automated expense and income log with pre-built profit & loss graphs, currency selectors, and invoicing logs.',
+    features: ['Automated Expense Charting', 'Visual Profit & Loss Graphs', 'Etsy & Stripe Invoice Import Log', 'Multi-currency Conversion Engine']
+  },
+  'life-dashboard': {
+    title: 'All-in-One Life Dashboard',
+    price: '$24.00',
+    description: 'A comprehensive Notion template for daily tracking, habit logging, finance manager, and ADHD-friendly scheduling.',
+    features: ['Daily Habit Tracker & Log', 'Weekly Planner & Goals Board', 'ADHD-friendly Visual Schedule', 'Clean Life Compass Wheel']
+  },
+  'creator-os': {
+    title: 'TikTok Creator OS',
+    price: '$29.00',
+    description: 'A dedicated content organizer built in Notion to manage scripts, sponsorship deals, media packages, and publication pipelines.',
+    features: ['Visual Workspace Manager', 'Content Planning Pipeline', 'Asset Library & Repository', 'Revenue & Sponsorship Tracker']
+  }
+};
+
+// Services Data
+const SERVICES: Record<string, { title: string; description: string }> = {
+  'digital-engineering': {
+    title: 'Clean Web Engineering',
+    description: 'Fast, standards-compliant web interfaces utilizing Next.js, TypeScript, and serverless edge functions.',
+  },
+  'product-design': {
+    title: 'Digital Product Design',
+    description: 'Minimalist user interfaces, interactive wireframes, and design components built with Tailwind CSS.',
+  },
+  'visual-refresh': {
+    title: 'Visual Identity Refresh',
+    description: 'Clean typographic alignments, layout systems, and asset optimization for existing web operations.',
+  }
+};
 
 export default function CreateMemoryPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  
   const initialType = searchParams.get('type') || '';
+  const productId = searchParams.get('product') || '';
+  const serviceId = searchParams.get('service') || '';
 
-  // Form step navigation state
+  // Determine current checkout mode
+  let order_type: 'memories' | 'digital_product' | 'service' = 'memories';
+  let targetProduct = null;
+  let targetService = null;
+
+  if (productId && DIGITAL_PRODUCTS[productId]) {
+    order_type = 'digital_product';
+    targetProduct = DIGITAL_PRODUCTS[productId];
+  } else if (serviceId && SERVICES[serviceId]) {
+    order_type = 'service';
+    targetService = SERVICES[serviceId];
+  }
+
+  // Set steps list dynamically based on mode
+  const STEPS = order_type === 'memories'
+    ? [
+        { id: 1, label: 'Memory' },
+        { id: 2, label: 'Product' },
+        { id: 3, label: 'Photos' },
+        { id: 4, label: 'Album' },
+        { id: 5, label: 'Details' },
+        { id: 6, label: 'Review' },
+      ]
+    : [
+        { id: 1, label: 'Configure' },
+        { id: 2, label: 'Contact' },
+        { id: 3, label: 'Review' },
+      ];
+
   const [currentStep, setCurrentStep] = useState(1);
 
   // Main order customization state
@@ -81,7 +146,7 @@ export default function CreateMemoryPage() {
     setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
-  // Step 3 file reader handler (compressing base64 isn't required for MVP, but reading file is)
+  // Step 3 file reader handler
   const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>, isMain: boolean) => {
     const files = e.target.files;
     if (!files || files.length === 0) return;
@@ -116,72 +181,63 @@ export default function CreateMemoryPage() {
   const validateStep = (step: number): boolean => {
     setValidationError(null);
 
-    if (step === 1) {
-      if (!formData.memory_type) {
-        setValidationError('Please select a memory type.');
-        return false;
+    if (order_type === 'memories') {
+      if (step === 1) {
+        if (!formData.memory_type) {
+          setValidationError('Please select a memory type.');
+          return false;
+        }
       }
-    }
-    
-    if (step === 2) {
-      if (!formData.size) {
-        setValidationError('Please select a canvas size.');
-        return false;
+      if (step === 2) {
+        if (!formData.size) {
+          setValidationError('Please select a canvas size.');
+          return false;
+        }
       }
-      if (formData.quantity < 1) {
-        setValidationError('Quantity must be at least 1.');
-        return false;
+      if (step === 3) {
+        if (!mainPhoto) {
+          setValidationError('Please upload a print photo for your memory canvas.');
+          return false;
+        }
       }
-    }
-
-    if (step === 3) {
-      if (!mainPhoto) {
-        setValidationError('Please upload a main photo for your canvas.');
-        return false;
+      if (step === 4) {
+        if (!formData.google_photos_url) {
+          setValidationError('Please enter a Google Photos shared album URL.');
+          return false;
+        }
+        const photosUrlRegex = /^(https?:\/\/)?(www\.)?(photos\.app\.goo\.gl|photos\.google\.com)\/.+$/;
+        if (!photosUrlRegex.test(formData.google_photos_url)) {
+          setValidationError('Invalid Google Photos shared album URL format.');
+          return false;
+        }
       }
-    }
-
-    if (step === 4) {
-      if (!formData.google_photos_url) {
-        setValidationError('Google Photos Shared Album URL is required.');
-        return false;
+      if (step === 6) {
+        if (!formData.customer_name || !formData.customer_email || !formData.customer_phone) {
+          setValidationError('Please fill in your contact details.');
+          return false;
+        }
+        if (!formData.address_line || !formData.city || !formData.state || !formData.pincode) {
+          setValidationError('Please fill in your complete delivery address details.');
+          return false;
+        }
       }
-      // Simple link validation pattern matching app.goo.gl or photos.google.com
-      const photosUrlRegex = /^(https?:\/\/)?(www\.)?(photos\.app\.goo\.gl|photos\.google\.com)\/.+$/;
-      if (!photosUrlRegex.test(formData.google_photos_url)) {
-        setValidationError('Please enter a valid Google Photos shared album link (e.g., https://photos.app.goo.gl/...)');
-        return false;
-      }
-    }
-
-    if (step === 6) {
-      if (!formData.customer_name) {
-        setValidationError('Full Name is required.');
-        return false;
-      }
-      if (!formData.customer_email) {
-        setValidationError('Email is required.');
-        return false;
-      }
-      // Simple email format check
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!emailRegex.test(formData.customer_email)) {
-        setValidationError('Please enter a valid email address.');
-        return false;
-      }
-      if (!formData.customer_phone) {
-        setValidationError('Phone Number is required.');
-        return false;
-      }
-      // Match Indian mobile phone digits pattern
-      const phoneRegex = /^[6-9]\d{9}$|^[+]\d{1,4}\d{9,10}$/;
-      if (!phoneRegex.test(formData.customer_phone.replace(/[\s-]/g, ''))) {
-        setValidationError('Please enter a valid phone number.');
-        return false;
-      }
-      if (!formData.address_line || !formData.city || !formData.state || !formData.pincode) {
-        setValidationError('Please fill in your complete delivery address details.');
-        return false;
+    } else {
+      // Digital Products or Services Flow
+      if (step === 2) {
+        if (!formData.customer_name || !formData.customer_email || !formData.customer_phone) {
+          setValidationError('Please fill in your contact information.');
+          return false;
+        }
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(formData.customer_email)) {
+          setValidationError('Invalid email address format.');
+          return false;
+        }
+        const phoneRegex = /^[6-9]\d{9}$|^[+]\d{1,4}\d{9,10}$/;
+        if (!phoneRegex.test(formData.customer_phone.replace(/[\s-]/g, ''))) {
+          setValidationError('Invalid phone number format.');
+          return false;
+        }
       }
     }
 
@@ -201,16 +257,28 @@ export default function CreateMemoryPage() {
 
   const handleOrderSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!validateStep(6)) return;
+    const finalStep = STEPS.length;
+    if (!validateStep(finalStep)) return;
 
     setStatus('submitting');
     setValidationError(null);
 
-    const payload = {
-      ...formData,
-      main_photo: mainPhoto,
-      additional_photos: additionalPhotos.map((p) => p.data),
-    };
+    const payload = order_type === 'memories'
+      ? {
+          order_type,
+          ...formData,
+          main_photo: mainPhoto,
+          additional_photos: additionalPhotos.map((p) => p.data),
+        }
+      : {
+          order_type,
+          product_id: order_type === 'digital_product' ? productId : serviceId,
+          quantity: formData.quantity,
+          design_notes: formData.design_notes,
+          customer_name: formData.customer_name,
+          customer_email: formData.customer_email,
+          customer_phone: formData.customer_phone,
+        };
 
     try {
       const response = await fetch('/api/order', {
@@ -220,12 +288,8 @@ export default function CreateMemoryPage() {
       });
 
       const result = await response.json();
-
       if (response.ok && result.success) {
-        // Clear saved draft state on success
         localStorage.removeItem('feelsneat_memories_draft');
-        
-        // Redirect to order confirmation route
         router.push(`/confirmation?orderId=${result.orderId}`);
       } else {
         setStatus('error');
@@ -249,7 +313,7 @@ export default function CreateMemoryPage() {
         {/* PROGRESS STEP BAR HEADER */}
         <div className="mb-8 border-b border-zinc-100 pb-4">
           <div className="flex justify-between items-center text-xs font-black uppercase tracking-widest text-zinc-400 mb-2">
-            <span>Step {currentStep} of 6</span>
+            <span>Step {currentStep} of {STEPS.length}</span>
             <span className="text-[#E30613]">{STEPS[currentStep - 1].label}</span>
           </div>
           
@@ -277,478 +341,697 @@ export default function CreateMemoryPage() {
         {/* STEP CONTROLLERS RENDERING */}
         <form onSubmit={handleOrderSubmit} className="space-y-6">
           
-          {/* STEP 1: CHOOSE YOUR MEMORY */}
-          {currentStep === 1 && (
-            <div className="space-y-6 animate-fade-in">
-              <div>
-                <h2 className="text-base font-black uppercase text-black mb-1">What kind of memory are you creating?</h2>
-                <p className="text-xs text-zinc-500 font-bold tracking-wider">Select the theme that maps to your photo collection</p>
-              </div>
+          {/* =========================================================================
+              MEMORIES WIZARD FLOW (6 STEPS)
+              ========================================================================= */}
+          {order_type === 'memories' && (
+            <>
+              {/* STEP 1: CHOOSE YOUR MEMORY */}
+              {currentStep === 1 && (
+                <div className="space-y-6 animate-fade-in">
+                  <div>
+                    <h2 className="text-base font-black uppercase text-black mb-1">What kind of memory are you creating?</h2>
+                    <p className="text-xs text-zinc-500 font-bold tracking-wider">Select the theme that maps to your photo collection</p>
+                  </div>
 
-              <div className="grid grid-cols-2 gap-3">
-                {[
-                  { id: 'travel', label: 'Travel', icon: 'Globe' },
-                  { id: 'events', label: 'Wedding & Events', icon: 'PartyPopper' },
-                  { id: 'couples', label: 'Couple', icon: 'Heart' },
-                  { id: 'family', label: 'Family', icon: 'Users' },
-                  { id: 'friends', label: 'College / Friends', icon: 'GraduationCap' },
-                  { id: 'birthday', label: 'Birthday', icon: 'Cake' },
-                  { id: 'housewarming', label: 'Housewarming', icon: 'Home' },
-                  { id: 'other', label: 'Something Else', icon: 'HelpCircle' },
-                ].map((type) => {
-                  const isSelected = formData.memory_type === type.id;
-                  return (
-                    <button
-                      key={type.id}
-                      type="button"
-                      onClick={() => setFormData((prev) => ({ ...prev, memory_type: type.id }))}
-                      className={`flex flex-col items-center justify-center p-4 rounded-xl border transition-all duration-200 text-center cursor-pointer min-h-[90px] select-none ${
-                        isSelected 
-                          ? 'border-[#E30613] bg-[#E30613]/5 text-[#E30613]' 
-                          : 'border-zinc-200 bg-white text-zinc-700 hover:border-zinc-300'
-                      }`}
-                    >
-                      <LucideIcon name={type.icon} className="h-5 w-5 mb-2 shrink-0" />
-                      <span className="text-xs font-black uppercase tracking-wider">{type.label}</span>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          )}
+                  <div className="grid grid-cols-2 gap-3">
+                    {[
+                      { id: 'travel', label: 'Travel', icon: 'Globe' },
+                      { id: 'events', label: 'Wedding & Events', icon: 'PartyPopper' },
+                      { id: 'couples', label: 'Couple', icon: 'Heart' },
+                      { id: 'family', label: 'Family', icon: 'Users' },
+                      { id: 'friends', label: 'College / Friends', icon: 'GraduationCap' },
+                      { id: 'birthday', label: 'Birthday', icon: 'Cake' },
+                      { id: 'housewarming', label: 'Housewarming', icon: 'Home' },
+                      { id: 'other', label: 'Something Else', icon: 'HelpCircle' },
+                    ].map((type) => {
+                      const isSelected = formData.memory_type === type.id;
+                      return (
+                        <button
+                          key={type.id}
+                          type="button"
+                          onClick={() => setFormData((prev) => ({ ...prev, memory_type: type.id }))}
+                          className={`flex flex-col items-center justify-center p-4 rounded-xl border transition-all duration-200 text-center cursor-pointer min-h-[90px] select-none ${
+                            isSelected 
+                              ? 'border-[#E30613] bg-[#E30613]/5 text-[#E30613]' 
+                              : 'border-zinc-200 bg-white text-zinc-700 hover:border-zinc-300'
+                          }`}
+                        >
+                          <LucideIcon name={type.icon} className="h-5 w-5 mb-2 shrink-0" />
+                          <span className="text-xs font-black uppercase tracking-wider">{type.label}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
 
-          {/* STEP 2: CHOOSE YOUR PRODUCT */}
-          {currentStep === 2 && (
-            <div className="space-y-6 animate-fade-in">
-              <div>
-                <h2 className="text-base font-black uppercase text-black mb-1">Choose your Memory Canvas</h2>
-                <p className="text-xs text-zinc-500 font-bold tracking-wider">Configure your canvas size and quantity preferences</p>
-              </div>
+              {/* STEP 2: CHOOSE YOUR PRODUCT */}
+              {currentStep === 2 && (
+                <div className="space-y-6 animate-fade-in">
+                  <div>
+                    <h2 className="text-base font-black uppercase text-black mb-1">Choose your Memory Canvas</h2>
+                    <p className="text-xs text-zinc-500 font-bold tracking-wider">Configure your canvas size and quantity preferences</p>
+                  </div>
 
-              {/* Sizes Row */}
-              <div className="space-y-3">
-                <label className="block text-xs font-black text-black uppercase tracking-widest">Select Size</label>
-                <div className="grid gap-3">
-                  {[
-                    { id: 'mini', label: 'Mini', dims: '4x4 inches', price: PRODUCT_PRICES.mini },
-                    { id: 'standard', label: 'Standard', dims: '6x6 inches', price: PRODUCT_PRICES.standard },
-                    { id: 'landscape', label: 'Landscape', dims: '8x6 inches', price: PRODUCT_PRICES.landscape },
-                  ].map((size) => {
-                    const isSelected = formData.size === size.id;
-                    return (
+                  {/* Sizes Row */}
+                  <div className="space-y-3">
+                    <label className="block text-xs font-black text-black uppercase tracking-widest">Select Size</label>
+                    <div className="grid gap-3">
+                      {[
+                        { id: 'mini', label: 'Mini', dims: '4x4 inches', price: PRODUCT_PRICES.mini },
+                        { id: 'standard', label: 'Standard', dims: '6x6 inches', price: PRODUCT_PRICES.standard },
+                        { id: 'landscape', label: 'Landscape', dims: '8x6 inches', price: PRODUCT_PRICES.landscape },
+                      ].map((size) => {
+                        const isSelected = formData.size === size.id;
+                        return (
+                          <button
+                            key={size.id}
+                            type="button"
+                            onClick={() => setFormData((prev) => ({ ...prev, size: size.id }))}
+                            className={`flex items-center justify-between p-4 rounded-xl border text-left cursor-pointer transition-all duration-200 select-none ${
+                              isSelected 
+                                ? 'border-[#E30613] bg-[#E30613]/5 text-[#E30613]' 
+                                : 'border-zinc-200 bg-white text-zinc-700 hover:border-zinc-300'
+                            }`}
+                          >
+                            <div>
+                              <h4 className="text-xs font-black uppercase">{size.label}</h4>
+                              <span className="text-xs text-zinc-400 font-semibold uppercase">{size.dims}</span>
+                            </div>
+                            <span className="text-xs font-bold text-zinc-500">{size.price}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Quantity Counter */}
+                  <div className="pt-4 border-t border-zinc-100 flex items-center justify-between">
+                    <div>
+                      <label className="block text-xs font-black text-black uppercase tracking-widest">How many pieces?</label>
+                      <p className="text-xs text-zinc-400 font-semibold uppercase mt-0.5">Order multiple individual prints at once</p>
+                    </div>
+                    
+                    <div className="flex items-center border border-zinc-200 rounded-lg overflow-hidden h-10">
                       <button
-                        key={size.id}
                         type="button"
-                        onClick={() => setFormData((prev) => ({ ...prev, size: size.id }))}
-                        className={`flex items-center justify-between p-4 rounded-xl border text-left cursor-pointer transition-all duration-200 select-none ${
-                          isSelected 
-                            ? 'border-[#E30613] bg-[#E30613]/5 text-[#E30613]' 
-                            : 'border-zinc-200 bg-white text-zinc-700 hover:border-zinc-300'
-                        }`}
+                        onClick={() => setFormData((prev) => ({ ...prev, quantity: Math.max(1, prev.quantity - 1) }))}
+                        className="px-3 text-zinc-500 hover:bg-zinc-50 h-full font-bold transition-colors cursor-pointer select-none"
                       >
-                        <div>
-                          <h4 className="text-xs font-black uppercase">{size.label}</h4>
-                          <span className="text-xs text-zinc-400 font-semibold uppercase">{size.dims}</span>
-                        </div>
-                        <span className="text-xs font-bold text-zinc-500">{size.price}</span>
+                        -
                       </button>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {/* Quantity Counter */}
-              <div className="pt-4 border-t border-zinc-100 flex items-center justify-between">
-                <div>
-                  <label className="block text-xs font-black text-black uppercase tracking-widest">How many pieces?</label>
-                  <p className="text-xs text-zinc-400 font-semibold uppercase mt-0.5">Order multiple individual prints at once</p>
-                </div>
-                
-                <div className="flex items-center border border-zinc-200 rounded-lg overflow-hidden h-10">
-                  <button
-                    type="button"
-                    onClick={() => setFormData((prev) => ({ ...prev, quantity: Math.max(1, prev.quantity - 1) }))}
-                    className="px-3 text-zinc-500 hover:bg-zinc-50 h-full font-bold transition-colors cursor-pointer select-none"
-                  >
-                    -
-                  </button>
-                  <span className="px-4 text-xs font-black text-black">{formData.quantity}</span>
-                  <button
-                    type="button"
-                    onClick={() => setFormData((prev) => ({ ...prev, quantity: prev.quantity + 1 }))}
-                    className="px-3 text-zinc-500 hover:bg-zinc-50 h-full font-bold transition-colors cursor-pointer select-none"
-                  >
-                    +
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* STEP 3: UPLOAD PHOTOS */}
-          {currentStep === 3 && (
-            <div className="space-y-6 animate-fade-in">
-              <div>
-                <h2 className="text-base font-black uppercase text-black mb-1">Choose your photo</h2>
-                <p className="text-xs text-zinc-500 font-bold tracking-wider">Upload files for physical printing onto the panel</p>
-              </div>
-
-              {/* Main Photo File Input */}
-              <div className="space-y-2">
-                <label className="block text-xs font-black text-black uppercase tracking-widest">
-                  Photo for the canvas <span className="text-[#E30613]">*</span>
-                </label>
-                
-                {!mainPhoto ? (
-                  <label className="flex flex-col items-center justify-center border-2 border-dashed border-zinc-200 rounded-xl p-8 hover:border-zinc-300 transition-colors cursor-pointer bg-zinc-50/50">
-                    <LucideIcon name="UploadCloud" className="h-8 w-8 text-zinc-400 mb-2" />
-                    <span className="text-xs font-bold text-zinc-600 uppercase">Select Print Photo</span>
-                    <span className="text-xs text-zinc-400 mt-1.5 font-semibold">JPG, PNG, or WEBP (Max 12MB)</span>
-                    <input
-                      type="file"
-                      accept="image/jpeg,image/png,image/webp"
-                      onChange={(e) => handlePhotoUpload(e, true)}
-                      className="hidden"
-                    />
-                  </label>
-                ) : (
-                  <div className="relative rounded-xl overflow-hidden border border-zinc-200 aspect-[16/10] bg-zinc-100 flex items-center justify-center">
-                    <img
-                      src={mainPhoto}
-                      alt="Uploaded print canvas preview"
-                      className="w-full h-full object-cover"
-                    />
-                    <div className="absolute top-2 right-2 flex gap-2">
+                      <span className="px-4 text-xs font-black text-black">{formData.quantity}</span>
                       <button
                         type="button"
-                        onClick={() => { setMainPhoto(null); setMainPhotoName(''); }}
-                        className="bg-black/60 border border-white/20 text-white rounded-full p-1.5 hover:bg-black transition-colors cursor-pointer"
-                        title="Remove image"
+                        onClick={() => setFormData((prev) => ({ ...prev, quantity: prev.quantity + 1 }))}
+                        className="px-3 text-zinc-500 hover:bg-zinc-50 h-full font-bold transition-colors cursor-pointer select-none"
                       >
-                        <LucideIcon name="Trash" className="h-3.5 w-3.5" />
+                        +
                       </button>
                     </div>
-                    <span className="absolute bottom-0 left-0 right-0 bg-black/60 text-white text-xs font-semibold p-1.5 truncate uppercase tracking-wider text-center">
-                      {mainPhotoName}
+                  </div>
+                </div>
+              )}
+
+              {/* STEP 3: UPLOAD PHOTOS */}
+              {currentStep === 3 && (
+                <div className="space-y-6 animate-fade-in">
+                  <div>
+                    <h2 className="text-base font-black uppercase text-black mb-1">Choose your photo</h2>
+                    <p className="text-xs text-zinc-500 font-bold tracking-wider">Upload files for physical printing onto the panel</p>
+                  </div>
+
+                  {/* Main Photo File Input */}
+                  <div className="space-y-2">
+                    <label className="block text-xs font-black text-black uppercase tracking-widest">
+                      Photo for the canvas <span className="text-[#E30613]">*</span>
+                    </label>
+                    
+                    {!mainPhoto ? (
+                      <label className="flex flex-col items-center justify-center border-2 border-dashed border-zinc-200 rounded-xl p-8 hover:border-zinc-300 transition-colors cursor-pointer bg-zinc-50/50">
+                        <LucideIcon name="UploadCloud" className="h-8 w-8 text-zinc-400 mb-2" />
+                        <span className="text-xs font-bold text-zinc-600 uppercase">Select Print Photo</span>
+                        <span className="text-xs text-zinc-400 mt-1.5 font-semibold">JPG, PNG, or WEBP (Max 12MB)</span>
+                        <input
+                          type="file"
+                          accept="image/jpeg,image/png,image/webp"
+                          onChange={(e) => handlePhotoUpload(e, true)}
+                          className="hidden"
+                        />
+                      </label>
+                    ) : (
+                      <div className="relative rounded-xl overflow-hidden border border-zinc-200 aspect-[16/10] bg-zinc-100 flex items-center justify-center">
+                        <img
+                          src={mainPhoto}
+                          alt="Uploaded print canvas preview"
+                          className="w-full h-full object-cover"
+                        />
+                        <div className="absolute top-2 right-2 flex gap-2">
+                          <button
+                            type="button"
+                            onClick={() => { setMainPhoto(null); setMainPhotoName(''); }}
+                            className="bg-black/60 border border-white/20 text-white rounded-full p-1.5 hover:bg-black transition-colors cursor-pointer"
+                            title="Remove image"
+                          >
+                            <LucideIcon name="Trash" className="h-3.5 w-3.5" />
+                          </button>
+                        </div>
+                        <span className="absolute bottom-0 left-0 right-0 bg-black/60 text-white text-xs font-semibold p-1.5 truncate uppercase tracking-wider text-center">
+                          {mainPhotoName}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Additional Photos */}
+                  <div className="space-y-3 pt-4 border-t border-zinc-100">
+                    <div>
+                      <label className="block text-xs font-black text-black uppercase tracking-widest">Additional Photos</label>
+                      <p className="text-xs text-zinc-400 font-semibold mt-0.5">Upload a few alternatives if you want us to help choose the best one</p>
+                    </div>
+
+                    <div className="grid grid-cols-4 gap-3">
+                      {additionalPhotos.map((photo, idx) => (
+                        <div key={idx} className="relative rounded-lg overflow-hidden border border-zinc-200 aspect-square bg-zinc-100">
+                          <img
+                            src={photo.data}
+                            alt={`Additional alternative preview ${idx}`}
+                            className="w-full h-full object-cover"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => removeAdditionalPhoto(idx)}
+                            className="absolute top-1 right-1 bg-black/70 text-white rounded-full p-1 hover:bg-black transition-colors cursor-pointer"
+                          >
+                            <LucideIcon name="X" className="h-2.5 w-2.5" />
+                          </button>
+                        </div>
+                      ))}
+
+                      {additionalPhotos.length < 4 && (
+                        <label className="flex flex-col items-center justify-center border-2 border-dashed border-zinc-200 rounded-lg aspect-square hover:border-zinc-300 transition-colors cursor-pointer bg-zinc-50/50">
+                          <LucideIcon name="Plus" className="h-4 w-4 text-zinc-400" />
+                          <input
+                            type="file"
+                            accept="image/jpeg,image/png,image/webp"
+                            onChange={(e) => handlePhotoUpload(e, false)}
+                            className="hidden"
+                          />
+                        </label>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* STEP 4: GOOGLE PHOTOS ALBUM */}
+              {currentStep === 4 && (
+                <div className="space-y-6 animate-fade-in">
+                  <div>
+                    <h2 className="text-base font-black uppercase text-black mb-1">Connect your memories</h2>
+                    <p className="text-xs text-zinc-500 font-bold tracking-wider">Provide the link that the physical NFC tag will launch</p>
+                  </div>
+
+                  <div>
+                    <label htmlFor="google_photos_url" className="block text-xs font-black text-[#000000] mb-2 uppercase tracking-widest">
+                      Google Photos shared album link <span className="text-[#E30613]">*</span>
+                    </label>
+                    <input
+                      type="url"
+                      id="google_photos_url"
+                      name="google_photos_url"
+                      required
+                      value={formData.google_photos_url}
+                      onChange={handleTextChange}
+                      className="w-full rounded-lg border border-zinc-200 bg-white px-4 py-3 text-sm text-[#000000] placeholder-zinc-400 focus:border-[#E30613] focus:outline-none transition-colors"
+                      placeholder="https://photos.app.goo.gl/..."
+                    />
+                  </div>
+
+                  {/* Instructions and Help Link */}
+                  <div className="rounded-lg bg-zinc-50 p-4 space-y-3 border border-zinc-150">
+                    <p className="text-sm text-zinc-600 leading-relaxed font-medium">
+                      Create an album in Google Photos, select **Share**, enable **Link Sharing**, and copy the shared link here. We program the hidden NFC sticker on the back of your frame with this URL.
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => setShowHelpModal(true)}
+                      className="text-sm font-black uppercase text-[#E30613] hover:underline cursor-pointer flex items-center gap-1"
+                    >
+                      <LucideIcon name="HelpCircle" className="h-4 w-4" /> How to get your Google Photos link
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* STEP 5: TELL US ABOUT THE MEMORY */}
+              {currentStep === 5 && (
+                <div className="space-y-6 animate-fade-in">
+                  <div>
+                    <h2 className="text-base font-black uppercase text-black mb-1">Tell us about the memory</h2>
+                    <p className="text-xs text-zinc-500 font-bold tracking-wider">Provide design instructions and helper context for our team</p>
+                  </div>
+
+                  <div className="grid sm:grid-cols-2 gap-4">
+                    <div>
+                      <label htmlFor="title" className="block text-xs font-black text-black mb-2 uppercase tracking-widest">Memory Title (Optional)</label>
+                      <input
+                        type="text"
+                        id="title"
+                        name="title"
+                        value={formData.title}
+                        onChange={handleTextChange}
+                        className="w-full rounded-lg border border-zinc-200 bg-white px-4 py-2.5 text-xs text-black placeholder-zinc-400 focus:border-[#E30613] focus:outline-none"
+                        placeholder="e.g. Goa Trip"
+                      />
+                    </div>
+                    <div>
+                      <label htmlFor="location" className="block text-xs font-black text-black mb-2 uppercase tracking-widest">Location (Optional)</label>
+                      <input
+                        type="text"
+                        id="location"
+                        name="location"
+                        value={formData.location}
+                        onChange={handleTextChange}
+                        className="w-full rounded-lg border border-zinc-200 bg-white px-4 py-2.5 text-xs text-black placeholder-zinc-400 focus:border-[#E30613] focus:outline-none"
+                        placeholder="e.g. Goa, India"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label htmlFor="date" className="block text-xs font-black text-black mb-2 uppercase tracking-widest">Date / Year (Optional)</label>
+                    <input
+                      type="text"
+                      id="date"
+                      name="date"
+                      value={formData.date}
+                      onChange={handleTextChange}
+                      className="w-full rounded-lg border border-zinc-200 bg-white px-4 py-2.5 text-xs text-black placeholder-zinc-400 focus:border-[#E30613] focus:outline-none"
+                      placeholder="e.g. November 2026"
+                    />
+                  </div>
+
+                  <div>
+                    <label htmlFor="caption" className="block text-xs font-black text-black mb-2 uppercase tracking-widest">Short Caption (Optional)</label>
+                    <input
+                      type="text"
+                      id="caption"
+                      name="caption"
+                      value={formData.caption}
+                      onChange={handleTextChange}
+                      className="w-full rounded-lg border border-zinc-200 bg-white px-4 py-2.5 text-xs text-black placeholder-zinc-400 focus:border-[#E30613] focus:outline-none"
+                      placeholder="e.g. The trip we'll always talk about"
+                    />
+                  </div>
+
+                  <div>
+                    <label htmlFor="design_notes" className="block text-xs font-black text-black mb-2 uppercase tracking-widest">Design Preferences (Optional)</label>
+                    <textarea
+                      id="design_notes"
+                      name="design_notes"
+                      rows={3}
+                      value={formData.design_notes}
+                      onChange={handleTextChange}
+                      className="w-full rounded-lg border border-zinc-200 bg-white px-4 py-2.5 text-xs text-black placeholder-zinc-400 focus:border-[#E30613] focus:outline-none"
+                      placeholder="e.g. Minimal, warm colors, no large text"
+                    />
+                    <span className="text-xs text-zinc-400 font-semibold mt-1 block">Notes for our production designer. These details are not necessarily printed.</span>
+                  </div>
+                </div>
+              )}
+
+              {/* STEP 6: CUSTOMER INFORMATION & REVIEW */}
+              {currentStep === 6 && (
+                <div className="space-y-6 animate-fade-in">
+                  <div>
+                    <h2 className="text-base font-black uppercase text-black mb-1">Customer & Delivery Details</h2>
+                    <p className="text-xs text-zinc-500 font-bold tracking-wider">Provide your shipping address and contact details</p>
+                  </div>
+
+                  <div className="space-y-4">
+                    <div>
+                      <label htmlFor="customer_name" className="block text-xs font-black text-black mb-2 uppercase tracking-widest">
+                        Full Name <span className="text-[#E30613]">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        id="customer_name"
+                        name="customer_name"
+                        required
+                        value={formData.customer_name}
+                        onChange={handleTextChange}
+                        className="w-full rounded-lg border border-zinc-200 bg-white px-4 py-2.5 text-xs text-black placeholder-zinc-400 focus:border-[#E30613] focus:outline-none"
+                        placeholder="Your full name"
+                      />
+                    </div>
+
+                    <div className="grid sm:grid-cols-2 gap-4">
+                      <div>
+                        <label htmlFor="customer_email" className="block text-xs font-black text-black mb-2 uppercase tracking-widest">
+                          Email Address <span className="text-[#E30613]">*</span>
+                        </label>
+                        <input
+                          type="email"
+                          id="customer_email"
+                          name="customer_email"
+                          required
+                          value={formData.customer_email}
+                          onChange={handleTextChange}
+                          className="w-full rounded-lg border border-zinc-200 bg-white px-4 py-2.5 text-xs text-black placeholder-zinc-400 focus:border-[#E30613] focus:outline-none"
+                          placeholder="email@example.com"
+                        />
+                      </div>
+                      <div>
+                        <label htmlFor="customer_phone" className="block text-xs font-black text-black mb-2 uppercase tracking-widest">
+                          Phone Number <span className="text-[#E30613]">*</span>
+                        </label>
+                        <input
+                          type="tel"
+                          id="customer_phone"
+                          name="customer_phone"
+                          required
+                          value={formData.customer_phone}
+                          onChange={handleTextChange}
+                          className="w-full rounded-lg border border-zinc-200 bg-white px-4 py-2.5 text-xs text-black placeholder-zinc-400 focus:border-[#E30613] focus:outline-none"
+                          placeholder="e.g. 9876543210"
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label htmlFor="address_line" className="block text-xs font-black text-black mb-2 uppercase tracking-widest">
+                        Delivery Address <span className="text-[#E30613]">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        id="address_line"
+                        name="address_line"
+                        required
+                        value={formData.address_line}
+                        onChange={handleTextChange}
+                        className="w-full rounded-lg border border-zinc-200 bg-white px-4 py-2.5 text-xs text-black placeholder-zinc-400 focus:border-[#E30613] focus:outline-none mb-3"
+                        placeholder="Street address, Apartment, Suite"
+                      />
+                      
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <label htmlFor="city" className="block text-xs font-black text-black mb-1 uppercase tracking-widest">City <span className="text-[#E30613]">*</span></label>
+                          <input
+                            type="text"
+                            id="city"
+                            name="city"
+                            required
+                            value={formData.city}
+                            onChange={handleTextChange}
+                            className="w-full rounded-lg border border-zinc-200 bg-white px-4 py-2 text-xs text-black focus:border-[#E30613] focus:outline-none"
+                            placeholder="City"
+                          />
+                        </div>
+                        <div>
+                          <label htmlFor="state" className="block text-xs font-black text-black mb-1 uppercase tracking-widest">State <span className="text-[#E30613]">*</span></label>
+                          <input
+                            type="text"
+                            id="state"
+                            name="state"
+                            required
+                            value={formData.state}
+                            onChange={handleTextChange}
+                            className="w-full rounded-lg border border-zinc-200 bg-white px-4 py-2 text-xs text-black focus:border-[#E30613] focus:outline-none"
+                            placeholder="State"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-4 mt-3">
+                        <div>
+                          <label htmlFor="pincode" className="block text-xs font-black text-black mb-1 uppercase tracking-widest">PIN Code <span className="text-[#E30613]">*</span></label>
+                          <input
+                            type="text"
+                            id="pincode"
+                            name="pincode"
+                            required
+                            value={formData.pincode}
+                            onChange={handleTextChange}
+                            className="w-full rounded-lg border border-zinc-200 bg-white px-4 py-2 text-xs text-black focus:border-[#E30613] focus:outline-none"
+                            placeholder="PIN code"
+                          />
+                        </div>
+                        <div>
+                          <label htmlFor="country" className="block text-xs font-black text-black mb-1 uppercase tracking-widest">Country <span className="text-[#E30613]">*</span></label>
+                          <input
+                            type="text"
+                            id="country"
+                            name="country"
+                            required
+                            value={formData.country}
+                            onChange={handleTextChange}
+                            className="w-full rounded-lg border border-zinc-200 bg-white px-4 py-2 text-xs text-black focus:border-[#E30613] focus:outline-none"
+                            placeholder="Country"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* CUSTOM CUSTOMIZATION ORDER SUMMARY BOX */}
+                  <div className="pt-4 border-t border-zinc-150 space-y-3">
+                    <h3 className="text-xs font-bold uppercase tracking-wider text-black">Order Summary</h3>
+                    <div className="rounded-xl border border-zinc-200 bg-zinc-50 p-4 space-y-2 text-xs font-semibold text-zinc-700 uppercase">
+                      <div className="flex justify-between">
+                        <span>Memory Theme:</span>
+                        <span className="text-[#E30613] font-black">{formData.memory_type}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Product Canvas Size:</span>
+                        <span className="text-black font-black">{formData.size}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Quantity Pieces:</span>
+                        <span className="text-black font-black">{formData.quantity}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Google Photos connection:</span>
+                        <span className="text-[#E30613] font-black">Connected</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </>
+          )}
+
+          {/* =========================================================================
+              DIGITAL PRODUCTS / SERVICES FLOW (3 STEPS)
+              ========================================================================= */}
+          {order_type !== 'memories' && (
+            <>
+              {/* STEP 1: CONFIGURE & PREFERENCES */}
+              {currentStep === 1 && (
+                <div className="space-y-6 animate-fade-in">
+                  <div>
+                    <h2 className="text-base font-black uppercase text-black mb-1">
+                      Configure your {order_type === 'service' ? 'Service Request' : 'Digital Order'}
+                    </h2>
+                    <p className="text-xs text-zinc-500 font-bold tracking-wider">
+                      Review details and specify custom preferences
+                    </p>
+                  </div>
+
+                  {/* Product Details Card */}
+                  <div className="rounded-xl border border-zinc-200 bg-zinc-50 p-5 space-y-4">
+                    <div>
+                      <span className="text-[10px] font-black text-[#E30613] uppercase tracking-widest block mb-1">
+                        Selected {order_type === 'service' ? 'Service' : 'Product'}
+                      </span>
+                      <h3 className="text-lg font-bold text-black uppercase tracking-tight">
+                        {order_type === 'service' ? targetService?.title : targetProduct?.title}
+                      </h3>
+                      {order_type === 'digital_product' && (
+                        <span className="text-sm font-black text-zinc-800 block mt-1">
+                          Price: {targetProduct?.price}
+                        </span>
+                      )}
+                    </div>
+                    
+                    <p className="text-xs text-zinc-600 leading-relaxed font-semibold">
+                      {order_type === 'service' ? targetService?.description : targetProduct?.description}
+                    </p>
+
+                    {order_type === 'digital_product' && targetProduct?.features && (
+                      <div className="space-y-1.5 pt-2">
+                        <span className="text-[9px] font-black text-zinc-400 uppercase tracking-wider block">Features included:</span>
+                        <ul className="grid grid-cols-2 gap-x-4 gap-y-1 text-[10px] text-zinc-600 font-bold list-disc pl-4 uppercase">
+                          {targetProduct.features.map((f, i) => (
+                            <li key={i}>{f}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Quantity picker for digital products */}
+                  {order_type === 'digital_product' && (
+                    <div className="pt-2 flex items-center justify-between">
+                      <div>
+                        <label className="block text-xs font-black text-black uppercase tracking-widest">Quantity</label>
+                        <p className="text-xs text-zinc-400 font-semibold uppercase mt-0.5">Select copies to buy</p>
+                      </div>
+                      
+                      <div className="flex items-center border border-zinc-200 rounded-lg overflow-hidden h-10">
+                        <button
+                          type="button"
+                          onClick={() => setFormData((prev) => ({ ...prev, quantity: Math.max(1, prev.quantity - 1) }))}
+                          className="px-3 text-zinc-500 hover:bg-zinc-50 h-full font-bold transition-colors cursor-pointer select-none"
+                        >
+                          -
+                        </button>
+                        <span className="px-4 text-xs font-black text-black">{formData.quantity}</span>
+                        <button
+                          type="button"
+                          onClick={() => setFormData((prev) => ({ ...prev, quantity: prev.quantity + 1 }))}
+                          className="px-3 text-zinc-500 hover:bg-zinc-50 h-full font-bold transition-colors cursor-pointer select-none"
+                        >
+                          +
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Customization preferences notes text area */}
+                  <div>
+                    <label htmlFor="design_notes" className="block text-xs font-black text-black mb-2 uppercase tracking-widest">
+                      {order_type === 'service' ? 'Project Requirements' : 'Custom Preferences (Optional)'}
+                    </label>
+                    <textarea
+                      id="design_notes"
+                      name="design_notes"
+                      rows={4}
+                      value={formData.design_notes}
+                      onChange={handleTextChange}
+                      className="w-full rounded-lg border border-zinc-200 bg-white px-4 py-2.5 text-xs text-black placeholder-zinc-400 focus:border-[#E30613] focus:outline-none"
+                      placeholder={
+                        order_type === 'service'
+                          ? 'Describe your project targets, timing requests, or technology goals...'
+                          : 'e.g. Any custom template fields, logo requests, or formatting notes...'
+                      }
+                    />
+                    <span className="text-xs text-zinc-400 font-semibold mt-1 block">
+                      Our support team will review this text manually.
                     </span>
                   </div>
-                )}
-              </div>
-
-              {/* Additional Photos */}
-              <div className="space-y-3 pt-4 border-t border-zinc-100">
-                <div>
-                  <label className="block text-xs font-black text-black uppercase tracking-widest">Additional Photos</label>
-                  <p className="text-xs text-zinc-400 font-semibold mt-0.5">Upload a few alternatives if you want us to help choose the best one</p>
                 </div>
+              )}
 
-                <div className="grid grid-cols-4 gap-3">
-                  {additionalPhotos.map((photo, idx) => (
-                    <div key={idx} className="relative rounded-lg overflow-hidden border border-zinc-200 aspect-square bg-zinc-100">
-                      <img
-                        src={photo.data}
-                        alt={`Additional alternative preview ${idx}`}
-                        className="w-full h-full object-cover"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => removeAdditionalPhoto(idx)}
-                        className="absolute top-1 right-1 bg-black/70 text-white rounded-full p-1 hover:bg-black transition-colors cursor-pointer"
-                      >
-                        <LucideIcon name="X" className="h-2.5 w-2.5" />
-                      </button>
-                    </div>
-                  ))}
-
-                  {additionalPhotos.length < 4 && (
-                    <label className="flex flex-col items-center justify-center border-2 border-dashed border-zinc-200 rounded-lg aspect-square hover:border-zinc-300 transition-colors cursor-pointer bg-zinc-50/50">
-                      <LucideIcon name="Plus" className="h-4 w-4 text-zinc-400" />
-                      <input
-                        type="file"
-                        accept="image/jpeg,image/png,image/webp"
-                        onChange={(e) => handlePhotoUpload(e, false)}
-                        className="hidden"
-                      />
-                    </label>
-                  )}
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* STEP 4: GOOGLE PHOTOS ALBUM */}
-          {currentStep === 4 && (
-            <div className="space-y-6 animate-fade-in">
-              <div>
-                <h2 className="text-base font-black uppercase text-black mb-1">Connect your memories</h2>
-                <p className="text-xs text-zinc-500 font-bold tracking-wider">Provide the link that the physical NFC tag will launch</p>
-              </div>
-
-              <div>
-                <label htmlFor="google_photos_url" className="block text-xs font-black text-[#000000] mb-2 uppercase tracking-widest">
-                  Google Photos shared album link <span className="text-[#E30613]">*</span>
-                </label>
-                <input
-                  type="url"
-                  id="google_photos_url"
-                  name="google_photos_url"
-                  required
-                  value={formData.google_photos_url}
-                  onChange={handleTextChange}
-                  className="w-full rounded-lg border border-zinc-200 bg-white px-4 py-3 text-sm text-[#000000] placeholder-zinc-400 focus:border-[#E30613] focus:outline-none transition-colors"
-                  placeholder="https://photos.app.goo.gl/..."
-                />
-              </div>
-
-              {/* Instructions and Help Link */}
-              <div className="rounded-lg bg-zinc-50 p-4 space-y-3 border border-zinc-150">
-                <p className="text-sm text-zinc-600 leading-relaxed font-medium">
-                  Create an album in Google Photos, select **Share**, enable **Link Sharing**, and copy the shared link here. We program the hidden NFC sticker on the back of your frame with this URL.
-                </p>
-                <button
-                  type="button"
-                  onClick={() => setShowHelpModal(true)}
-                  className="text-sm font-black uppercase text-[#E30613] hover:underline cursor-pointer flex items-center gap-1"
-                >
-                  <LucideIcon name="HelpCircle" className="h-4 w-4" /> How to get your Google Photos link
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* STEP 5: TELL US ABOUT THE MEMORY */}
-          {currentStep === 5 && (
-            <div className="space-y-6 animate-fade-in">
-              <div>
-                <h2 className="text-base font-black uppercase text-black mb-1">Tell us about the memory</h2>
-                <p className="text-xs text-zinc-500 font-bold tracking-wider">Provide design instructions and helper context for our team</p>
-              </div>
-
-              <div className="grid sm:grid-cols-2 gap-4">
-                <div>
-                  <label htmlFor="title" className="block text-xs font-black text-black mb-2 uppercase tracking-widest">Memory Title (Optional)</label>
-                  <input
-                    type="text"
-                    id="title"
-                    name="title"
-                    value={formData.title}
-                    onChange={handleTextChange}
-                    className="w-full rounded-lg border border-zinc-200 bg-white px-4 py-2.5 text-xs text-black placeholder-zinc-400 focus:border-[#E30613] focus:outline-none"
-                    placeholder="e.g. Goa Trip"
-                  />
-                </div>
-                <div>
-                  <label htmlFor="location" className="block text-xs font-black text-black mb-2 uppercase tracking-widest">Location (Optional)</label>
-                  <input
-                    type="text"
-                    id="location"
-                    name="location"
-                    value={formData.location}
-                    onChange={handleTextChange}
-                    className="w-full rounded-lg border border-zinc-200 bg-white px-4 py-2.5 text-xs text-black placeholder-zinc-400 focus:border-[#E30613] focus:outline-none"
-                    placeholder="e.g. Goa, India"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label htmlFor="date" className="block text-xs font-black text-black mb-2 uppercase tracking-widest">Date / Year (Optional)</label>
-                <input
-                  type="text"
-                  id="date"
-                  name="date"
-                  value={formData.date}
-                  onChange={handleTextChange}
-                  className="w-full rounded-lg border border-zinc-200 bg-white px-4 py-2.5 text-xs text-black placeholder-zinc-400 focus:border-[#E30613] focus:outline-none"
-                  placeholder="e.g. November 2026"
-                />
-              </div>
-
-              <div>
-                <label htmlFor="caption" className="block text-xs font-black text-black mb-2 uppercase tracking-widest">Short Caption (Optional)</label>
-                <input
-                  type="text"
-                  id="caption"
-                  name="caption"
-                  value={formData.caption}
-                  onChange={handleTextChange}
-                  className="w-full rounded-lg border border-zinc-200 bg-white px-4 py-2.5 text-xs text-black placeholder-zinc-400 focus:border-[#E30613] focus:outline-none"
-                  placeholder="e.g. The trip we'll always talk about"
-                />
-              </div>
-
-              <div>
-                <label htmlFor="design_notes" className="block text-xs font-black text-black mb-2 uppercase tracking-widest">Design Preferences (Optional)</label>
-                <textarea
-                  id="design_notes"
-                  name="design_notes"
-                  rows={3}
-                  value={formData.design_notes}
-                  onChange={handleTextChange}
-                  className="w-full rounded-lg border border-zinc-200 bg-white px-4 py-2.5 text-xs text-black placeholder-zinc-400 focus:border-[#E30613] focus:outline-none"
-                  placeholder="e.g. Minimal, warm colors, no large text"
-                />
-                <span className="text-xs text-zinc-400 font-semibold mt-1 block">Notes for our production designer. These details are not necessarily printed.</span>
-              </div>
-            </div>
-          )}
-
-          {/* STEP 6: CUSTOMER INFORMATION & REVIEW */}
-          {currentStep === 6 && (
-            <div className="space-y-6 animate-fade-in">
-              <div>
-                <h2 className="text-base font-black uppercase text-black mb-1">Customer & Delivery Details</h2>
-                <p className="text-xs text-zinc-500 font-bold tracking-wider">Provide your shipping address and contact details</p>
-              </div>
-
-              <div className="space-y-4">
-                <div>
-                  <label htmlFor="customer_name" className="block text-xs font-black text-black mb-2 uppercase tracking-widest">
-                    Full Name <span className="text-[#E30613]">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    id="customer_name"
-                    name="customer_name"
-                    required
-                    value={formData.customer_name}
-                    onChange={handleTextChange}
-                    className="w-full rounded-lg border border-zinc-200 bg-white px-4 py-2.5 text-xs text-black placeholder-zinc-400 focus:border-[#E30613] focus:outline-none"
-                    placeholder="Your full name"
-                  />
-                </div>
-
-                <div className="grid sm:grid-cols-2 gap-4">
+              {/* STEP 2: CONTACT DETAILS */}
+              {currentStep === 2 && (
+                <div className="space-y-6 animate-fade-in">
                   <div>
-                    <label htmlFor="customer_email" className="block text-xs font-black text-black mb-2 uppercase tracking-widest">
-                      Email Address <span className="text-[#E30613]">*</span>
-                    </label>
-                    <input
-                      type="email"
-                      id="customer_email"
-                      name="customer_email"
-                      required
-                      value={formData.customer_email}
-                      onChange={handleTextChange}
-                      className="w-full rounded-lg border border-zinc-200 bg-white px-4 py-2.5 text-xs text-black placeholder-zinc-400 focus:border-[#E30613] focus:outline-none"
-                      placeholder="email@example.com"
-                    />
+                    <h2 className="text-base font-black uppercase text-black mb-1">Your Contact Details</h2>
+                    <p className="text-xs text-zinc-500 font-bold tracking-wider">Provide details for delivery and coordination</p>
                   </div>
+
+                  <div className="space-y-4">
+                    <div>
+                      <label htmlFor="customer_name" className="block text-xs font-black text-black mb-2 uppercase tracking-widest">
+                        Full Name <span className="text-[#E30613]">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        id="customer_name"
+                        name="customer_name"
+                        required
+                        value={formData.customer_name}
+                        onChange={handleTextChange}
+                        className="w-full rounded-lg border border-zinc-200 bg-white px-4 py-2.5 text-xs text-black placeholder-zinc-400 focus:border-[#E30613] focus:outline-none"
+                        placeholder="Your full name"
+                      />
+                    </div>
+
+                    <div>
+                      <label htmlFor="customer_email" className="block text-xs font-black text-black mb-2 uppercase tracking-widest">
+                        Email Address <span className="text-[#E30613]">*</span>
+                      </label>
+                      <input
+                        type="email"
+                        id="customer_email"
+                        name="customer_email"
+                        required
+                        value={formData.customer_email}
+                        onChange={handleTextChange}
+                        className="w-full rounded-lg border border-zinc-200 bg-white px-4 py-2.5 text-xs text-black placeholder-zinc-400 focus:border-[#E30613] focus:outline-none"
+                        placeholder="email@example.com"
+                      />
+                    </div>
+
+                    <div>
+                      <label htmlFor="customer_phone" className="block text-xs font-black text-black mb-2 uppercase tracking-widest">
+                        Phone Number <span className="text-[#E30613]">*</span>
+                      </label>
+                      <input
+                        type="tel"
+                        id="customer_phone"
+                        name="customer_phone"
+                        required
+                        value={formData.customer_phone}
+                        onChange={handleTextChange}
+                        className="w-full rounded-lg border border-zinc-200 bg-white px-4 py-2.5 text-xs text-black placeholder-zinc-400 focus:border-[#E30613] focus:outline-none"
+                        placeholder="e.g. 9876543210"
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* STEP 3: REVIEW & CONFIRM */}
+              {currentStep === 3 && (
+                <div className="space-y-6 animate-fade-in">
                   <div>
-                    <label htmlFor="customer_phone" className="block text-xs font-black text-black mb-2 uppercase tracking-widest">
-                      Phone Number <span className="text-[#E30613]">*</span>
-                    </label>
-                    <input
-                      type="tel"
-                      id="customer_phone"
-                      name="customer_phone"
-                      required
-                      value={formData.customer_phone}
-                      onChange={handleTextChange}
-                      className="w-full rounded-lg border border-zinc-200 bg-white px-4 py-2.5 text-xs text-black placeholder-zinc-400 focus:border-[#E30613] focus:outline-none"
-                      placeholder="e.g. 9876543210"
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label htmlFor="address_line" className="block text-xs font-black text-black mb-2 uppercase tracking-widest">
-                    Delivery Address <span className="text-[#E30613]">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    id="address_line"
-                    name="address_line"
-                    required
-                    value={formData.address_line}
-                    onChange={handleTextChange}
-                    className="w-full rounded-lg border border-zinc-200 bg-white px-4 py-2.5 text-xs text-black placeholder-zinc-400 focus:border-[#E30613] focus:outline-none mb-3"
-                    placeholder="Street address, Apartment, Suite"
-                  />
-                  
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label htmlFor="city" className="block text-xs font-black text-black mb-1 uppercase tracking-widest">City <span className="text-[#E30613]">*</span></label>
-                      <input
-                        type="text"
-                        id="city"
-                        name="city"
-                        required
-                        value={formData.city}
-                        onChange={handleTextChange}
-                        className="w-full rounded-lg border border-zinc-200 bg-white px-4 py-2 text-xs text-black focus:border-[#E30613] focus:outline-none"
-                        placeholder="City"
-                      />
-                    </div>
-                    <div>
-                      <label htmlFor="state" className="block text-xs font-black text-black mb-1 uppercase tracking-widest">State <span className="text-[#E30613]">*</span></label>
-                      <input
-                        type="text"
-                        id="state"
-                        name="state"
-                        required
-                        value={formData.state}
-                        onChange={handleTextChange}
-                        className="w-full rounded-lg border border-zinc-200 bg-white px-4 py-2 text-xs text-black focus:border-[#E30613] focus:outline-none"
-                        placeholder="State"
-                      />
-                    </div>
+                    <h2 className="text-base font-black uppercase text-black mb-1">Review Request</h2>
+                    <p className="text-xs text-zinc-500 font-bold tracking-wider">Confirm details before submitting your manual order</p>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4 mt-3">
-                    <div>
-                      <label htmlFor="pincode" className="block text-xs font-black text-black mb-1 uppercase tracking-widest">PIN Code <span className="text-[#E30613]">*</span></label>
-                      <input
-                        type="text"
-                        id="pincode"
-                        name="pincode"
-                        required
-                        value={formData.pincode}
-                        onChange={handleTextChange}
-                        className="w-full rounded-lg border border-zinc-200 bg-white px-4 py-2 text-xs text-black focus:border-[#E30613] focus:outline-none"
-                        placeholder="PIN code"
-                      />
+                  <div className="rounded-xl border border-zinc-200 bg-zinc-50 p-5 space-y-4">
+                    <div className="border-b border-zinc-200 pb-3">
+                      <span className="text-[10px] font-black text-[#E30613] uppercase tracking-widest block mb-0.5">Item</span>
+                      <span className="text-sm font-bold text-black uppercase">
+                        {order_type === 'service' ? targetService?.title : targetProduct?.title}
+                      </span>
                     </div>
-                    <div>
-                      <label htmlFor="country" className="block text-xs font-black text-black mb-1 uppercase tracking-widest">Country <span className="text-[#E30613]">*</span></label>
-                      <input
-                        type="text"
-                        id="country"
-                        name="country"
-                        required
-                        value={formData.country}
-                        onChange={handleTextChange}
-                        className="w-full rounded-lg border border-zinc-200 bg-white px-4 py-2 text-xs text-black focus:border-[#E30613] focus:outline-none"
-                        placeholder="Country"
-                      />
-                    </div>
-                  </div>
-                </div>
-              </div>
 
-              {/* CUSTOM CUSTOMIZATION ORDER SUMMARY BOX */}
-              <div className="pt-4 border-t border-zinc-150 space-y-3">
-                <h3 className="text-xs font-bold uppercase tracking-wider text-black">Order Summary</h3>
-                <div className="rounded-xl border border-zinc-200 bg-zinc-50 p-4 space-y-2 text-xs font-semibold text-zinc-700 uppercase">
-                  <div className="flex justify-between">
-                    <span>Memory Theme:</span>
-                    <span className="text-[#E30613] font-black">{formData.memory_type}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Product Canvas Size:</span>
-                    <span className="text-black font-black">{formData.size}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Quantity Pieces:</span>
-                    <span className="text-black font-black">{formData.quantity}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Google Photos connection:</span>
-                    <span className="text-[#E30613] font-black">Connected</span>
+                    {order_type === 'digital_product' && (
+                      <div className="border-b border-zinc-200 pb-3 flex justify-between">
+                        <div>
+                          <span className="text-[10px] font-black text-zinc-400 uppercase tracking-widest block">Price</span>
+                          <span className="text-xs font-bold text-black">{targetProduct?.price}</span>
+                        </div>
+                        <div className="text-right">
+                          <span className="text-[10px] font-black text-zinc-400 uppercase tracking-widest block">Quantity</span>
+                          <span className="text-xs font-bold text-black">{formData.quantity}</span>
+                        </div>
+                      </div>
+                    )}
+
+                    <div className="border-b border-zinc-200 pb-3">
+                      <span className="text-[10px] font-black text-zinc-400 uppercase tracking-widest block mb-0.5">Contact</span>
+                      <div className="text-xs font-semibold text-zinc-700 uppercase space-y-0.5">
+                        <p><span className="text-zinc-400">Name:</span> {formData.customer_name}</p>
+                        <p><span className="text-zinc-400">Email:</span> {formData.customer_email}</p>
+                        <p><span className="text-zinc-400">Phone:</span> {formData.customer_phone}</p>
+                      </div>
+                    </div>
+
+                    {formData.design_notes && (
+                      <div>
+                        <span className="text-[10px] font-black text-zinc-400 uppercase tracking-widest block mb-0.5">Notes</span>
+                        <p className="text-xs text-zinc-700 italic">{formData.design_notes}</p>
+                      </div>
+                    )}
                   </div>
                 </div>
-              </div>
-            </div>
+              )}
+            </>
           )}
 
           {/* ACTIONS STEP NAVIGATION BUTTONS FOOTER */}
@@ -764,7 +1047,7 @@ export default function CreateMemoryPage() {
               </button>
             )}
             
-            {currentStep < 6 ? (
+            {currentStep < STEPS.length ? (
               <button
                 type="button"
                 onClick={handleNext}
@@ -786,8 +1069,8 @@ export default function CreateMemoryPage() {
         </form>
       </div>
 
-      {/* INSTRUCTIONAL GOOGLE PHOTOS MODAL */}
-      {showHelpModal && (
+      {/* INSTRUCTIONAL GOOGLE PHOTOS MODAL (Only memories mode uses this) */}
+      {order_type === 'memories' && showHelpModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 animate-fade-in">
           <div className="w-full max-w-md bg-white rounded-2xl border border-zinc-200 p-6 sm:p-8 space-y-6 text-left relative">
             <button
@@ -799,24 +1082,24 @@ export default function CreateMemoryPage() {
             
             <div className="space-y-2">
               <h3 className="text-base font-black uppercase text-black">Get Shared Google Photos Link</h3>
-              <p className="text-[10px] text-zinc-500 uppercase font-black tracking-wider">Follow these steps inside Google Photos</p>
+              <p className="text-xs text-zinc-500 font-bold tracking-wider">Follow these steps inside Google Photos</p>
             </div>
 
             <ol className="space-y-4 text-xs text-zinc-700 font-medium">
               <li className="flex gap-3">
-                <span className="flex h-5 w-5 items-center justify-center rounded-full bg-[#E30613]/10 border border-[#E30613]/30 text-[#E30613] text-[9px] font-black shrink-0">1</span>
+                <span className="flex h-5 w-5 items-center justify-center rounded-full bg-[#E30613]/10 border border-[#E30613]/30 text-[#E30613] text-xs font-black shrink-0">1</span>
                 <span>Open Google Photos (app or website) and select the album containing your memories.</span>
               </li>
               <li className="flex gap-3">
-                <span className="flex h-5 w-5 items-center justify-center rounded-full bg-[#E30613]/10 border border-[#E30613]/30 text-[#E30613] text-[9px] font-black shrink-0">2</span>
+                <span className="flex h-5 w-5 items-center justify-center rounded-full bg-[#E30613]/10 border border-[#E30613]/30 text-[#E30613] text-xs font-black shrink-0">2</span>
                 <span>Click the **Share** button (usually in the top right or bottom menu).</span>
               </li>
               <li className="flex gap-3">
-                <span className="flex h-5 w-5 items-center justify-center rounded-full bg-[#E30613]/10 border border-[#E30613]/30 text-[#E30613] text-[9px] font-black shrink-0">3</span>
+                <span className="flex h-5 w-5 items-center justify-center rounded-full bg-[#E30613]/10 border border-[#E30613]/30 text-[#E30613] text-xs font-black shrink-0">3</span>
                 <span>Select **Create Link** (or click the Link icon to enable link sharing).</span>
               </li>
               <li className="flex gap-3">
-                <span className="flex h-5 w-5 items-center justify-center rounded-full bg-[#E30613]/10 border border-[#E30613]/30 text-[#E30613] text-[9px] font-black shrink-0">4</span>
+                <span className="flex h-5 w-5 items-center justify-center rounded-full bg-[#E30613]/10 border border-[#E30613]/30 text-[#E30613] text-xs font-black shrink-0">4</span>
                 <span>Copy the generated link (e.g. `https://photos.app.goo.gl/...`) and paste it back into Step 4.</span>
               </li>
             </ol>

@@ -555,7 +555,7 @@ export function AdminDashboard({ userEmail }: AdminDashboardProps) {
       price: '$19.00',
       features: ['Feature detail line 1', 'Feature detail line 2'],
       mockupText: 'Notion Framework preview',
-      etsyUrl: 'https://feelsneat.etsy.com',
+      etsyUrl: 'FN-DIG-NEW',
       coverImage: '',
     };
     setDb((prev: any) => ({
@@ -655,7 +655,7 @@ export function AdminDashboard({ userEmail }: AdminDashboardProps) {
             { id: 'services', label: 'What We Do', icon: 'Cpu' },
             { id: 'work', label: 'Our Work (Portfolio)', icon: 'Briefcase' },
             { id: 'observations', label: 'Observations Blog', icon: 'Bookmark' },
-            { id: 'products', label: 'Etsy Products', icon: 'ShoppingBag' },
+            { id: 'products', label: 'Digital Products', icon: 'ShoppingBag' },
           ].map((tab) => (
             <button
               key={tab.id}
@@ -1257,11 +1257,11 @@ export function AdminDashboard({ userEmail }: AdminDashboardProps) {
             </div>
           )}
 
-          {/* TAB: ETSY PRODUCTS */}
+          {/* TAB: DIGITAL PRODUCTS */}
           {activeTab === 'products' && (
             <div className="space-y-6">
               <div className="flex justify-between items-center border-b border-border-custom pb-3">
-                <h2 className="text-base font-extrabold text-foreground">Etsy Products Listing</h2>
+                <h2 className="text-base font-extrabold text-foreground">Digital Products Listing</h2>
                 <button
                   onClick={handleAddProduct}
                   className="inline-flex h-7 items-center justify-center rounded-lg bg-foreground px-3 text-[10px] font-bold text-background hover:bg-accent-custom cursor-pointer"
@@ -1343,13 +1343,13 @@ export function AdminDashboard({ userEmail }: AdminDashboardProps) {
                       />
                     </div>
                     <div>
-                      <label className="block text-[10px] font-bold text-foreground/60 mb-1">Etsy Listing URL</label>
+                      <label className="block text-[10px] font-bold text-foreground/60 mb-1">Product SKU Reference</label>
                       <input
                         type="text"
-                        value={selectedProduct.etsyUrl}
+                        value={selectedProduct.etsyUrl || ''}
                         onChange={(e) => handleProductChange(selectedProduct.id, 'etsyUrl', e.target.value)}
                         className="w-full rounded-lg border border-border-custom bg-white px-3 py-2 text-xs focus:border-foreground focus:outline-none text-[#1E1E1E]"
-                        placeholder="https://..."
+                        placeholder="e.g. FN-DIG-ATS"
                       />
                     </div>
                   </div>

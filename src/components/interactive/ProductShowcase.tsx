@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
 import { ProductItem } from '@/lib/cms';
 import { LucideIcon } from '../ui/LucideIcon';
 
@@ -134,15 +135,13 @@ export function ProductShowcase({ products }: ProductShowcaseProps) {
                   Instant Digital Download — No Physical Delivery
                 </span>
 
-                {/* CTA Link to Etsy Listing */}
-                <a
-                  href={product.etsyUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
+                {/* CTA Link to Custom Order Wizard */}
+                <Link
+                  href={`/create?product=${product.id}`}
                   className="inline-flex h-9 items-center justify-center rounded-lg bg-[#000000] hover:bg-[#E30613] text-[#FFFFFF] hover:text-white px-5 text-xs font-black uppercase tracking-wider transition-colors duration-300 cursor-pointer shadow-sm ml-auto sm:ml-0"
                 >
-                  View on Etsy
-                </a>
+                  Order Template
+                </Link>
               </div>
             </div>
           ))

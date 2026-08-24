@@ -6,9 +6,11 @@ export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
     const {
+      order_type = 'memories', // 'memories' | 'digital_product' | 'service'
+      product_id, // e.g. 'ats-resume' or 'digital-engineering'
       memory_type,
       size,
-      quantity,
+      quantity = 1,
       google_photos_url,
       title,
       location,
@@ -28,27 +30,43 @@ export async function POST(req: NextRequest) {
     } = body;
 
     // 1. Server-Side Validations
-    if (!memory_type || !size || !quantity || !google_photos_url || !main_photo) {
+    if (!customer_name || !customer_email || !customer_phone) {
       return NextResponse.json(
-        { error: 'Missing required configuration selections (Memory type, size, quantity, shared album link, and canvas photo are required).' },
+        { error: 'Customer contact details (name, email, and phone) are required.' },
         { status: 400 }
       );
     }
 
-    if (!customer_name || !customer_email || !customer_phone || !address_line || !city || !state || !pincode) {
-      return NextResponse.json(
-        { error: 'Customer contact information and complete shipping address details are required.' },
-        { status: 400 }
-      );
-    }
+    if (order_type === 'memories') {
+      if (!memory_type || !size || !quantity || !google_photos_url || !main_photo) {
+        return NextResponse.json(
+          { error: 'Missing required configuration selections (Memory type, size, quantity, shared album link, and canvas photo are required).' },
+          { status: 400 }
+        );
+      }
 
-    // Google Photos Shared URL pattern verification
-    const photosUrlRegex = /^(https?:\/\/)?(www\.)?(photos\.app\.goo\.gl|photos\.google\.com)\/.+$/;
-    if (!photosUrlRegex.test(google_photos_url)) {
-      return NextResponse.json(
-        { error: 'Invalid Google Photos shared album URL format.' },
-        { status: 400 }
-      );
+      if (!address_line || !city || !state || !pincode) {
+        return NextResponse.json(
+          { error: 'Customer contact information and complete shipping address details are required.' },
+          { status: 400 }
+        );
+      }
+
+      // Google Photos Shared URL pattern verification
+      const photosUrlRegex = /^(https?:\/\/)?(www\.)?(photos\.app\.goo\.gl|photos\.google\.com)\/.+$/;
+      if (!photosUrlRegex.test(google_photos_url)) {
+        return NextResponse.json(
+          { error: 'Invalid Google Photos shared album URL format.' },
+          { status: 400 }
+        );
+      }
+    } else {
+      if (!product_id) {
+        return NextResponse.json(
+          { error: 'Product or Service identifier is required.' },
+          { status: 400 }
+        );
+      }
     }
 
     // Email address formatting check
@@ -70,35 +88,39 @@ export async function POST(req: NextRequest) {
     }
 
     // 2. Generate Unique Order ID
-    // Sequential-style order numbers for MVP
     const orderNum = Math.floor(1000 + Math.random() * 9000);
-    const orderId = `FN-MEM-${orderNum}`;
+    const prefix = order_type === 'memories' ? 'FN-MEM' : order_type === 'service' ? 'FN-SRV' : 'FN-DIG';
+    const orderId = `${prefix}-${orderNum}`;
 
     // 3. Assemble Internal Order Structure
     const orderData = {
       order_id: orderId,
+      order_type,
+      product_id: product_id || null,
       created_at: new Date().toISOString(),
       customer: {
         name: customer_name,
         email: customer_email,
         phone: customer_phone,
-        address: {
+        address: order_type === 'memories' ? {
           line: address_line,
           city,
           state,
           pincode,
           country,
-        },
+        } : null,
       },
-      product: {
+      product: order_type === 'memories' ? {
         memory_type,
         size,
         quantity: Number(quantity),
+      } : {
+        quantity: Number(quantity),
       },
-      photos: {
-        main_photo, // Base64 string for production print
+      photos: order_type === 'memories' ? {
+        main_photo,
         additional_photos: Array.isArray(additional_photos) ? additional_photos : [],
-      },
+      } : null,
       memory_details: {
         title: title || '',
         location: location || '',
@@ -106,9 +128,9 @@ export async function POST(req: NextRequest) {
         caption: caption || '',
         design_notes: design_notes || '',
       },
-      digital_memory: {
+      digital_memory: order_type === 'memories' ? {
         google_photos_url,
-      },
+      } : null,
       payment: {
         status: 'AWAITING_PAYMENT',
         amount: 'TBD',
@@ -117,10 +139,10 @@ export async function POST(req: NextRequest) {
       },
       production: {
         design_status: 'NEW',
-        print_status: 'NEW',
-        nfc_status: 'NEW',
-        nfc_test_status: 'NEW',
-        shipping_status: 'NEW',
+        print_status: order_type === 'memories' ? 'NEW' : 'N/A',
+        nfc_status: order_type === 'memories' ? 'NEW' : 'N/A',
+        nfc_test_status: order_type === 'memories' ? 'NEW' : 'N/A',
+        shipping_status: order_type === 'memories' ? 'NEW' : 'N/A',
       },
     };
 
@@ -141,11 +163,13 @@ export async function POST(req: NextRequest) {
     }
 
     // Always log the details for traceability (excluding very long base64 image strings to keep logs neat)
-    const logData = { ...orderData, photos: { main_photo: '[Base64 String]', additional_photos: [] } };
-    console.log('Processed memories custom order submission:', logData);
+    const logData = order_type === 'memories' 
+      ? { ...orderData, photos: { main_photo: '[Base64 String]', additional_photos: [] } }
+      : orderData;
+    console.log(`Processed order submission of type ${order_type}:`, logData);
 
     return NextResponse.json(
-      { success: true, orderId: orderId, message: 'Custom memory order received successfully.' },
+      { success: true, orderId: orderId, message: 'Custom order received successfully.' },
       { status: 200 }
     );
   } catch (error) {

@@ -62,7 +62,7 @@ export default async function HomePage() {
       </section>
 
       {/* 
-        PREMIUM ETSY DIGITAL PRODUCT SHOWCASE
+        PREMIUM DIGITAL PRODUCT SHOWCASE
         Multi-column tabbed selector grid with mockups and listing warnings.
       */}
       <section className="py-28 bg-[#0A0A0C] border-t border-b border-white/10 relative z-10 scroll-reveal">

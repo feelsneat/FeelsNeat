@@ -1,4 +1,5 @@
 import { Metadata } from 'next';
+import Link from 'next/link';
 import { getServices } from '@/lib/cms';
 import { LucideIcon } from '@/components/ui/LucideIcon';
 
@@ -102,16 +103,12 @@ export default async function WhatWeDoPage() {
                     ))}
                   </div>
 
-                  {service.externalUrl && (
-                    <a 
-                      href={service.externalUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1.5 text-xs font-black uppercase text-[#F4F4F5] hover:text-[#E30613] transition-colors"
-                    >
-                      Explore resource <LucideIcon name="ArrowUpRight" className="h-3.5 w-3.5 text-[#E30613]" />
-                    </a>
-                  )}
+                  <Link 
+                    href={`/create?service=${service.slug}`}
+                    className="inline-flex h-9 items-center justify-center rounded-lg bg-[#E30613] hover:bg-[#F4F4F5] text-white hover:text-black px-4 text-xs font-black uppercase tracking-wider transition-colors duration-300 cursor-pointer shadow-sm"
+                  >
+                    Request Service
+                  </Link>
                 </div>
               </div>
             </div>

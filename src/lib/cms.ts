@@ -161,7 +161,7 @@ export interface ProductItem {
   price: string;
   features: string[];
   mockupText: string;
-  etsyUrl: string;
+  etsyUrl?: string;
   coverImage?: string;
 }
 
