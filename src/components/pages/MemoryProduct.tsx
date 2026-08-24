@@ -1,3 +1,6 @@
+'use client';
+
+import { useState } from 'react';
 import Link from 'next/link';
 import { LucideIcon } from '@/components/ui/LucideIcon';
 import { MEMORY_CATEGORIES, PRODUCT_PRICES } from './Memories';
@@ -9,6 +12,19 @@ interface MemoryProductProps {
 export default function MemoryProductPage({ categorySlug }: MemoryProductProps) {
   // Safe category lookup
   const category = (MEMORY_CATEGORIES as any)[categorySlug] || MEMORY_CATEGORIES.travel;
+
+  const mainImage = categorySlug === 'travel'
+    ? '/images/memories/travel-product.jpg'
+    : category.image;
+
+  const imagesList = [
+    mainImage,
+    '/images/memories/travel-product-closeup.jpg',
+    '/images/memories/memory-collection.jpg',
+    '/images/memories/memory-how-it-works.jpg'
+  ];
+
+  const [activeImage, setActiveImage] = useState(imagesList[0]);
 
   return (
     <main className="flex-1 w-full bg-[#0A0A0C] text-[#F4F4F5] relative overflow-hidden py-24 sm:py-32">
@@ -31,16 +47,32 @@ export default function MemoryProductPage({ categorySlug }: MemoryProductProps) 
         <div className="grid lg:grid-cols-12 gap-12 items-start mb-20">
           {/* Product Gallery (Left) */}
           <div className="lg:col-span-6 space-y-6">
-            <div className="relative rounded-2xl overflow-hidden border border-white/10 shadow-lg aspect-[4/3] bg-white/5 select-none">
+            <div className="relative rounded-2xl overflow-hidden border border-white/10 shadow-lg aspect-[4/3] bg-[#0E0E12] select-none">
               <img
-                src={category.image}
+                src={activeImage}
                 alt={`${category.title} photographic wall display mockup`}
-                className="w-full h-full object-cover"
+                className="w-full h-full object-cover transition-all duration-300"
               />
+            </div>
+
+            {/* Thumbnail Selectors */}
+            <div className="grid grid-cols-4 gap-2">
+              {imagesList.map((img, idx) => (
+                <button
+                  key={idx}
+                  type="button"
+                  onClick={() => setActiveImage(img)}
+                  className={`relative rounded-lg overflow-hidden border aspect-[4/3] bg-white/5 cursor-pointer transition-all ${
+                    activeImage === img ? 'border-[#E30613] scale-102' : 'border-white/10 hover:border-white/20'
+                  }`}
+                >
+                  <img src={img} alt={`Gallery view thumbnail ${idx}`} className="w-full h-full object-cover" />
+                </button>
+              ))}
             </div>
             
             {/* Visual Specs summary cards */}
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-3 gap-4 pt-2">
               <div className="p-3 rounded-xl border border-white/5 bg-white/5 text-center">
                 <span className="block text-[8px] font-black text-[#F4F4F5]/50 uppercase tracking-wider mb-1">Thickness</span>
                 <span className="text-xs font-bold text-[#F4F4F5] uppercase">~3 mm Rigid</span>

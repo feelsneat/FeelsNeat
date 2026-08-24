@@ -17,7 +17,7 @@ export const MEMORY_CATEGORIES = {
     subtitle: 'A personalized photo artwork connected to your travel memories.',
     description: 'Turn your favorite travel moments—road trips, mountain vistas, sunsets on the beach, and candid group photos—into beautiful wall art. The integrated NFC link maps directly to your shared Google Photos trip album.',
     cta: 'Create Travel Memory',
-    image: 'https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?q=80&w=800',
+    image: '/images/memories/travel-memories-wall.jpg',
     tags: ['Adventure', 'Travel Log', 'Shared Albums'],
     metaTitle: 'Travel Memory Canvas | Personalized Travel Wall Art | FeelsNeat',
     metaDesc: 'Turn your favorite travel photos into personalized wall art connected to your Google Photos memories.',
@@ -29,7 +29,7 @@ export const MEMORY_CATEGORIES = {
     subtitle: 'A personalized photo artwork connected to your milestones.',
     description: 'Perfect for weddings, anniversaries, graduations, birthdays, housewarmings, and family reunions. Capture the day with physical wall art that opens the celebration album with a simple tap.',
     cta: 'Create Event Memory',
-    image: 'https://images.unsplash.com/photo-1511795409834-ef04bbd61622?q=80&w=800',
+    image: '/images/memories/events-memories-wall.jpg',
     tags: ['Weddings', 'Milestones', 'Birthdays'],
     metaTitle: 'Event Memory Canvas | Personalized Celebration Art | FeelsNeat',
     metaDesc: 'Turn your favorite weddings, birthdays, and celebrations into personalized wall art connected to your Google Photos.',
@@ -41,7 +41,7 @@ export const MEMORY_CATEGORIES = {
     subtitle: 'A personalized photo artwork connected to your relationship journey.',
     description: 'A sophisticated, minimalist tribute to your relationship. Save memories of your first trip, dates, proposals, vacations, or everyday candid moments on a clean visual panel that connects to your shared album.',
     cta: 'Create Couple Memory',
-    image: 'https://images.unsplash.com/photo-1516589178581-6cd7833ae3b2?q=80&w=800',
+    image: '/images/memories/couple-memories-wall.jpg',
     tags: ['Anniversary', 'Candid', 'Relationship'],
     metaTitle: 'Couple Memory Canvas | Modern Relationship Wall Art | FeelsNeat',
     metaDesc: 'Design custom couple photo frames with hidden NFC links to shared Google Photos albums.',
@@ -53,7 +53,7 @@ export const MEMORY_CATEGORIES = {
     subtitle: 'A personalized photo artwork connected to your family life.',
     description: 'Keep everyday family connections alive. Display baby steps, holiday gatherings, reunions, and childhood milestones on premium photographic prints connected directly to family backup albums.',
     cta: 'Create Family Memory',
-    image: 'https://images.unsplash.com/photo-1536640717463-79105414944d?q=80&w=800',
+    image: '/images/memories/family-memories-wall.jpg',
     tags: ['Children', 'Reunions', 'Holidays'],
     metaTitle: 'Family Memory Canvas | Personalized Family Photo Prints | FeelsNeat',
     metaDesc: 'Save child milestones and family moments on premium wall art linked directly to shared Google Photos.',
@@ -102,54 +102,12 @@ export default function MemoriesPage() {
 
             {/* Hero Right Mockup Wall Art */}
             <div className="lg:col-span-6 flex justify-center">
-              <div className="relative w-full max-w-[460px] aspect-[4/3] rounded-2xl border border-white/5 bg-[#121216]/50 p-6 flex items-center justify-center shadow-lg backdrop-blur-xs select-none">
-                {/* Simulated wall art layout */}
-                <div className="grid grid-cols-2 gap-4 w-full h-full max-h-[300px]">
-                  {/* Art Piece 1 (Travel) */}
-                  <div className="relative rounded-lg overflow-hidden border border-white/10 shadow-md aspect-[4/3] group transition-transform duration-300 hover:scale-102">
-                    <img
-                      src={MEMORY_CATEGORIES.travel.image}
-                      alt="Travel photo wall display mockup"
-                      className="object-cover w-full h-full"
-                    />
-                    <div className="absolute inset-0 bg-black/30 flex items-end p-2.5">
-                      <span className="text-[8px] font-black uppercase text-white tracking-widest">Goa 2026</span>
-                    </div>
-                  </div>
-                  {/* Art Piece 2 (Couple) */}
-                  <div className="relative rounded-lg overflow-hidden border border-white/10 shadow-md aspect-[4/3] mt-4 group transition-transform duration-300 hover:scale-102">
-                    <img
-                      src={MEMORY_CATEGORIES.couples.image}
-                      alt="Couple moment wall display mockup"
-                      className="object-cover w-full h-full"
-                    />
-                    <div className="absolute inset-0 bg-black/30 flex items-end p-2.5">
-                      <span className="text-[8px] font-black uppercase text-white tracking-widest">Milestones</span>
-                    </div>
-                  </div>
-                  {/* Art Piece 3 (Events) */}
-                  <div className="relative rounded-lg overflow-hidden border border-white/10 shadow-md aspect-[4/3] group transition-transform duration-300 hover:scale-102">
-                    <img
-                      src={MEMORY_CATEGORIES.events.image}
-                      alt="Wedding event wall display mockup"
-                      className="object-cover w-full h-full"
-                    />
-                    <div className="absolute inset-0 bg-black/30 flex items-end p-2.5">
-                      <span className="text-[8px] font-black uppercase text-white tracking-widest">Celebrations</span>
-                    </div>
-                  </div>
-                  {/* Art Piece 4 (Family) */}
-                  <div className="relative rounded-lg overflow-hidden border border-white/10 shadow-md aspect-[4/3] mt-4 group transition-transform duration-300 hover:scale-102">
-                    <img
-                      src={MEMORY_CATEGORIES.family.image}
-                      alt="Family reunion wall display mockup"
-                      className="object-cover w-full h-full"
-                    />
-                    <div className="absolute inset-0 bg-black/30 flex items-end p-2.5">
-                      <span className="text-[8px] font-black uppercase text-white tracking-widest">Home Diary</span>
-                    </div>
-                  </div>
-                </div>
+              <div className="relative w-full max-w-[460px] aspect-[4/3] rounded-2xl overflow-hidden border border-white/10 shadow-lg select-none">
+                <img
+                  src="/images/memories/memories-hero.jpg"
+                  alt="Personalized memory canvases displayed on a modern apartment wall"
+                  className="w-full h-full object-cover"
+                />
               </div>
             </div>
           </div>
