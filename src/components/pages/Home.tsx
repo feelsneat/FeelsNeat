@@ -1,14 +1,14 @@
-import { getPage, getProducts } from '@/lib/cms';
+import { getPage, getServices } from '@/lib/cms';
 import { fetchSubstackFeed } from '@/lib/substack';
-import { ProductShowcase } from '@/components/interactive/ProductShowcase';
 import { SubstackFeed } from '@/components/interactive/SubstackFeed';
 import { LucideIcon } from '@/components/ui/LucideIcon';
+import Link from 'next/link';
 
 export const runtime = 'edge';
 
 export default async function HomePage() {
   const homeData = await getPage('home');
-  const products = await getProducts();
+  const services = await getServices();
   const posts = await fetchSubstackFeed();
   const latestPosts = posts.slice(0, 3);
 
@@ -18,10 +18,7 @@ export default async function HomePage() {
       <div className="morphing-blob absolute top-12 left-10 opacity-30" />
       <div className="morphing-blob absolute bottom-40 right-10 opacity-20" />
 
-      {/* 
-        HERO SECTION & LEAD CAPTURE
-        Centered, minimalist layout focused on lead generation via Substack.
-      */}
+      {/* HERO SECTION & LEAD CAPTURE */}
       <section className="relative min-h-[90vh] flex flex-col items-center justify-center py-24 sm:py-32 px-4 sm:px-6 relative z-10">
         <div className="max-w-4xl mx-auto text-center space-y-8 animate-slide-up">
           {/* Brand Pill badge */}
@@ -61,34 +58,124 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* 
-        PREMIUM DIGITAL PRODUCT SHOWCASE
-        Multi-column tabbed selector grid with mockups and listing warnings.
-      */}
-      <section className="py-28 bg-[#0A0A0C] border-t border-b border-white/10 relative z-10 scroll-reveal">
-        <div className="mx-auto max-w-5xl px-4 sm:px-6">
+      {/* SECTION 2: PROFESSIONAL SERVICES SECTION */}
+      <section className="py-28 bg-[#0A0A0C] border-t border-white/10 relative z-10 scroll-reveal">
+        <div className="mx-auto max-w-5xl px-4 sm:px-6 space-y-16">
           {/* Section Header */}
-          <div className="max-w-2xl mb-16">
-            <span className="text-[10px] font-black text-[#E30613] uppercase tracking-widest block mb-2">
-              Shop & Templates
+          <div className="max-w-2xl text-left">
+            <span className="text-sm font-black text-[#E30613] uppercase tracking-widest block mb-2">
+              Capabilities
             </span>
-            <h2 className="text-2xl sm:text-3xl font-black text-[#F4F4F5] uppercase tracking-tight">
-              Premium Digital Products
+            <h2 className="text-3xl sm:text-4xl font-black text-[#F4F4F5] uppercase tracking-tight">
+              Professional Services
             </h2>
-            <p className="mt-3 text-sm text-[#F4F4F5] leading-relaxed">
-              Meticulously organized planners, spreadsheet calculators, and workspace documents designed to bring immediate structure to your routine.
+            <p className="mt-3 text-base text-[#F4F4F5]/75 font-semibold">
+              We design and build tailormade structures, codebases, and automation integrations for modern operations.
             </p>
           </div>
 
-          {/* Showcase Tabs */}
-          <ProductShowcase products={products} />
+          {/* Stacked Horizontal Services List */}
+          <div className="space-y-8">
+            {services.map((service, index) => (
+              <div 
+                key={service.slug}
+                className="rounded-2xl border border-white/5 bg-[#0E0E12]/80 p-8 flex flex-col md:flex-row gap-8 items-center hover:border-white/10 transition-all duration-300"
+              >
+                {/* Image block */}
+                <div className="w-full md:w-1/2 aspect-[1.5/1] rounded-xl overflow-hidden border border-white/10 bg-white/5 relative">
+                  {service.image ? (
+                    <img 
+                      src={service.image} 
+                      alt={service.title} 
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="absolute inset-0 bg-[#0E0E12] flex items-center justify-center">
+                      <LucideIcon name={service.icon || 'Code'} className="h-10 w-10 text-[#E30613]/80" />
+                    </div>
+                  )}
+                </div>
+
+                {/* Content block */}
+                <div className="w-full md:w-1/2 space-y-6 text-left">
+                  <span className="text-xs font-black text-[#E30613] uppercase tracking-widest block">
+                    Capability 0{index + 1}
+                  </span>
+                  
+                  <h3 className="text-2xl font-black text-[#F4F4F5] uppercase tracking-tight leading-none">
+                    {service.title}
+                  </h3>
+                  
+                  <div className="space-y-4">
+                    <p className="text-sm sm:text-base text-[#F4F4F5]/85 leading-relaxed font-bold uppercase tracking-tight">
+                      {service.summary}
+                    </p>
+                    <div className="text-sm sm:text-base text-[#F4F4F5]/75 space-y-2 leading-relaxed font-semibold"
+                      dangerouslySetInnerHTML={{ __html: service.content }}
+                    />
+                  </div>
+
+                  <div className="pt-4 flex gap-4">
+                    <Link 
+                      href={`/create?service=${service.slug}`}
+                      className="inline-flex h-10 items-center justify-center rounded-lg bg-[#E30613] hover:bg-zinc-900 text-xs font-black uppercase tracking-wider text-white px-6 transition-colors duration-300 shadow-md"
+                    >
+                      Request Service
+                    </Link>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 
-      {/* 
-        DYNAMIC CMS SECTION - LIVE SUBSTACK RSS BLOG STREAM
-        Fetches Substack feed on client side dynamically with skeleton loader.
-      */}
+      {/* SECTION 3: PHYSICAL MEMORIES ARTWORK SECTION */}
+      <section className="py-28 bg-[#0D0D10] border-t border-b border-white/5 relative z-10 scroll-reveal">
+        <div className="mx-auto max-w-5xl px-4 sm:px-6 space-y-16">
+          {/* Section Header */}
+          <div className="max-w-2xl text-left">
+            <span className="text-sm font-black text-[#E30613] uppercase tracking-widest block mb-2">
+              Physical Canvas
+            </span>
+            <h2 className="text-3xl sm:text-4xl font-black text-[#F4F4F5] uppercase tracking-tight">
+              FeelsNeat Memories Artwork
+            </h2>
+            <p className="mt-3 text-base text-[#F4F4F5]/75 font-semibold">
+              Premium mounted wall art panels pre-programmed with custom NFC microchips linking directly to your shared photo albums.
+            </p>
+          </div>
+
+          <div className="rounded-2xl border border-white/5 bg-[#0A0A0C]/80 p-8 flex flex-col md:flex-row gap-8 items-center hover:border-white/10 transition-all duration-300">
+            <div className="w-full md:w-1/2 aspect-[1.5/1] rounded-xl overflow-hidden border border-white/10 bg-white/5 relative">
+              <img 
+                src="/images/memories/memories-hero.jpg" 
+                alt="FeelsNeat Memories wall canvas installation mockup" 
+                className="w-full h-full object-cover"
+              />
+            </div>
+            <div className="w-full md:w-1/2 space-y-6 text-left">
+              <span className="text-xs font-black text-[#E30613] uppercase tracking-widest block">Interactive Photo Prints</span>
+              <h3 className="text-2xl font-black text-[#F4F4F5] uppercase tracking-tight leading-none">
+                Personalized Memory Canvas
+              </h3>
+              <p className="text-sm sm:text-base text-[#F4F4F5]/75 leading-relaxed font-semibold">
+                Select from Travel, Wedding, Relationship, or Family layouts. Each physical panel features rigid MDF mounting, matte photo prints, and a hidden NFC transmitter.
+              </p>
+              <div className="pt-4 flex gap-4">
+                <Link
+                  href="/memories"
+                  className="inline-flex h-10 items-center justify-center rounded-lg bg-[#E30613] hover:bg-zinc-900 text-xs font-black uppercase tracking-wider text-white px-6 transition-colors duration-300 shadow-md"
+                >
+                  Explore Memories Collection
+                </Link>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* SECTION 4: SUBSTACK ARTICLES STREAM */}
       <section className="py-28 relative z-10 scroll-reveal">
         <div className="mx-auto max-w-5xl px-4 sm:px-6">
           {/* Section Header */}
@@ -119,10 +206,7 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* 
-        PHILOSOPHY & VALUES SUMMARY SECTION
-        Simple, clean paragraph block demonstrating brand vision.
-      */}
+      {/* SECTION 5: PHILOSOPHY */}
       <section className="py-28 bg-[#0D0D10] border-t border-white/5 relative z-10 scroll-reveal">
         <div className="mx-auto max-w-5xl px-4 sm:px-6">
           <div className="grid md:grid-cols-12 gap-8 md:gap-16 items-start">
