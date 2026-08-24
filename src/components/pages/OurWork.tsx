@@ -46,48 +46,61 @@ export default async function OurWorkPage() {
             </p>
           </div>
 
-          <div className="grid gap-8">
+          <div className="grid md:grid-cols-3 gap-8">
             {services.map((service, index) => (
               <div 
                 key={service.slug}
-                className="grid md:grid-cols-12 gap-6 p-6 rounded-2xl border border-white/5 bg-[#0E0E12]/80 items-start hover:border-white/10 transition-all duration-300"
+                className="flex flex-col rounded-2xl border border-white/5 bg-[#0E0E12]/80 overflow-hidden hover:border-white/10 transition-all duration-300 shadow-sm p-6 justify-between min-h-[480px]"
               >
-                {/* Title block */}
-                <div className="md:col-span-4 flex items-start gap-4">
-                  <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-white/5 border border-white/10 text-[#E30613]">
-                    <LucideIcon name={service.icon || 'Code'} className="h-5 w-5" />
+                <div className="space-y-4">
+                  {/* Service Image Visualizer */}
+                  <div className="w-full aspect-[1.6/1] rounded-xl overflow-hidden border border-white/10 bg-white/5 relative mb-4">
+                    {service.image ? (
+                      <img 
+                        src={service.image} 
+                        alt={service.title} 
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="absolute inset-0 bg-[#0E0E12] flex items-center justify-center">
+                        <LucideIcon name={service.icon || 'Code'} className="h-8 w-8 text-[#E30613]/80" />
+                      </div>
+                    )}
                   </div>
-                  <div>
-                    <h3 className="text-base font-bold text-[#F4F4F5] uppercase tracking-tight leading-tight">{service.title}</h3>
-                    <span className="text-[10px] text-[#E30613] uppercase tracking-widest font-black block mt-1.5">Service Capability 0{index + 1}</span>
-                  </div>
-                </div>
 
-                {/* Description and CTA */}
-                <div className="md:col-span-8 space-y-6">
-                  <p className="text-sm sm:text-base font-bold text-[#F4F4F5] leading-relaxed uppercase tracking-tight">
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-white/5 border border-white/10 text-[#E30613]">
+                      <LucideIcon name={service.icon || 'Code'} className="h-4 w-4" />
+                    </div>
+                    <div>
+                      <h3 className="text-sm font-bold text-[#F4F4F5] uppercase tracking-tight leading-tight">{service.title}</h3>
+                      <span className="text-[9px] text-[#E30613] uppercase tracking-widest font-black block mt-0.5">Capability 0{index + 1}</span>
+                    </div>
+                  </div>
+
+                  <p className="text-xs font-bold text-[#F4F4F5]/90 uppercase tracking-tight leading-normal pt-2">
                     {service.summary}
                   </p>
-                  
-                  <div className="text-sm text-[#F4F4F5]/85 space-y-4 leading-relaxed font-medium"
+
+                  <div className="text-xs text-[#F4F4F5]/65 space-y-2 leading-relaxed font-semibold pt-2"
                     dangerouslySetInnerHTML={{ __html: service.content }}
                   />
+                </div>
 
-                  <div className="pt-4 border-t border-white/5 flex justify-between items-center">
-                    <div className="flex flex-wrap gap-1">
-                      {(service.tags || []).map((tag) => (
-                        <span key={tag} className="inline-flex items-center rounded-md bg-white/5 border border-white/10 px-2 py-0.5 text-xs text-[#F4F4F5]/70">
-                          {tag}
-                        </span>
-                      ))}
-                    </div>
-                    <Link 
-                      href={`/create?service=${service.slug}`}
-                      className="inline-flex h-9 items-center justify-center rounded-lg bg-[#E30613] hover:bg-[#F4F4F5] text-white hover:text-black px-4 text-xs font-black uppercase tracking-wider transition-colors duration-300 cursor-pointer shadow-sm"
-                    >
-                      Request Service
-                    </Link>
+                <div className="pt-6 border-t border-white/5 flex items-center justify-between mt-6">
+                  <div className="flex flex-wrap gap-1">
+                    {(service.tags || []).slice(0, 2).map((tag) => (
+                      <span key={tag} className="inline-flex items-center rounded-md bg-white/5 border border-white/10 px-1.5 py-0.5 text-[9px] text-[#F4F4F5]/60 uppercase font-black">
+                        {tag}
+                      </span>
+                    ))}
                   </div>
+                  <Link 
+                    href={`/create?service=${service.slug}`}
+                    className="inline-flex h-9 items-center justify-center rounded-lg bg-[#E30613] hover:bg-zinc-900 text-white px-4 text-xs font-black uppercase tracking-wider transition-colors duration-300 cursor-pointer shadow-sm"
+                  >
+                    Request Service
+                  </Link>
                 </div>
               </div>
             ))}
