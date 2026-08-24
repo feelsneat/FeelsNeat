@@ -30,10 +30,6 @@
         "path": "/"
       },
       {
-        "label": "What We Do",
-        "path": "/what-we-do"
-      },
-      {
         "label": "Our Work",
         "path": "/our-work"
       },
@@ -61,10 +57,6 @@
           {
             "label": "Home",
             "path": "/"
-          },
-          {
-            "label": "What We Do",
-            "path": "/what-we-do"
           },
           {
             "label": "Our Work",

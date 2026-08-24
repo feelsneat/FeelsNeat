@@ -1,7 +1,6 @@
 {
   "headerLinks": [
     { "label": "Home", "path": "/" },
-    { "label": "What We Do", "path": "/what-we-do" },
     { "label": "Our Work", "path": "/our-work" },
     { "label": "Memories", "path": "/memories" },
     { "label": "Observations", "path": "/observations" },
@@ -13,7 +12,6 @@
       "title": "Pages",
       "items": [
         { "label": "Home", "path": "/" },
-        { "label": "What We Do", "path": "/what-we-do" },
         { "label": "Our Work", "path": "/our-work" },
         { "label": "Memories", "path": "/memories" },
         { "label": "Observations", "path": "/observations" },

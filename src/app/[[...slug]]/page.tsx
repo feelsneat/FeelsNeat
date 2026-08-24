@@ -8,7 +8,6 @@ import { fetchSubstackFeed } from '@/lib/substack';
 import HomePage from '@/components/pages/Home';
 import AboutPage from '@/components/pages/About';
 import ContactPage from '@/components/pages/Contact';
-import WhatWeDoPage from '@/components/pages/WhatWeDo';
 import OurWorkPage from '@/components/pages/OurWork';
 import ProjectDetailPage from '@/components/pages/OurWorkDetail';
 import ObservationsPage from '@/components/pages/Observations';
@@ -140,9 +139,9 @@ export default async function CatchAllPage({ params, searchParams }: PageProps) 
     return <ContactPage />;
   }
 
-  // 4. What We Do Page (e.g. /what-we-do)
+  // 4. What We Do Page (e.g. /what-we-do) - Redirect to consolidated page
   if (route === 'what-we-do' && slug.length === 1) {
-    return <WhatWeDoPage />;
+    redirect('/our-work');
   }
 
   // 4.5. Memories Routes (e.g. /memories and /memories/[category])
