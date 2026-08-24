@@ -1164,7 +1164,11 @@ export default function CreateMemoryPage() {
                   {/* General Custom Prefs/Design Notes */}
                   <div>
                     <label htmlFor="design_notes" className="block text-xs font-black text-black mb-2 uppercase tracking-widest">
-                      {order_type === 'service' ? 'Additional Notes / Requirements' : 'Custom Preferences (Optional)'}
+                      {order_type === 'service' 
+                        ? 'Additional Notes / Requirements' 
+                        : order_type === 'digital_product'
+                          ? 'Specific Inquiries or Custom setup requests (Optional)'
+                          : 'Custom Preferences (Optional)'}
                     </label>
                     <textarea
                       id="design_notes"
@@ -1176,7 +1180,9 @@ export default function CreateMemoryPage() {
                       placeholder={
                         order_type === 'service'
                           ? 'Specify details on budget, timing requests, or technology parameters...'
-                          : 'e.g. Any custom template fields, logo requests, or formatting notes...'
+                          : order_type === 'digital_product'
+                            ? 'e.g. Any specific queries, custom setup help, integration questions...'
+                            : 'e.g. Any custom template fields, logo requests, or formatting notes...'
                       }
                     />
                   </div>
@@ -1226,7 +1232,7 @@ export default function CreateMemoryPage() {
 
                     <div>
                       <label htmlFor="customer_phone" className="block text-xs font-black text-black mb-2 uppercase tracking-widest">
-                        Phone Number <span className="text-[#E30613]">*</span>
+                        {order_type === 'digital_product' ? 'WhatsApp Number (For coordination and delivery)' : 'Phone Number'} <span className="text-[#E30613]">*</span>
                       </label>
                       <input
                         type="tel"

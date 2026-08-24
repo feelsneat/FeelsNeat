@@ -462,8 +462,9 @@ export function AdminDashboard({ userEmail }: AdminDashboardProps) {
                               onChange={(e) => handleUpdateOrderStatus(selectedOrder.order_id, { payment: { status: e.target.value } })}
                               className="w-full rounded-lg border border-border-custom bg-white px-3 py-2 text-xs focus:border-foreground focus:outline-none text-[#1E1E1E]"
                             >
-                              <option value="AWAITING_PAYMENT">Awaiting Payment</option>
-                              <option value="PAID">Paid / Completed</option>
+                              <option value="AWAITING_PAYMENT">Unpaid / Awaiting Payment</option>
+                              <option value="PAID">Paid</option>
+                              <option value="CANCELLED">Cancelled</option>
                               <option value="REFUNDED">Refunded</option>
                             </select>
                           </div>
@@ -490,7 +491,8 @@ export function AdminDashboard({ userEmail }: AdminDashboardProps) {
                                 >
                                   <option value="NEW">New Draft</option>
                                   <option value="APPROVED">Layout Approved</option>
-                                  <option value="COMPLETED">Done</option>
+                                  <option value="DELIVERED">Delivered / Shipped</option>
+                                  <option value="CANCELLED">Cancelled</option>
                                 </select>
                               </div>
                               <div>
@@ -507,16 +509,17 @@ export function AdminDashboard({ userEmail }: AdminDashboardProps) {
                             </>
                           ) : (
                             <div className="sm:col-span-2">
-                              <label className="block text-[10px] font-bold text-foreground/60 mb-1">Inquiry Status</label>
+                              <label className="block text-[10px] font-bold text-foreground/60 mb-1">Order / Inquiry Status</label>
                               <select
                                   value={selectedOrder.production?.design_status || 'NEW'}
                                   onChange={(e) => handleUpdateOrderStatus(selectedOrder.order_id, { production: { design_status: e.target.value } })}
                                   className="w-full rounded-lg border border-border-custom bg-white px-3 py-2 text-xs focus:border-foreground focus:outline-none text-[#1E1E1E]"
                                 >
-                                <option value="NEW">New Inquiry</option>
+                                <option value="NEW">New Submission</option>
                                 <option value="CONTACTED">Client Contacted</option>
                                 <option value="IN_PROGRESS">Project In Progress</option>
-                                <option value="COMPLETED">Delivered / Handed Over</option>
+                                <option value="DELIVERED">Delivered</option>
+                                <option value="CANCELLED">Cancelled</option>
                               </select>
                             </div>
                           )}
