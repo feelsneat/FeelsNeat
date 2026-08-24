@@ -3,7 +3,7 @@ title: "Website Development"
 icon: "Code"
 order: 1
 summary: "We build custom shopping websites for Instagram pages with automated order notifications, manual WhatsApp routing, payment gateways, and tailored external CMS integration."
-image: "https://images.unsplash.com/photo-1555066931-4365d14bab8c?auto=format&fit=crop&w=600&q=80"
+image: "/images/services/website-development.jpg"
 externalUrl: ""
 ---
 We build professional, fast shopping environments specifically optimized for Instagram businesses. We connect all the automations needed to manage orders and coordinate checkouts.

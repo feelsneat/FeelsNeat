@@ -3,7 +3,7 @@ title: "AI Agentic Integration"
 icon: "Cpu"
 order: 3
 summary: "We integrate custom AI agents for order processing, customer queries, and business process automation tailored specifically to your company needs."
-image: "https://images.unsplash.com/photo-1677442136019-21780efad99a?auto=format&fit=crop&w=600&q=80"
+image: "/images/services/ai-integration.jpg"
 externalUrl: ""
 ---
 We help you identify and choose the best AI agent models to automate order processing, respond to product queries, and handle routine checkout pipeline steps.

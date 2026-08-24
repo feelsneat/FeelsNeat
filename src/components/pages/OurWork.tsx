@@ -25,11 +25,11 @@ export default async function OurWorkPage() {
         
         {/* PAGE HEADER */}
         <div className="max-w-3xl scroll-reveal">
-          <span className="text-xs font-black text-[#E30613] uppercase tracking-widest block mb-3">Portfolio & Capabilities</span>
-          <h1 className="text-3xl sm:text-5xl font-extrabold tracking-tight text-[#F4F4F5] uppercase">
+          <span className="text-sm font-black text-[#E30613] uppercase tracking-widest block mb-3">Portfolio & Capabilities</span>
+          <h1 className="text-4xl sm:text-6xl font-black tracking-tight text-[#F4F4F5] uppercase">
             Our Work
           </h1>
-          <p className="mt-6 text-base sm:text-lg text-[#F4F4F5]/80 leading-relaxed font-medium">
+          <p className="mt-6 text-lg sm:text-xl text-[#F4F4F5]/80 leading-relaxed font-semibold">
             A comprehensive catalog of everything we design, prototype, and engineer. Below you will find our professional consultation services, instant digital tools, physical art categories, and detailed project case studies.
           </p>
         </div>
@@ -37,11 +37,11 @@ export default async function OurWorkPage() {
         {/* SECTION 1: CAPABILITY SERVICES */}
         <section id="services" className="space-y-10 scroll-reveal border-t border-white/10 pt-16">
           <div className="max-w-2xl text-left">
-            <span className="text-xs font-black text-[#E30613] uppercase tracking-widest block mb-2">Capabilities</span>
-            <h2 className="text-2xl sm:text-3xl font-black text-[#F4F4F5] uppercase tracking-tight">
+            <span className="text-sm font-black text-[#E30613] uppercase tracking-widest block mb-2">Capabilities</span>
+            <h2 className="text-3xl sm:text-4xl font-black text-[#F4F4F5] uppercase tracking-tight">
               Professional Services
             </h2>
-            <p className="mt-2 text-sm text-[#F4F4F5]/70 font-medium">
+            <p className="mt-3 text-base text-[#F4F4F5]/75 font-semibold">
               We design and build tailormade structures, codebases, and interface systems for modern business operations.
             </p>
           </div>
@@ -50,9 +50,9 @@ export default async function OurWorkPage() {
             {services.map((service, index) => (
               <div 
                 key={service.slug}
-                className="flex flex-col rounded-2xl border border-white/5 bg-[#0E0E12]/80 overflow-hidden hover:border-white/10 transition-all duration-300 shadow-sm p-6 justify-between min-h-[480px]"
+                className="flex flex-col rounded-2xl border border-white/5 bg-[#0E0E12]/80 overflow-hidden hover:border-white/10 transition-all duration-300 shadow-sm p-6 justify-between min-h-[520px]"
               >
-                <div className="space-y-4">
+                <div className="space-y-5">
                   {/* Service Image Visualizer */}
                   <div className="w-full aspect-[1.6/1] rounded-xl overflow-hidden border border-white/10 bg-white/5 relative mb-4">
                     {service.image ? (
@@ -69,35 +69,35 @@ export default async function OurWorkPage() {
                   </div>
 
                   <div className="flex items-center gap-3">
-                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-white/5 border border-white/10 text-[#E30613]">
-                      <LucideIcon name={service.icon || 'Code'} className="h-4 w-4" />
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-white/5 border border-white/10 text-[#E30613]">
+                      <LucideIcon name={service.icon || 'Code'} className="h-5 w-5" />
                     </div>
                     <div>
-                      <h3 className="text-sm font-bold text-[#F4F4F5] uppercase tracking-tight leading-tight">{service.title}</h3>
-                      <span className="text-[9px] text-[#E30613] uppercase tracking-widest font-black block mt-0.5">Capability 0{index + 1}</span>
+                      <h3 className="text-base sm:text-lg font-black text-[#F4F4F5] uppercase tracking-tight leading-tight">{service.title}</h3>
+                      <span className="text-[10px] text-[#E30613] uppercase tracking-widest font-black block mt-0.5">Capability 0{index + 1}</span>
                     </div>
                   </div>
 
-                  <p className="text-xs font-bold text-[#F4F4F5]/90 uppercase tracking-tight leading-normal pt-2">
+                  <p className="text-sm font-black text-[#F4F4F5] uppercase tracking-tight leading-normal pt-2">
                     {service.summary}
                   </p>
 
-                  <div className="text-xs text-[#F4F4F5]/65 space-y-2 leading-relaxed font-semibold pt-2"
+                  <div className="text-sm text-[#F4F4F5]/75 space-y-3 leading-relaxed font-semibold pt-2"
                     dangerouslySetInnerHTML={{ __html: service.content }}
                   />
                 </div>
 
                 <div className="pt-6 border-t border-white/5 flex items-center justify-between mt-6">
-                  <div className="flex flex-wrap gap-1">
+                  <div className="flex flex-wrap gap-1.5">
                     {(service.tags || []).slice(0, 2).map((tag) => (
-                      <span key={tag} className="inline-flex items-center rounded-md bg-white/5 border border-white/10 px-1.5 py-0.5 text-[9px] text-[#F4F4F5]/60 uppercase font-black">
+                      <span key={tag} className="inline-flex items-center rounded-md bg-white/5 border border-white/10 px-2 py-0.5 text-[10px] text-[#F4F4F5]/70 uppercase font-black">
                         {tag}
                       </span>
                     ))}
                   </div>
                   <Link 
                     href={`/create?service=${service.slug}`}
-                    className="inline-flex h-9 items-center justify-center rounded-lg bg-[#E30613] hover:bg-zinc-900 text-white px-4 text-xs font-black uppercase tracking-wider transition-colors duration-300 cursor-pointer shadow-sm"
+                    className="inline-flex h-10 items-center justify-center rounded-lg bg-[#E30613] hover:bg-zinc-900 text-white px-4 text-sm font-black uppercase tracking-wider transition-colors duration-300 cursor-pointer shadow-md"
                   >
                     Request Service
                   </Link>
@@ -110,11 +110,11 @@ export default async function OurWorkPage() {
         {/* SECTION 2: DIGITAL PRODUCTS */}
         <section id="products" className="space-y-10 scroll-reveal border-t border-white/10 pt-16">
           <div className="max-w-2xl text-left">
-            <span className="text-xs font-black text-[#E30613] uppercase tracking-widest block mb-2">Instant Downloads</span>
-            <h2 className="text-2xl sm:text-3xl font-black text-[#F4F4F5] uppercase tracking-tight">
+            <span className="text-sm font-black text-[#E30613] uppercase tracking-widest block mb-2">Instant Downloads</span>
+            <h2 className="text-3xl sm:text-4xl font-black text-[#F4F4F5] uppercase tracking-tight">
               Digital Products & Templates
             </h2>
-            <p className="mt-2 text-sm text-[#F4F4F5]/70 font-medium">
+            <p className="mt-3 text-base text-[#F4F4F5]/75 font-semibold">
               Meticulously structured Notion setups, bookkeeping spreadsheets, and LaTeX templates available for instant setup.
             </p>
           </div>
@@ -123,24 +123,24 @@ export default async function OurWorkPage() {
             {products.map((product) => (
               <div 
                 key={product.id}
-                className="flex flex-col rounded-2xl border border-white/5 bg-[#0E0E12]/80 overflow-hidden hover:border-white/10 transition-all duration-300 shadow-sm p-6 justify-between min-h-[340px]"
+                className="flex flex-col rounded-2xl border border-white/5 bg-[#0E0E12]/80 overflow-hidden hover:border-white/10 transition-all duration-300 shadow-sm p-6 justify-between min-h-[350px]"
               >
                 {/* Header info */}
                 <div className="space-y-4">
                   <div className="flex justify-between items-start">
-                    <span className="text-[10px] font-black text-[#E30613] uppercase tracking-widest bg-[#E30613]/5 border border-[#E30613]/15 px-2 py-0.5 rounded">
+                    <span className="text-xs font-black text-[#E30613] uppercase tracking-widest bg-[#E30613]/5 border border-[#E30613]/15 px-2.5 py-0.5 rounded">
                       {product.category}
                     </span>
-                    <span className="text-sm font-black text-[#F4F4F5]">
+                    <span className="text-base font-black text-[#F4F4F5]">
                       {product.price}
                     </span>
                   </div>
                   
-                  <h3 className="text-lg font-bold text-[#F4F4F5] uppercase tracking-tight leading-snug">
+                  <h3 className="text-xl font-black text-[#F4F4F5] uppercase tracking-tight leading-snug">
                     {product.title}
                   </h3>
                   
-                  <ul className="space-y-1.5 text-xs text-[#F4F4F5]/70 font-semibold list-disc pl-4 uppercase">
+                  <ul className="space-y-2 text-sm text-[#F4F4F5]/80 font-semibold list-disc pl-5 uppercase">
                     {(product.features || []).slice(0, 3).map((feat, idx) => (
                       <li key={idx}>{feat}</li>
                     ))}
@@ -149,12 +149,12 @@ export default async function OurWorkPage() {
 
                 {/* Bottom Row CTA */}
                 <div className="pt-6 border-t border-white/5 flex items-center justify-between mt-6">
-                  <span className="inline-flex items-center gap-1.5 text-xs font-medium text-[#F4F4F5]/50">
-                    <LucideIcon name="DownloadCloud" className="h-4 w-4 text-[#E30613]" /> Digital Copy
+                  <span className="inline-flex items-center gap-2 text-sm font-semibold text-[#F4F4F5]/60">
+                    <LucideIcon name="DownloadCloud" className="h-5 w-5 text-[#E30613]" /> Digital Copy
                   </span>
                   <Link
                     href={`/create?product=${product.id}`}
-                    className="inline-flex h-9 items-center justify-center rounded-lg bg-white hover:bg-[#E30613] text-black hover:text-white px-4 text-xs font-black uppercase tracking-wider transition-colors duration-300 cursor-pointer shadow-sm"
+                    className="inline-flex h-10 items-center justify-center rounded-lg bg-white hover:bg-[#E30613] text-black hover:text-white px-4 text-sm font-black uppercase tracking-wider transition-colors duration-300 cursor-pointer shadow-md"
                   >
                     Order Template
                   </Link>
@@ -167,11 +167,11 @@ export default async function OurWorkPage() {
         {/* SECTION 3: NFC MEMORIES ARTWORK */}
         <section id="memories" className="space-y-10 scroll-reveal border-t border-white/10 pt-16">
           <div className="max-w-2xl text-left">
-            <span className="text-xs font-black text-[#E30613] uppercase tracking-widest block mb-2">Physical Canvas</span>
-            <h2 className="text-2xl sm:text-3xl font-black text-[#F4F4F5] uppercase tracking-tight">
+            <span className="text-sm font-black text-[#E30613] uppercase tracking-widest block mb-2">Physical Canvas</span>
+            <h2 className="text-3xl sm:text-4xl font-black text-[#F4F4F5] uppercase tracking-tight">
               FeelsNeat Memories Artwork
             </h2>
-            <p className="mt-2 text-sm text-[#F4F4F5]/70 font-medium">
+            <p className="mt-3 text-base text-[#F4F4F5]/75 font-semibold">
               Premium mounted wall art panels pre-programmed with custom NFC microchips linking directly to your shared photo albums.
             </p>
           </div>
@@ -186,16 +186,16 @@ export default async function OurWorkPage() {
             </div>
             <div className="w-full md:w-1/2 space-y-6 text-left">
               <span className="text-xs font-black text-[#E30613] uppercase tracking-widest block">Interactive Photo Prints</span>
-              <h3 className="text-xl font-extrabold text-[#F4F4F5] uppercase tracking-tight leading-none">
+              <h3 className="text-2xl font-black text-[#F4F4F5] uppercase tracking-tight leading-none">
                 Personalized Memory Canvas
               </h3>
-              <p className="text-xs sm:text-sm text-[#F4F4F5]/70 leading-relaxed font-semibold">
+              <p className="text-sm sm:text-base text-[#F4F4F5]/75 leading-relaxed font-semibold">
                 Select from Travel, Wedding, Relationship, or Family layouts. Each physical panel features rigid MDF mounting, matte photo prints, and a hidden NFC transmitter.
               </p>
               <div className="pt-4 border-t border-white/5 flex gap-4">
                 <Link
                   href="/memories"
-                  className="inline-flex h-9 items-center justify-center rounded-lg bg-[#E30613] hover:bg-[#F4F4F5] text-white hover:text-black px-5 text-xs font-black uppercase tracking-wider transition-colors duration-300 cursor-pointer shadow-sm"
+                  className="inline-flex h-10 items-center justify-center rounded-lg bg-[#E30613] hover:bg-[#F4F4F5] text-white hover:text-black px-5 text-sm font-black uppercase tracking-wider transition-colors duration-300 cursor-pointer shadow-md"
                 >
                   Explore Memories Collection
                 </Link>
@@ -207,11 +207,11 @@ export default async function OurWorkPage() {
         {/* SECTION 4: PORTFOLIO CASE STUDIES */}
         <section id="portfolio" className="space-y-10 scroll-reveal border-t border-white/10 pt-16">
           <div className="max-w-2xl text-left">
-            <span className="text-xs font-black text-[#E30613] uppercase tracking-widest block mb-2">Case Studies</span>
-            <h2 className="text-2xl sm:text-3xl font-black text-[#F4F4F5] uppercase tracking-tight">
+            <span className="text-sm font-black text-[#E30613] uppercase tracking-widest block mb-2">Case Studies</span>
+            <h2 className="text-3xl sm:text-4xl font-black text-[#F4F4F5] uppercase tracking-tight">
               Past Projects & Sandbox Works
             </h2>
-            <p className="mt-2 text-sm text-[#F4F4F5]/70 font-medium">
+            <p className="mt-3 text-base text-[#F4F4F5]/75 font-semibold">
               Read step-by-step breakdowns of developer setups, visual designs, and systems built by our design engine.
             </p>
           </div>
@@ -233,7 +233,7 @@ export default async function OurWorkPage() {
                     />
                   ) : (
                     <div className="absolute inset-0 bg-[#0E0E12] flex flex-col justify-end p-6">
-                      <span className="text-[10px] font-bold text-[#F4F4F5]/50 tracking-wider uppercase mb-1">{project.client}</span>
+                      <span className="text-xs font-bold text-[#F4F4F5]/50 tracking-wider uppercase mb-1">{project.client}</span>
                       <h2 className="text-xl font-black text-[#F4F4F5] uppercase leading-snug">{project.title}</h2>
                     </div>
                   )}
@@ -241,28 +241,28 @@ export default async function OurWorkPage() {
 
                 {/* Metadata details */}
                 <div className="space-y-3">
-                  <div className="flex items-center justify-between text-xs font-black text-[#F4F4F5]/60 uppercase tracking-widest">
+                  <div className="flex items-center justify-between text-sm font-black text-[#F4F4F5]/60 uppercase tracking-widest">
                     <span>{project.client}</span>
                     <span className="text-[#E30613]">{project.category}</span>
                   </div>
                   
-                  <h3 className="text-lg font-bold text-[#F4F4F5] uppercase group-hover:text-[#E30613] transition-colors leading-snug tracking-tight">
+                  <h3 className="text-xl font-black text-[#F4F4F5] uppercase group-hover:text-[#E30613] transition-colors leading-snug tracking-tight">
                     {project.title}
                   </h3>
                   
-                  <p className="text-sm text-[#F4F4F5]/70 leading-relaxed font-semibold">
+                  <p className="text-base text-[#F4F4F5]/80 leading-relaxed font-semibold">
                     {project.summary}
                   </p>
                   
                   <div className="flex flex-wrap gap-2 items-center justify-between pt-4 border-t border-white/5 mt-4">
-                    <div className="flex flex-wrap gap-1">
+                    <div className="flex flex-wrap gap-1.5">
                       {(project.tags || []).map((tag) => (
-                        <span key={tag} className="inline-flex items-center rounded-md bg-white/5 border border-white/10 px-2 py-0.5 text-xs text-[#F4F4F5]/80">
+                        <span key={tag} className="inline-flex items-center rounded-md bg-white/5 border border-white/10 px-2.5 py-0.5 text-xs text-[#F4F4F5]/80">
                           {tag}
                         </span>
                       ))}
                     </div>
-                    <span className="text-xs font-bold text-[#F4F4F5]/60 uppercase tracking-widest">{project.status}</span>
+                    <span className="text-sm font-bold text-[#F4F4F5]/60 uppercase tracking-widest">{project.status}</span>
                   </div>
                 </div>
               </Link>
