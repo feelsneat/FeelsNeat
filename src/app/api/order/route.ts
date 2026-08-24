@@ -221,6 +221,16 @@ export async function POST(req: NextRequest) {
       console.warn('Failed to resolve Cloudflare KV execution context for order:', kvError);
     }
 
+    // Save order in-memory for local development admin session testing
+    if (process.env.NODE_ENV === 'development') {
+      const ordersSymbol = Symbol.for('feelsneat.orders');
+      if (!(globalThis as any)[ordersSymbol]) {
+        (globalThis as any)[ordersSymbol] = [];
+      }
+      (globalThis as any)[ordersSymbol].unshift(orderData);
+      console.log(`Saved order ${orderId} successfully in-memory for dev server.`);
+    }
+
     // Always log the details for traceability (excluding very long base64 image strings to keep logs neat)
     const logData = order_type === 'memories' 
       ? { ...orderData, photos: { main_photo: '[Base64 String]', additional_photos: [] } }

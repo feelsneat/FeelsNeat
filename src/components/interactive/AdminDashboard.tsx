@@ -268,7 +268,7 @@ interface AdminDashboardProps {
 export function AdminDashboard({ userEmail }: AdminDashboardProps) {
   const [db, setDb] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'settings' | 'pages' | 'services' | 'work' | 'observations' | 'products'>('settings');
+  const [activeTab, setActiveTab] = useState<'settings' | 'pages' | 'services' | 'work' | 'observations' | 'products' | 'orders'>('settings');
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'success' | 'error'>('idle');
   const [saveMessage, setSaveMessage] = useState('');
 
@@ -277,6 +277,11 @@ export function AdminDashboard({ userEmail }: AdminDashboardProps) {
   const [selectedObservationSlug, setSelectedObservationSlug] = useState<string | null>(null);
   const [selectedServiceSlug, setSelectedServiceSlug] = useState<string | null>(null);
   const [selectedProductId, setSelectedProductId] = useState<string | null>(null);
+  
+  // Custom states for orders tracking dashboard
+  const [orders, setOrders] = useState<any[]>([]);
+  const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
+  const [loadingOrders, setLoadingOrders] = useState(false);
 
   useEffect(() => {
     async function loadContent() {
@@ -298,6 +303,71 @@ export function AdminDashboard({ userEmail }: AdminDashboardProps) {
     }
     loadContent();
   }, []);
+
+  // Fetch orders when orders tab is activated
+  useEffect(() => {
+    if (activeTab === 'orders') {
+      loadOrders();
+    }
+  }, [activeTab]);
+
+  const loadOrders = async () => {
+    setLoadingOrders(true);
+    try {
+      const res = await fetch('/api/admin/orders');
+      if (res.ok) {
+        const data = await res.json();
+        setOrders(data);
+      }
+    } catch (err) {
+      console.error('Failed to load orders:', err);
+    } finally {
+      setLoadingOrders(false);
+    }
+  };
+
+  const handleUpdateOrderStatus = async (orderId: string, statusUpdates: any) => {
+    try {
+      const res = await fetch('/api/admin/orders', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'update', order_id: orderId, statusUpdates }),
+      });
+      if (res.ok) {
+        setOrders((prev) =>
+          prev.map((o) => {
+            if (o.order_id === orderId) {
+              return {
+                ...o,
+                payment: { ...o.payment, ...(statusUpdates.payment || {}) },
+                production: { ...o.production, ...(statusUpdates.production || {}) }
+              };
+            }
+            return o;
+          })
+        );
+      }
+    } catch (err) {
+      alert('Failed to update order status');
+    }
+  };
+
+  const handleDeleteOrder = async (orderId: string) => {
+    if (!confirm('Are you sure you want to delete this order?')) return;
+    try {
+      const res = await fetch('/api/admin/orders', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'delete', order_id: orderId }),
+      });
+      if (res.ok) {
+        setOrders((prev) => prev.filter((o) => o.order_id !== orderId));
+        if (selectedOrderId === orderId) setSelectedOrderId(null);
+      }
+    } catch (err) {
+      alert('Failed to delete order');
+    }
+  };
 
   const handleSaveToKv = async () => {
     setSaveStatus('saving');
@@ -656,6 +726,7 @@ export function AdminDashboard({ userEmail }: AdminDashboardProps) {
             { id: 'work', label: 'Our Work (Portfolio)', icon: 'Briefcase' },
             { id: 'observations', label: 'Observations Blog', icon: 'Bookmark' },
             { id: 'products', label: 'Digital Products', icon: 'ShoppingBag' },
+            { id: 'orders', label: 'Orders & Inquiries', icon: 'MessageSquare' },
           ].map((tab) => (
             <button
               key={tab.id}
@@ -1377,6 +1448,330 @@ export function AdminDashboard({ userEmail }: AdminDashboardProps) {
               ) : (
                 <p className="text-xs text-zinc-500 italic text-center py-6">Select a product to edit or click Add Product.</p>
               )}
+            </div>
+          )}
+
+          {/* TAB: ORDERS & INQUIRIES */}
+          {activeTab === 'orders' && (
+            <div className="space-y-6">
+              <div className="flex justify-between items-center border-b border-border-custom pb-3">
+                <h2 className="text-base font-extrabold text-foreground">Orders & Inquiries</h2>
+                <button
+                  onClick={loadOrders}
+                  disabled={loadingOrders}
+                  className="inline-flex h-7 items-center justify-center rounded-lg bg-zinc-150 border border-zinc-200 px-3 text-[10px] font-bold hover:bg-zinc-200 cursor-pointer disabled:opacity-50 text-[#1E1E1E]"
+                >
+                  {loadingOrders ? 'Refreshing...' : 'Refresh List'}
+                </button>
+              </div>
+
+              <div className="grid md:grid-cols-12 gap-6">
+                {/* Orders Sidebar List */}
+                <div className="md:col-span-5 space-y-2 border-r border-zinc-100 pr-0 md:pr-4 max-h-[600px] overflow-y-auto">
+                  {orders.length === 0 ? (
+                    <p className="text-xs text-zinc-400 italic text-center py-8">No orders or inquiries found.</p>
+                  ) : (
+                    orders.map((order) => {
+                      const isSelected = selectedOrderId === order.order_id;
+                      const typeColors = 
+                        order.order_type === 'memories' ? 'bg-red-50 text-red-750 border-red-200' :
+                        order.order_type === 'service' ? 'bg-purple-50 text-purple-750 border-purple-200' :
+                        'bg-emerald-50 text-emerald-755 border-emerald-200';
+                      
+                      return (
+                        <div
+                          key={order.order_id}
+                          onClick={() => setSelectedOrderId(order.order_id)}
+                          className={`p-3 rounded-lg border text-left cursor-pointer transition-colors select-none ${
+                            isSelected 
+                              ? 'border-zinc-800 bg-zinc-50' 
+                              : 'border-zinc-150 hover:bg-zinc-50/50'
+                          }`}
+                        >
+                          <div className="flex justify-between items-start gap-2 mb-1.5">
+                            <span className="text-[10px] font-black font-mono tracking-tight text-zinc-900">
+                              {order.order_id}
+                            </span>
+                            <span className={`text-[8px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-sm border ${typeColors}`}>
+                              {order.order_type}
+                            </span>
+                          </div>
+
+                          <div className="text-xs font-bold text-zinc-800 truncate mb-1">
+                            {order.customer?.name}
+                          </div>
+                          
+                          <div className="flex justify-between items-center text-[10px] text-zinc-400 font-semibold">
+                            <span>{new Date(order.created_at).toLocaleDateString()}</span>
+                            <span className={order.payment?.status === 'PAID' ? 'text-green-600 font-bold' : 'text-red-550 font-bold'}>
+                              {order.payment?.status === 'PAID' ? 'PAID' : 'PENDING'}
+                            </span>
+                          </div>
+                        </div>
+                      );
+                    })
+                  )}
+                </div>
+
+                {/* Order Details Pane */}
+                <div className="md:col-span-7 space-y-6">
+                  {selectedOrderId && orders.find((o) => o.order_id === selectedOrderId) ? (() => {
+                    const order = orders.find((o) => o.order_id === selectedOrderId);
+                    const whatsappMsg = `Hi ${order.customer?.name}! This is FeelsNeat. We received your order ${order.order_id} for ${
+                      order.order_type === 'memories' ? 'Memories Artwork' : order.product_id
+                    }. Let's coordinate payment and setup.`;
+                    const waLink = `https://wa.me/${order.customer?.phone?.replace(/[+\s-]/g, '')}?text=${encodeURIComponent(whatsappMsg)}`;
+
+                    return (
+                      <div className="space-y-6 p-4 rounded-xl border border-border-custom bg-zinc-50/30">
+                        {/* Title Header Row */}
+                        <div className="flex justify-between items-start border-b border-zinc-200 pb-3 gap-3">
+                          <div>
+                            <span className="text-[10px] font-black text-zinc-400 uppercase tracking-widest block">Selected Order ID</span>
+                            <h3 className="text-sm font-black text-zinc-900 font-mono">{order.order_id}</h3>
+                          </div>
+                          <div className="flex gap-2">
+                            <a
+                              href={waLink}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex h-8 items-center justify-center rounded-lg bg-[#25D366] px-3 text-[10px] font-bold text-white hover:bg-[#128C7E] cursor-pointer shadow-3xs gap-1.5"
+                            >
+                              <LucideIcon name="MessageSquare" className="h-3.5 w-3.5" /> Chat
+                            </a>
+                            <button
+                              onClick={() => handleDeleteOrder(order.order_id)}
+                              className="inline-flex h-8 items-center justify-center rounded-lg border border-red-200 bg-red-50 px-3 text-[10px] font-bold text-red-650 hover:bg-red-100/50 cursor-pointer shadow-3xs gap-1.5"
+                            >
+                              <LucideIcon name="Trash2" className="h-3.5 w-3.5" /> Delete
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* Customer Info Card */}
+                        <div className="grid sm:grid-cols-2 gap-4">
+                          <div>
+                            <span className="block text-[9px] font-bold text-zinc-400 uppercase tracking-wider">Customer Name</span>
+                            <span className="text-xs font-semibold text-zinc-800">{order.customer?.name}</span>
+                          </div>
+                          <div>
+                            <span className="block text-[9px] font-bold text-zinc-400 uppercase tracking-wider">Phone / WhatsApp</span>
+                            <a href={`tel:${order.customer?.phone}`} className="text-xs font-bold text-[#E30613] hover:underline block">{order.customer?.phone}</a>
+                          </div>
+                          <div>
+                            <span className="block text-[9px] font-bold text-zinc-400 uppercase tracking-wider">Email Address</span>
+                            <a href={`mailto:${order.customer?.email}`} className="text-xs font-bold text-foreground/80 hover:underline block">{order.customer?.email}</a>
+                          </div>
+                          <div>
+                            <span className="block text-[9px] font-bold text-zinc-400 uppercase tracking-wider">Date Submitted</span>
+                            <span className="text-xs font-semibold text-zinc-800">{new Date(order.created_at).toLocaleString()}</span>
+                          </div>
+                        </div>
+
+                        {/* Shipping Address (For Memories Artwork) */}
+                        {order.customer?.address && (
+                          <div className="border-t border-zinc-200 pt-4 space-y-1">
+                            <span className="block text-[9px] font-bold text-zinc-400 uppercase tracking-wider mb-1">Shipping Address</span>
+                            <p className="text-xs font-semibold text-zinc-800 leading-normal">
+                              {order.customer.address.line}, {order.customer.address.city}, {order.customer.address.state} - {order.customer.address.pincode} ({order.customer.address.country})
+                            </p>
+                          </div>
+                        )}
+
+                        {/* Order Type Specific Parameters Config Cards */}
+                        {order.order_type === 'memories' && (
+                          <div className="border-t border-zinc-200 pt-4 space-y-3">
+                            <span className="block text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-1">Memory Print Details</span>
+                            <div className="grid sm:grid-cols-2 gap-3 text-xs bg-white border border-zinc-150 p-3 rounded-lg font-semibold text-zinc-700">
+                              <p><span className="text-zinc-400">Theme:</span> {order.product?.memory_type}</p>
+                              <p><span className="text-zinc-400">Dimensions:</span> {order.product?.size}</p>
+                              <p><span className="text-zinc-400">Quantity:</span> {order.product?.quantity} pc</p>
+                              <p className="sm:col-span-2">
+                                <span className="text-zinc-400 block mb-0.5">Google Photos link:</span>
+                                <a href={order.digital_memory?.google_photos_url} target="_blank" rel="noopener noreferrer" className="text-[#E30613] hover:underline block break-all font-mono text-[10px]">{order.digital_memory?.google_photos_url}</a>
+                              </p>
+                              <p className="sm:col-span-2"><span className="text-zinc-400">Print Title:</span> {order.memory_details?.title || 'None'}</p>
+                              <p className="sm:col-span-2"><span className="text-zinc-400">Location:</span> {order.memory_details?.location || 'None'}</p>
+                              <p className="sm:col-span-2"><span className="text-zinc-400">Date/Year:</span> {order.memory_details?.date || 'None'}</p>
+                              <p className="sm:col-span-2"><span className="text-zinc-400">Caption:</span> {order.memory_details?.caption || 'None'}</p>
+                              {order.memory_details?.design_notes && (
+                                <p className="sm:col-span-2 bg-yellow-50/50 p-2 border border-yellow-100 rounded text-zinc-600 italic text-[11px] font-medium leading-normal">
+                                  &ldquo;{order.memory_details.design_notes}&rdquo;
+                                </p>
+                              )}
+                            </div>
+                            
+                            {/* Main Print Image Attachment Preview */}
+                            {order.photos?.main_photo && (
+                              <div className="space-y-1.5">
+                                <span className="block text-[9px] font-bold text-zinc-400 uppercase tracking-wider">Canvas Photo Preview</span>
+                                <div className="max-w-[280px] rounded-lg border border-zinc-200 overflow-hidden bg-white shadow-2xs aspect-[1.5/1]">
+                                  <img src={order.photos.main_photo} alt="Print Preview" className="w-full h-full object-cover" />
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        )}
+
+                        {order.order_type === 'digital_product' && (
+                          <div className="border-t border-zinc-200 pt-4 space-y-3">
+                            <span className="block text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-1">Digital Template Details</span>
+                            <div className="text-xs bg-white border border-zinc-150 p-3 rounded-lg font-semibold text-zinc-700 space-y-1.5">
+                              <p><span className="text-zinc-400">Template ID:</span> {order.product_id}</p>
+                              <p><span className="text-zinc-400">Quantity:</span> {order.product?.quantity} pc</p>
+                              {order.design_notes && (
+                                <p className="bg-zinc-50 p-2 border border-zinc-150 rounded text-zinc-600 italic">
+                                  &ldquo;{order.design_notes}&rdquo;
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                        )}
+
+                        {order.order_type === 'service' && (
+                          <div className="border-t border-zinc-200 pt-4 space-y-3">
+                            <span className="block text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-1">Service Request Specifics</span>
+                            <div className="text-xs bg-white border border-zinc-150 p-3 rounded-lg font-semibold text-zinc-700 space-y-2">
+                              <p><span className="text-zinc-400">Service:</span> {order.product_id}</p>
+                              
+                              {/* Website Dev */}
+                              {order.product_id === 'website-development' && order.service_details && (
+                                <>
+                                  <p>
+                                    <span className="text-zinc-400 block mb-0.5">Instagram / Catalog link:</span>
+                                    <a href={order.service_details.instagram_page.startsWith('http') ? order.service_details.instagram_page : `https://${order.service_details.instagram_page}`} target="_blank" rel="noopener noreferrer" className="text-[#E30613] hover:underline block break-all">{order.service_details.instagram_page}</a>
+                                  </p>
+                                  <p><span className="text-zinc-400">Pref Platform:</span> {order.service_details.platform_preference || 'None'}</p>
+                                  <p><span className="text-zinc-400">Integrations needed:</span> {[
+                                    order.service_details.needs_whatsapp && 'WhatsApp',
+                                    order.service_details.needs_payment && 'Payments',
+                                    order.service_details.needs_cms && 'CMS setup',
+                                    order.service_details.needs_notifications && 'Notifications'
+                                  ].filter(Boolean).join(', ') || 'None'}</p>
+                                </>
+                              )}
+
+                              {/* Security Review */}
+                              {order.product_id === 'security-review' && order.service_details && (
+                                <>
+                                  <p>
+                                    <span className="text-zinc-400 block mb-0.5">Audit Target URL:</span>
+                                    <a href={order.service_details.audit_url} target="_blank" rel="noopener noreferrer" className="text-[#E30613] hover:underline block break-all">{order.service_details.audit_url}</a>
+                                  </p>
+                                  <p><span className="text-zinc-400">Hosting Provider:</span> {order.service_details.hosting_provider}</p>
+                                  <p><span className="text-zinc-400">Compliance target:</span> {order.service_details.compliance_needs || 'None'}</p>
+                                  {order.service_details.main_concerns && (
+                                    <p className="bg-red-50/50 p-2 border border-red-100 rounded text-red-800 italic">
+                                      &ldquo;{order.service_details.main_concerns}&rdquo;
+                                    </p>
+                                  )}
+                                </>
+                              )}
+
+                              {/* AI Integration */}
+                              {order.product_id === 'ai-integration' && order.service_details && (
+                                <>
+                                  <p><span className="text-zinc-400">Purchase Platform:</span> {order.service_details.pipeline_platform}</p>
+                                  <p><span className="text-zinc-400">Preferred AI vendor:</span> {order.service_details.agent_llm_vendor}</p>
+                                  <p><span className="text-zinc-400">Agent Automations:</span> {[
+                                    order.service_details.agent_needs_support && 'Customer Support Chat',
+                                    order.service_details.agent_needs_orders && 'Order Verification',
+                                    order.service_details.agent_needs_emails && 'Follow-up notifications'
+                                  ].filter(Boolean).join(', ') || 'None'}</p>
+                                </>
+                              )}
+
+                              {order.design_notes && (
+                                <p className="bg-zinc-50 p-2 border border-zinc-150 rounded text-zinc-600 italic">
+                                  &ldquo;{order.design_notes}&rdquo;
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Payment Settings Controller */}
+                        <div className="border-t border-zinc-200 pt-4 space-y-4">
+                          <span className="block text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-1">State & Payment Controls</span>
+                          <div className="grid sm:grid-cols-2 gap-4">
+                            <div>
+                              <label className="block text-[10px] font-bold text-foreground/60 mb-1">Payment Status</label>
+                              <select
+                                value={order.payment?.status || 'AWAITING_PAYMENT'}
+                                onChange={(e) => handleUpdateOrderStatus(order.order_id, { payment: { status: e.target.value } })}
+                                className="w-full rounded-lg border border-border-custom bg-white px-3 py-2 text-xs focus:border-foreground focus:outline-none text-[#1E1E1E]"
+                              >
+                                <option value="AWAITING_PAYMENT">Awaiting Payment</option>
+                                <option value="PAID">Paid / Completed</option>
+                                <option value="REFUNDED">Refunded</option>
+                              </select>
+                            </div>
+
+                            <div>
+                              <label className="block text-[10px] font-bold text-foreground/60 mb-1">Payment Reference</label>
+                              <input
+                                type="text"
+                                value={order.payment?.reference || ''}
+                                onChange={(e) => handleUpdateOrderStatus(order.order_id, { payment: { reference: e.target.value } })}
+                                className="w-full rounded-lg border border-border-custom bg-white px-3 py-2 text-xs focus:border-foreground focus:outline-none text-[#1E1E1E]"
+                                placeholder="UPI Txn reference number"
+                              />
+                            </div>
+
+                            {order.order_type === 'memories' ? (
+                              <>
+                                <div>
+                                  <label className="block text-[10px] font-bold text-foreground/60 mb-1">Design Status</label>
+                                  <select
+                                    value={order.production?.design_status || 'NEW'}
+                                    onChange={(e) => handleUpdateOrderStatus(order.order_id, { production: { design_status: e.target.value } })}
+                                    className="w-full rounded-lg border border-border-custom bg-white px-3 py-2 text-xs focus:border-foreground focus:outline-none text-[#1E1E1E]"
+                                  >
+                                    <option value="NEW">New Draft</option>
+                                    <option value="APPROVED">Layout Approved</option>
+                                    <option value="COMPLETED">Done</option>
+                                  </select>
+                                </div>
+                                <div>
+                                  <label className="block text-[10px] font-bold text-foreground/60 mb-1">NFC Status</label>
+                                  <select
+                                    value={order.production?.nfc_status || 'NEW'}
+                                    onChange={(e) => handleUpdateOrderStatus(order.order_id, { production: { nfc_status: e.target.value } })}
+                                    className="w-full rounded-lg border border-border-custom bg-white px-3 py-2 text-xs focus:border-foreground focus:outline-none text-[#1E1E1E]"
+                                  >
+                                    <option value="NEW">Pending Programming</option>
+                                    <option value="PROGRAMMED">NFC Sticky Programmed</option>
+                                  </select>
+                                </div>
+                              </>
+                            ) : (
+                              <div className="sm:col-span-2">
+                                <label className="block text-[10px] font-bold text-foreground/60 mb-1">Inquiry Status</label>
+                                <select
+                                  value={order.production?.design_status || 'NEW'}
+                                  onChange={(e) => handleUpdateOrderStatus(order.order_id, { production: { design_status: e.target.value } })}
+                                  className="w-full rounded-lg border border-border-custom bg-white px-3 py-2 text-xs focus:border-foreground focus:outline-none text-[#1E1E1E]"
+                                >
+                                  <option value="NEW">New Inquiry</option>
+                                  <option value="CONTACTED">Client Contacted</option>
+                                  <option value="IN_PROGRESS">Project In Progress</option>
+                                  <option value="COMPLETED">Delivered / Handed Over</option>
+                                </select>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+
+                      </div>
+                    );
+                  })() : (
+                    <div className="flex flex-col items-center justify-center py-20 text-center text-zinc-400 space-y-2">
+                      <LucideIcon name="Inbox" className="h-8 w-8 text-zinc-300 animate-pulse" />
+                      <p className="text-xs italic">Select an order or inquiry to check its specifications and proceed.</p>
+                    </div>
+                  )}
+                </div>
+              </div>
             </div>
           )}
         </div>
