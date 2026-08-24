@@ -37,7 +37,7 @@ export default function MemoryProductPage({ categorySlug }: MemoryProductProps) 
         <div className="mb-8">
           <Link
             href="/memories"
-            className="inline-flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wider text-[#F4F4F5]/60 hover:text-[#E30613] transition-colors"
+            className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-[#F4F4F5]/60 hover:text-[#E30613] transition-colors"
           >
             <LucideIcon name="ArrowLeft" className="h-3 w-3" /> Back to Memories
           </Link>
@@ -74,16 +74,16 @@ export default function MemoryProductPage({ categorySlug }: MemoryProductProps) 
             {/* Visual Specs summary cards */}
             <div className="grid grid-cols-3 gap-4 pt-2">
               <div className="p-3 rounded-xl border border-white/5 bg-white/5 text-center">
-                <span className="block text-[8px] font-black text-[#F4F4F5]/50 uppercase tracking-wider mb-1">Thickness</span>
-                <span className="text-xs font-bold text-[#F4F4F5] uppercase">~3 mm Rigid</span>
+                <span className="block text-[10px] font-black text-[#F4F4F5]/60 uppercase tracking-wider mb-1">Thickness</span>
+                <span className="text-sm font-bold text-[#F4F4F5] uppercase">~3 mm Rigid</span>
               </div>
               <div className="p-3 rounded-xl border border-white/5 bg-white/5 text-center">
-                <span className="block text-[8px] font-black text-[#F4F4F5]/50 uppercase tracking-wider mb-1">Finish</span>
-                <span className="text-xs font-bold text-[#F4F4F5] uppercase">Matte/Lustre</span>
+                <span className="block text-[10px] font-black text-[#F4F4F5]/60 uppercase tracking-wider mb-1">Finish</span>
+                <span className="text-sm font-bold text-[#F4F4F5] uppercase">Matte/Lustre</span>
               </div>
               <div className="p-3 rounded-xl border border-white/5 bg-white/5 text-center">
-                <span className="block text-[8px] font-black text-[#F4F4F5]/50 uppercase tracking-wider mb-1">Mounting</span>
-                <span className="text-xs font-bold text-[#F4F4F5] uppercase">Wall Mounted</span>
+                <span className="block text-[10px] font-black text-[#F4F4F5]/60 uppercase tracking-wider mb-1">Mounting</span>
+                <span className="text-sm font-bold text-[#F4F4F5] uppercase">Wall Mounted</span>
               </div>
             </div>
           </div>
@@ -91,18 +91,18 @@ export default function MemoryProductPage({ categorySlug }: MemoryProductProps) 
           {/* Product Details (Right) */}
           <div className="lg:col-span-6 space-y-8 text-left">
             <div>
-              <span className="text-[10px] font-black text-[#E30613] uppercase tracking-widest block mb-2">
+              <span className="text-xs font-black text-[#E30613] uppercase tracking-widest block mb-2">
                 {category.positioning}
               </span>
               <h1 className="text-3xl font-extrabold uppercase tracking-tight leading-none mb-4">
                 {category.title} Canvas
               </h1>
-              <p className="text-sm text-[#F4F4F5]/80 leading-relaxed font-semibold uppercase">
+              <p className="text-sm sm:text-base text-[#F4F4F5]/90 leading-relaxed font-semibold">
                 {category.subtitle}
               </p>
             </div>
 
-            <p className="text-xs sm:text-sm text-[#F4F4F5]/70 leading-relaxed font-medium">
+            <p className="text-sm sm:text-base text-[#F4F4F5]/80 leading-relaxed font-medium">
               {category.description} Each physical photo panel is precision mounted and carries a hidden NFC microchip pre-programmed with your shared album URL.
             </p>
 

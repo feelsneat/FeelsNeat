@@ -73,14 +73,14 @@ export default function MemoriesPage() {
           <div className="grid lg:grid-cols-12 gap-12 items-center">
             {/* Hero Left Content */}
             <div className="lg:col-span-6 space-y-6 text-left">
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-[#E30613]/10 border border-[#E30613]/20 px-3 py-0.5 text-[9px] font-black text-[#E30613] uppercase tracking-widest">
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-[#E30613]/10 border border-[#E30613]/20 px-3 py-0.5 text-xs font-black text-[#E30613] uppercase tracking-widest">
                 Introducing FeelsNeat Memories
               </span>
               <h1 className="text-3xl sm:text-5xl font-extrabold tracking-tight uppercase leading-tight">
                 Your memories,<br />
                 <span className="text-[#E30613]">made tangible.</span>
               </h1>
-              <p className="text-sm sm:text-base text-[#F4F4F5]/85 leading-relaxed font-medium">
+              <p className="text-sm sm:text-base text-[#F4F4F5]/90 leading-relaxed font-medium">
                 Turn your favorite photographs into beautiful personalized wall art, connected directly to the digital memories behind them.
               </p>
               
@@ -118,13 +118,13 @@ export default function MemoriesPage() {
       <section className="py-24 bg-[#0D0D10] border-t border-b border-white/5 relative z-10 scroll-reveal">
         <div className="mx-auto max-w-5xl px-4 sm:px-6">
           <div className="text-center max-w-2xl mx-auto mb-16">
-            <span className="text-[10px] font-black text-[#E30613] uppercase tracking-widest block mb-2">
+            <span className="text-xs font-black text-[#E30613] uppercase tracking-widest block mb-2">
               The Experience
             </span>
             <h2 className="text-2xl sm:text-3xl font-black uppercase tracking-tight">
               More than a photo on the wall.
             </h2>
-            <p className="mt-3 text-sm text-[#F4F4F5]/70 leading-relaxed font-medium">
+            <p className="mt-3 text-sm text-[#F4F4F5]/80 leading-relaxed font-medium">
               Choose a photograph that means something to you. We turn it into a personalized Memory Canvas and connect it to your Google Photos album with a hidden NFC chip on the back.
             </p>
           </div>
@@ -137,8 +137,8 @@ export default function MemoriesPage() {
                 <LucideIcon name="Image" className="h-5 w-5" />
               </div>
               <div>
-                <h4 className="text-xs font-black uppercase tracking-wider text-[#F4F4F5]">1. Choose Photo</h4>
-                <p className="text-[11px] text-[#F4F4F5]/60 mt-1 leading-normal uppercase font-semibold">Select and upload your visual hero print file.</p>
+                <h4 className="text-sm font-bold uppercase tracking-wider text-[#F4F4F5]">1. Choose Photo</h4>
+                <p className="text-xs text-[#F4F4F5]/70 mt-1.5 leading-relaxed font-medium">Select and upload your visual hero print file.</p>
               </div>
             </div>
             {/* Step 2 */}
@@ -147,8 +147,8 @@ export default function MemoriesPage() {
                 <LucideIcon name="Feather" className="h-5 w-5" />
               </div>
               <div>
-                <h4 className="text-xs font-black uppercase tracking-wider text-[#F4F4F5]">2. Handcrafted Canvas</h4>
-                <p className="text-[11px] text-[#F4F4F5]/60 mt-1 leading-normal uppercase font-semibold">We print and mount onto a clean rigid panel.</p>
+                <h4 className="text-sm font-bold uppercase tracking-wider text-[#F4F4F5]">2. Handcrafted</h4>
+                <p className="text-xs text-[#F4F4F5]/70 mt-1.5 leading-relaxed font-medium">We print and mount onto a clean rigid panel.</p>
               </div>
             </div>
             {/* Step 3 */}
@@ -157,8 +157,8 @@ export default function MemoriesPage() {
                 <LucideIcon name="Radio" className="h-5 w-5" />
               </div>
               <div>
-                <h4 className="text-xs font-black uppercase tracking-wider text-[#F4F4F5]">3. NFC Connection</h4>
-                <p className="text-[11px] text-[#F4F4F5]/60 mt-1 leading-normal uppercase font-semibold">We configure and program the NFC link on the back.</p>
+                <h4 className="text-sm font-bold uppercase tracking-wider text-[#F4F4F5]">3. NFC Link</h4>
+                <p className="text-xs text-[#F4F4F5]/70 mt-1.5 leading-relaxed font-medium">We configure and program the NFC link on the back.</p>
               </div>
             </div>
             {/* Step 4 */}
@@ -167,8 +167,8 @@ export default function MemoriesPage() {
                 <LucideIcon name="Smartphone" className="h-5 w-5" />
               </div>
               <div>
-                <h4 className="text-xs font-black uppercase tracking-wider text-[#F4F4F5]">4. Tap to Play</h4>
-                <p className="text-[11px] text-[#F4F4F5]/60 mt-1 leading-normal uppercase font-semibold">Tap the front of the artwork to open Google Photos.</p>
+                <h4 className="text-sm font-bold uppercase tracking-wider text-[#F4F4F5]">4. Tap to Play</h4>
+                <p className="text-xs text-[#F4F4F5]/70 mt-1.5 leading-relaxed font-medium">Tap the front of the artwork to open Google Photos.</p>
               </div>
             </div>
           </div>
@@ -178,9 +178,9 @@ export default function MemoriesPage() {
             <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#E30613]/10 border border-[#E30613]/30 text-[#E30613] shrink-0">
               <LucideIcon name="ShieldCheck" className="h-5 w-5" />
             </div>
-            <div>
-              <h4 className="text-xs font-black uppercase tracking-wider text-[#F4F4F5]">Your Privacy Rules</h4>
-              <p className="text-xs text-[#F4F4F5]/70 leading-relaxed mt-2 font-medium">
+             <div>
+              <h4 className="text-sm font-black uppercase tracking-wider text-[#F4F4F5]">Your Privacy Rules</h4>
+              <p className="text-sm text-[#F4F4F5]/80 leading-relaxed mt-2 font-medium">
                 Share your Google Photos shared album link with us during configuration. We connect it to your Memory Canvas. We do not require account access, credentials, or Google authorization, and your photos are kept completely safe within Google Photos.
               </p>
             </div>
@@ -192,13 +192,13 @@ export default function MemoriesPage() {
       <section id="explore" className="py-24 relative z-10 scroll-reveal">
         <div className="mx-auto max-w-5xl px-4 sm:px-6">
           <div className="max-w-2xl mb-16 text-left">
-            <span className="text-[10px] font-black text-[#E30613] uppercase tracking-widest block mb-2">
+            <span className="text-xs font-black text-[#E30613] uppercase tracking-widest block mb-2">
               The Categories
             </span>
             <h2 className="text-2xl sm:text-3xl font-black uppercase tracking-tight">
               Explore Memory Ideas
             </h2>
-            <p className="mt-3 text-sm text-[#F4F4F5]/70 leading-relaxed font-medium">
+            <p className="mt-3 text-sm text-[#F4F4F5]/80 leading-relaxed font-medium">
               We design Canvas panels configured for different types of journeys, relationships, and lifecycle milestones.
             </p>
           </div>
@@ -219,7 +219,7 @@ export default function MemoriesPage() {
                   />
                   <div className="absolute top-4 left-4 flex gap-1">
                     {cat.tags.map((tag) => (
-                      <span key={tag} className="text-[8px] font-black uppercase text-white bg-black/60 px-2 py-0.5 rounded-md border border-white/10">
+                      <span key={tag} className="text-xs font-semibold uppercase text-white bg-black/60 px-2.5 py-0.5 rounded-md border border-white/10">
                         {tag}
                       </span>
                     ))}
@@ -228,9 +228,9 @@ export default function MemoriesPage() {
 
                 {/* Details */}
                 <div className="p-6 flex flex-col flex-grow text-left">
-                  <span className="text-[10px] font-black text-[#E30613] uppercase tracking-widest block mb-2">{cat.positioning}</span>
+                  <span className="text-xs font-black text-[#E30613] uppercase tracking-widest block mb-2">{cat.positioning}</span>
                   <h3 className="text-lg font-bold uppercase tracking-tight text-[#F4F4F5] mb-3">{cat.title}</h3>
-                  <p className="text-xs text-[#F4F4F5]/75 leading-relaxed flex-grow font-medium mb-6 uppercase">{cat.subtitle}</p>
+                  <p className="text-sm text-[#F4F4F5]/80 leading-relaxed flex-grow font-medium mb-6">{cat.subtitle}</p>
                   
                   <div className="pt-4 border-t border-white/5 mt-auto flex items-center justify-between">
                     <Link
@@ -241,7 +241,7 @@ export default function MemoriesPage() {
                     </Link>
                     <Link
                       href={`/create?type=${cat.slug}`}
-                      className="inline-flex h-8 items-center justify-center rounded-md bg-[#E30613] hover:bg-white hover:text-black px-4 text-[9px] font-black uppercase tracking-wider text-white transition-colors duration-300 cursor-pointer"
+                      className="inline-flex h-8 items-center justify-center rounded-md bg-[#E30613] hover:bg-white hover:text-black px-4 text-xs font-black uppercase tracking-wider text-white transition-colors duration-300 cursor-pointer"
                     >
                       {cat.cta}
                     </Link>

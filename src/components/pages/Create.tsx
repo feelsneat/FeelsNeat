@@ -248,7 +248,7 @@ export default function CreateMemoryPage() {
         
         {/* PROGRESS STEP BAR HEADER */}
         <div className="mb-8 border-b border-zinc-100 pb-4">
-          <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest text-zinc-400 mb-2">
+          <div className="flex justify-between items-center text-xs font-black uppercase tracking-widest text-zinc-400 mb-2">
             <span>Step {currentStep} of 6</span>
             <span className="text-[#E30613]">{STEPS[currentStep - 1].label}</span>
           </div>
@@ -282,7 +282,7 @@ export default function CreateMemoryPage() {
             <div className="space-y-6 animate-fade-in">
               <div>
                 <h2 className="text-base font-black uppercase text-black mb-1">What kind of memory are you creating?</h2>
-                <p className="text-[11px] text-zinc-500 uppercase font-black tracking-wider">Select the theme that maps to your photo collection</p>
+                <p className="text-xs text-zinc-500 font-bold tracking-wider">Select the theme that maps to your photo collection</p>
               </div>
 
               <div className="grid grid-cols-2 gap-3">
@@ -309,7 +309,7 @@ export default function CreateMemoryPage() {
                       }`}
                     >
                       <LucideIcon name={type.icon} className="h-5 w-5 mb-2 shrink-0" />
-                      <span className="text-[10px] font-black uppercase tracking-wider">{type.label}</span>
+                      <span className="text-xs font-black uppercase tracking-wider">{type.label}</span>
                     </button>
                   );
                 })}
@@ -322,12 +322,12 @@ export default function CreateMemoryPage() {
             <div className="space-y-6 animate-fade-in">
               <div>
                 <h2 className="text-base font-black uppercase text-black mb-1">Choose your Memory Canvas</h2>
-                <p className="text-[11px] text-zinc-500 uppercase font-black tracking-wider">Configure your canvas size and quantity preferences</p>
+                <p className="text-xs text-zinc-500 font-bold tracking-wider">Configure your canvas size and quantity preferences</p>
               </div>
 
               {/* Sizes Row */}
               <div className="space-y-3">
-                <label className="block text-[10px] font-black text-black uppercase tracking-widest">Select Size</label>
+                <label className="block text-xs font-black text-black uppercase tracking-widest">Select Size</label>
                 <div className="grid gap-3">
                   {[
                     { id: 'mini', label: 'Mini', dims: '4x4 inches', price: PRODUCT_PRICES.mini },
@@ -348,7 +348,7 @@ export default function CreateMemoryPage() {
                       >
                         <div>
                           <h4 className="text-xs font-black uppercase">{size.label}</h4>
-                          <span className="text-[10px] text-zinc-400 font-semibold uppercase">{size.dims}</span>
+                          <span className="text-xs text-zinc-400 font-semibold uppercase">{size.dims}</span>
                         </div>
                         <span className="text-xs font-bold text-zinc-500">{size.price}</span>
                       </button>
@@ -360,8 +360,8 @@ export default function CreateMemoryPage() {
               {/* Quantity Counter */}
               <div className="pt-4 border-t border-zinc-100 flex items-center justify-between">
                 <div>
-                  <label className="block text-[10px] font-black text-black uppercase tracking-widest">How many pieces?</label>
-                  <p className="text-[10px] text-zinc-400 font-semibold uppercase mt-0.5">Order multiple individual prints at once</p>
+                  <label className="block text-xs font-black text-black uppercase tracking-widest">How many pieces?</label>
+                  <p className="text-xs text-zinc-400 font-semibold uppercase mt-0.5">Order multiple individual prints at once</p>
                 </div>
                 
                 <div className="flex items-center border border-zinc-200 rounded-lg overflow-hidden h-10">
@@ -390,12 +390,12 @@ export default function CreateMemoryPage() {
             <div className="space-y-6 animate-fade-in">
               <div>
                 <h2 className="text-base font-black uppercase text-black mb-1">Choose your photo</h2>
-                <p className="text-[11px] text-zinc-500 uppercase font-black tracking-wider">Upload files for physical printing onto the panel</p>
+                <p className="text-xs text-zinc-500 font-bold tracking-wider">Upload files for physical printing onto the panel</p>
               </div>
 
               {/* Main Photo File Input */}
               <div className="space-y-2">
-                <label className="block text-[10px] font-black text-black uppercase tracking-widest">
+                <label className="block text-xs font-black text-black uppercase tracking-widest">
                   Photo for the canvas <span className="text-[#E30613]">*</span>
                 </label>
                 
@@ -403,7 +403,7 @@ export default function CreateMemoryPage() {
                   <label className="flex flex-col items-center justify-center border-2 border-dashed border-zinc-200 rounded-xl p-8 hover:border-zinc-300 transition-colors cursor-pointer bg-zinc-50/50">
                     <LucideIcon name="UploadCloud" className="h-8 w-8 text-zinc-400 mb-2" />
                     <span className="text-xs font-bold text-zinc-600 uppercase">Select Print Photo</span>
-                    <span className="text-[9px] text-zinc-400 mt-1 uppercase font-semibold">JPG, PNG, or WEBP (Max 12MB)</span>
+                    <span className="text-xs text-zinc-400 mt-1.5 font-semibold">JPG, PNG, or WEBP (Max 12MB)</span>
                     <input
                       type="file"
                       accept="image/jpeg,image/png,image/webp"
@@ -428,7 +428,7 @@ export default function CreateMemoryPage() {
                         <LucideIcon name="Trash" className="h-3.5 w-3.5" />
                       </button>
                     </div>
-                    <span className="absolute bottom-0 left-0 right-0 bg-black/60 text-white text-[9px] font-semibold p-1.5 truncate uppercase tracking-wider text-center">
+                    <span className="absolute bottom-0 left-0 right-0 bg-black/60 text-white text-xs font-semibold p-1.5 truncate uppercase tracking-wider text-center">
                       {mainPhotoName}
                     </span>
                   </div>
@@ -438,8 +438,8 @@ export default function CreateMemoryPage() {
               {/* Additional Photos */}
               <div className="space-y-3 pt-4 border-t border-zinc-100">
                 <div>
-                  <label className="block text-[10px] font-black text-black uppercase tracking-widest">Additional Photos</label>
-                  <p className="text-[9px] text-zinc-400 font-semibold uppercase mt-0.5">Upload a few alternatives if you want us to help choose the best one</p>
+                  <label className="block text-xs font-black text-black uppercase tracking-widest">Additional Photos</label>
+                  <p className="text-xs text-zinc-400 font-semibold mt-0.5">Upload a few alternatives if you want us to help choose the best one</p>
                 </div>
 
                 <div className="grid grid-cols-4 gap-3">
@@ -481,11 +481,11 @@ export default function CreateMemoryPage() {
             <div className="space-y-6 animate-fade-in">
               <div>
                 <h2 className="text-base font-black uppercase text-black mb-1">Connect your memories</h2>
-                <p className="text-[11px] text-zinc-500 uppercase font-black tracking-wider">Provide the link that the physical NFC tag will launch</p>
+                <p className="text-xs text-zinc-500 font-bold tracking-wider">Provide the link that the physical NFC tag will launch</p>
               </div>
 
               <div>
-                <label htmlFor="google_photos_url" className="block text-[10px] font-black text-[#000000] mb-2 uppercase tracking-widest">
+                <label htmlFor="google_photos_url" className="block text-xs font-black text-[#000000] mb-2 uppercase tracking-widest">
                   Google Photos shared album link <span className="text-[#E30613]">*</span>
                 </label>
                 <input
@@ -502,13 +502,13 @@ export default function CreateMemoryPage() {
 
               {/* Instructions and Help Link */}
               <div className="rounded-lg bg-zinc-50 p-4 space-y-3 border border-zinc-150">
-                <p className="text-xs text-zinc-600 leading-relaxed font-medium">
+                <p className="text-sm text-zinc-600 leading-relaxed font-medium">
                   Create an album in Google Photos, select **Share**, enable **Link Sharing**, and copy the shared link here. We program the hidden NFC sticker on the back of your frame with this URL.
                 </p>
                 <button
                   type="button"
                   onClick={() => setShowHelpModal(true)}
-                  className="text-xs font-black uppercase text-[#E30613] hover:underline cursor-pointer flex items-center gap-1"
+                  className="text-sm font-black uppercase text-[#E30613] hover:underline cursor-pointer flex items-center gap-1"
                 >
                   <LucideIcon name="HelpCircle" className="h-4 w-4" /> How to get your Google Photos link
                 </button>
@@ -521,12 +521,12 @@ export default function CreateMemoryPage() {
             <div className="space-y-6 animate-fade-in">
               <div>
                 <h2 className="text-base font-black uppercase text-black mb-1">Tell us about the memory</h2>
-                <p className="text-[11px] text-zinc-500 uppercase font-black tracking-wider">Provide design instructions and helper context for our team</p>
+                <p className="text-xs text-zinc-500 font-bold tracking-wider">Provide design instructions and helper context for our team</p>
               </div>
 
               <div className="grid sm:grid-cols-2 gap-4">
                 <div>
-                  <label htmlFor="title" className="block text-[10px] font-black text-black mb-2 uppercase tracking-widest">Memory Title (Optional)</label>
+                  <label htmlFor="title" className="block text-xs font-black text-black mb-2 uppercase tracking-widest">Memory Title (Optional)</label>
                   <input
                     type="text"
                     id="title"
@@ -538,7 +538,7 @@ export default function CreateMemoryPage() {
                   />
                 </div>
                 <div>
-                  <label htmlFor="location" className="block text-[10px] font-black text-black mb-2 uppercase tracking-widest">Location (Optional)</label>
+                  <label htmlFor="location" className="block text-xs font-black text-black mb-2 uppercase tracking-widest">Location (Optional)</label>
                   <input
                     type="text"
                     id="location"
@@ -552,7 +552,7 @@ export default function CreateMemoryPage() {
               </div>
 
               <div>
-                <label htmlFor="date" className="block text-[10px] font-black text-black mb-2 uppercase tracking-widest">Date / Year (Optional)</label>
+                <label htmlFor="date" className="block text-xs font-black text-black mb-2 uppercase tracking-widest">Date / Year (Optional)</label>
                 <input
                   type="text"
                   id="date"
@@ -565,7 +565,7 @@ export default function CreateMemoryPage() {
               </div>
 
               <div>
-                <label htmlFor="caption" className="block text-[10px] font-black text-black mb-2 uppercase tracking-widest">Short Caption (Optional)</label>
+                <label htmlFor="caption" className="block text-xs font-black text-black mb-2 uppercase tracking-widest">Short Caption (Optional)</label>
                 <input
                   type="text"
                   id="caption"
@@ -578,7 +578,7 @@ export default function CreateMemoryPage() {
               </div>
 
               <div>
-                <label htmlFor="design_notes" className="block text-[10px] font-black text-black mb-2 uppercase tracking-widest">Design Preferences (Optional)</label>
+                <label htmlFor="design_notes" className="block text-xs font-black text-black mb-2 uppercase tracking-widest">Design Preferences (Optional)</label>
                 <textarea
                   id="design_notes"
                   name="design_notes"
@@ -588,7 +588,7 @@ export default function CreateMemoryPage() {
                   className="w-full rounded-lg border border-zinc-200 bg-white px-4 py-2.5 text-xs text-black placeholder-zinc-400 focus:border-[#E30613] focus:outline-none"
                   placeholder="e.g. Minimal, warm colors, no large text"
                 />
-                <span className="text-[9px] text-zinc-400 font-semibold uppercase mt-1 block">Notes for our production designer. These details are not necessarily printed.</span>
+                <span className="text-xs text-zinc-400 font-semibold mt-1 block">Notes for our production designer. These details are not necessarily printed.</span>
               </div>
             </div>
           )}
@@ -598,12 +598,12 @@ export default function CreateMemoryPage() {
             <div className="space-y-6 animate-fade-in">
               <div>
                 <h2 className="text-base font-black uppercase text-black mb-1">Customer & Delivery Details</h2>
-                <p className="text-[11px] text-zinc-500 uppercase font-black tracking-wider">Provide your shipping address and contact details</p>
+                <p className="text-xs text-zinc-500 font-bold tracking-wider">Provide your shipping address and contact details</p>
               </div>
 
               <div className="space-y-4">
                 <div>
-                  <label htmlFor="customer_name" className="block text-[10px] font-black text-black mb-2 uppercase tracking-widest">
+                  <label htmlFor="customer_name" className="block text-xs font-black text-black mb-2 uppercase tracking-widest">
                     Full Name <span className="text-[#E30613]">*</span>
                   </label>
                   <input
@@ -620,7 +620,7 @@ export default function CreateMemoryPage() {
 
                 <div className="grid sm:grid-cols-2 gap-4">
                   <div>
-                    <label htmlFor="customer_email" className="block text-[10px] font-black text-black mb-2 uppercase tracking-widest">
+                    <label htmlFor="customer_email" className="block text-xs font-black text-black mb-2 uppercase tracking-widest">
                       Email Address <span className="text-[#E30613]">*</span>
                     </label>
                     <input
@@ -635,7 +635,7 @@ export default function CreateMemoryPage() {
                     />
                   </div>
                   <div>
-                    <label htmlFor="customer_phone" className="block text-[10px] font-black text-black mb-2 uppercase tracking-widest">
+                    <label htmlFor="customer_phone" className="block text-xs font-black text-black mb-2 uppercase tracking-widest">
                       Phone Number <span className="text-[#E30613]">*</span>
                     </label>
                     <input
@@ -652,7 +652,7 @@ export default function CreateMemoryPage() {
                 </div>
 
                 <div>
-                  <label htmlFor="address_line" className="block text-[10px] font-black text-black mb-2 uppercase tracking-widest">
+                  <label htmlFor="address_line" className="block text-xs font-black text-black mb-2 uppercase tracking-widest">
                     Delivery Address <span className="text-[#E30613]">*</span>
                   </label>
                   <input
@@ -668,7 +668,7 @@ export default function CreateMemoryPage() {
                   
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label htmlFor="city" className="block text-[8px] font-black text-black mb-1 uppercase tracking-widest">City <span className="text-[#E30613]">*</span></label>
+                      <label htmlFor="city" className="block text-xs font-black text-black mb-1 uppercase tracking-widest">City <span className="text-[#E30613]">*</span></label>
                       <input
                         type="text"
                         id="city"
@@ -681,7 +681,7 @@ export default function CreateMemoryPage() {
                       />
                     </div>
                     <div>
-                      <label htmlFor="state" className="block text-[8px] font-black text-black mb-1 uppercase tracking-widest">State <span className="text-[#E30613]">*</span></label>
+                      <label htmlFor="state" className="block text-xs font-black text-black mb-1 uppercase tracking-widest">State <span className="text-[#E30613]">*</span></label>
                       <input
                         type="text"
                         id="state"
@@ -697,7 +697,7 @@ export default function CreateMemoryPage() {
 
                   <div className="grid grid-cols-2 gap-4 mt-3">
                     <div>
-                      <label htmlFor="pincode" className="block text-[8px] font-black text-black mb-1 uppercase tracking-widest">PIN Code <span className="text-[#E30613]">*</span></label>
+                      <label htmlFor="pincode" className="block text-xs font-black text-black mb-1 uppercase tracking-widest">PIN Code <span className="text-[#E30613]">*</span></label>
                       <input
                         type="text"
                         id="pincode"
@@ -710,7 +710,7 @@ export default function CreateMemoryPage() {
                       />
                     </div>
                     <div>
-                      <label htmlFor="country" className="block text-[8px] font-black text-black mb-1 uppercase tracking-widest">Country <span className="text-[#E30613]">*</span></label>
+                      <label htmlFor="country" className="block text-xs font-black text-black mb-1 uppercase tracking-widest">Country <span className="text-[#E30613]">*</span></label>
                       <input
                         type="text"
                         id="country"
