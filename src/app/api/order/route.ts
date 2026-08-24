@@ -27,6 +27,23 @@ export async function POST(req: NextRequest) {
       country,
       main_photo,
       additional_photos,
+      
+      // Service fields
+      instagram_page,
+      platform_preference,
+      needs_whatsapp,
+      needs_payment,
+      needs_cms,
+      needs_notifications,
+      audit_url,
+      hosting_provider,
+      compliance_needs,
+      main_concerns,
+      pipeline_platform,
+      agent_needs_support,
+      agent_needs_orders,
+      agent_needs_emails,
+      agent_llm_vendor,
     } = body;
 
     // 1. Server-Side Validations
@@ -60,10 +77,35 @@ export async function POST(req: NextRequest) {
           { status: 400 }
         );
       }
+    } else if (order_type === 'service') {
+      if (!product_id) {
+        return NextResponse.json(
+          { error: 'Service identifier is required.' },
+          { status: 400 }
+        );
+      }
+      if (product_id === 'website-development' && !instagram_page) {
+        return NextResponse.json(
+          { error: 'Instagram Page link / Catalog URL is required for website development services.' },
+          { status: 400 }
+        );
+      }
+      if (product_id === 'security-review' && (!audit_url || !hosting_provider)) {
+        return NextResponse.json(
+          { error: 'Website environment URL and hosting provider details are required for security review audits.' },
+          { status: 400 }
+        );
+      }
+      if (product_id === 'ai-integration' && !pipeline_platform) {
+        return NextResponse.json(
+          { error: 'Order/Purchase platform details are required for AI Agentic integration.' },
+          { status: 400 }
+        );
+      }
     } else {
       if (!product_id) {
         return NextResponse.json(
-          { error: 'Product or Service identifier is required.' },
+          { error: 'Product identifier is required.' },
           { status: 400 }
         );
       }
@@ -130,6 +172,23 @@ export async function POST(req: NextRequest) {
       },
       digital_memory: order_type === 'memories' ? {
         google_photos_url,
+      } : null,
+      service_details: order_type === 'service' ? {
+        instagram_page: instagram_page || null,
+        platform_preference: platform_preference || null,
+        needs_whatsapp: !!needs_whatsapp,
+        needs_payment: !!needs_payment,
+        needs_cms: !!needs_cms,
+        needs_notifications: !!needs_notifications,
+        audit_url: audit_url || null,
+        hosting_provider: hosting_provider || null,
+        compliance_needs: compliance_needs || null,
+        main_concerns: main_concerns || null,
+        pipeline_platform: pipeline_platform || null,
+        agent_needs_support: !!agent_needs_support,
+        agent_needs_orders: !!agent_needs_orders,
+        agent_needs_emails: !!agent_needs_emails,
+        agent_llm_vendor: agent_llm_vendor || null,
       } : null,
       payment: {
         status: 'AWAITING_PAYMENT',

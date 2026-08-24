@@ -35,17 +35,17 @@ const DIGITAL_PRODUCTS: Record<string, { title: string; price: string; descripti
 
 // Services Data
 const SERVICES: Record<string, { title: string; description: string }> = {
-  'digital-engineering': {
-    title: 'Clean Web Engineering',
-    description: 'Fast, standards-compliant web interfaces utilizing Next.js, TypeScript, and serverless edge functions.',
+  'website-development': {
+    title: 'Website Development',
+    description: 'Instagram shopping catalogs and checkout configurations with automated order routing, WhatsApp, payment gateways, and custom CMS builders.',
   },
-  'product-design': {
-    title: 'Digital Product Design',
-    description: 'Minimalist user interfaces, interactive wireframes, and design components built with Tailwind CSS.',
+  'security-review': {
+    title: 'Security Review',
+    description: 'Manual security audits of your web server configurations, API keys, hosting environments, and data records compliance.',
   },
-  'visual-refresh': {
-    title: 'Visual Identity Refresh',
-    description: 'Clean typographic alignments, layout systems, and asset optimization for existing web operations.',
+  'ai-integration': {
+    title: 'AI Agentic Integration',
+    description: 'Integrations of LLM customer support, order verification, and follow-up email automations tailored directly to your CRM.',
   }
 };
 
@@ -107,6 +107,27 @@ export default function CreateMemoryPage() {
     state: '',
     pincode: '',
     country: 'India',
+
+    // Website Development fields
+    instagram_page: '',
+    platform_preference: '',
+    needs_whatsapp: false,
+    needs_payment: false,
+    needs_cms: false,
+    needs_notifications: false,
+    
+    // Security Review fields
+    audit_url: '',
+    hosting_provider: '',
+    compliance_needs: '',
+    main_concerns: '',
+
+    // AI Agentic Integration fields
+    pipeline_platform: '',
+    agent_needs_support: false,
+    agent_needs_orders: false,
+    agent_needs_emails: false,
+    agent_llm_vendor: 'no-preference',
   });
 
   // Photo uploads state (base64 stored in-memory, excluded from localStorage autosave)
@@ -221,8 +242,45 @@ export default function CreateMemoryPage() {
           return false;
         }
       }
+    } else if (order_type === 'service') {
+      if (step === 1) {
+        if (serviceId === 'website-development' && !formData.instagram_page) {
+          setValidationError('Please enter your Instagram Page link / Catalog URL.');
+          return false;
+        }
+        if (serviceId === 'security-review') {
+          if (!formData.audit_url) {
+            setValidationError('Please enter the website URL to audit.');
+            return false;
+          }
+          if (!formData.hosting_provider) {
+            setValidationError('Please enter your hosting provider / tech stack.');
+            return false;
+          }
+        }
+        if (serviceId === 'ai-integration' && !formData.pipeline_platform) {
+          setValidationError('Please enter your order/purchase platform details.');
+          return false;
+        }
+      }
+      if (step === 2) {
+        if (!formData.customer_name || !formData.customer_email || !formData.customer_phone) {
+          setValidationError('Please fill in your contact details.');
+          return false;
+        }
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(formData.customer_email)) {
+          setValidationError('Invalid email address format.');
+          return false;
+        }
+        const phoneRegex = /^[6-9]\d{9}$|^[+]\d{1,4}\d{9,10}$/;
+        if (!phoneRegex.test(formData.customer_phone.replace(/[\s-]/g, ''))) {
+          setValidationError('Invalid phone number format.');
+          return false;
+        }
+      }
     } else {
-      // Digital Products or Services Flow
+      // Digital Products Flow
       if (step === 2) {
         if (!formData.customer_name || !formData.customer_email || !formData.customer_phone) {
           setValidationError('Please fill in your contact information.');
@@ -278,6 +336,23 @@ export default function CreateMemoryPage() {
           customer_name: formData.customer_name,
           customer_email: formData.customer_email,
           customer_phone: formData.customer_phone,
+          
+          // Service configuration parameters
+          instagram_page: formData.instagram_page,
+          platform_preference: formData.platform_preference,
+          needs_whatsapp: formData.needs_whatsapp,
+          needs_payment: formData.needs_payment,
+          needs_cms: formData.needs_cms,
+          needs_notifications: formData.needs_notifications,
+          audit_url: formData.audit_url,
+          hosting_provider: formData.hosting_provider,
+          compliance_needs: formData.compliance_needs,
+          main_concerns: formData.main_concerns,
+          pipeline_platform: formData.pipeline_platform,
+          agent_needs_support: formData.agent_needs_support,
+          agent_needs_orders: formData.agent_needs_orders,
+          agent_needs_emails: formData.agent_needs_emails,
+          agent_llm_vendor: formData.agent_llm_vendor,
         };
 
     try {
@@ -359,7 +434,7 @@ export default function CreateMemoryPage() {
                       { id: 'travel', label: 'Travel', icon: 'Globe' },
                       { id: 'events', label: 'Wedding & Events', icon: 'PartyPopper' },
                       { id: 'couples', label: 'Couple', icon: 'Heart' },
-                      { id: 'family', label: 'Family', icon: 'Users' },
+                      { id: 'family', label: 'Family, Life & Pets', icon: 'Users' },
                       { id: 'friends', label: 'College / Friends', icon: 'GraduationCap' },
                       { id: 'birthday', label: 'Birthday', icon: 'Cake' },
                       { id: 'housewarming', label: 'Housewarming', icon: 'Home' },
@@ -839,7 +914,7 @@ export default function CreateMemoryPage() {
                     </p>
                   </div>
 
-                  {/* Product Details Card */}
+                  {/* Product/Service Details Card */}
                   <div className="rounded-xl border border-zinc-200 bg-zinc-50 p-5 space-y-4">
                     <div>
                       <span className="text-[10px] font-black text-[#E30613] uppercase tracking-widest block mb-1">
@@ -899,27 +974,211 @@ export default function CreateMemoryPage() {
                     </div>
                   )}
 
-                  {/* Customization preferences notes text area */}
+                  {/* SERVICE 1: WEBSITE DEVELOPMENT FORM */}
+                  {order_type === 'service' && serviceId === 'website-development' && (
+                    <div className="space-y-4 pt-2">
+                      <div>
+                        <label htmlFor="instagram_page" className="block text-xs font-black text-black mb-2 uppercase tracking-widest">
+                          Instagram Page Link / Catalog URL <span className="text-[#E30613]">*</span>
+                        </label>
+                        <input
+                          type="text"
+                          id="instagram_page"
+                          name="instagram_page"
+                          required
+                          value={formData.instagram_page}
+                          onChange={handleTextChange}
+                          className="w-full rounded-lg border border-zinc-200 bg-white px-4 py-2.5 text-xs text-black focus:border-[#E30613] focus:outline-none"
+                          placeholder="e.g. instagram.com/yourbrand"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-xs font-black text-black mb-2 uppercase tracking-widest">Required Integrations & Automations</label>
+                        <div className="grid grid-cols-2 gap-3">
+                          {[
+                            { id: 'needs_whatsapp', label: 'WhatsApp Integration' },
+                            { id: 'needs_payment', label: 'Payment Gateway' },
+                            { id: 'needs_cms', label: 'CMS Setup (External)' },
+                            { id: 'needs_notifications', label: 'Order Notifications' }
+                          ].map((opt) => (
+                            <label key={opt.id} className="flex items-center gap-2.5 p-3 rounded-lg border border-zinc-200 bg-zinc-50/50 cursor-pointer select-none">
+                              <input
+                                type="checkbox"
+                                checked={(formData as any)[opt.id]}
+                                onChange={(e) => setFormData((prev) => ({ ...prev, [opt.id]: e.target.checked }))}
+                                className="rounded border-zinc-300 text-[#E30613] focus:ring-[#E30613] h-4 w-4"
+                              />
+                              <span className="text-xs font-bold text-zinc-700">{opt.label}</span>
+                            </label>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div>
+                        <label htmlFor="platform_preference" className="block text-xs font-black text-black mb-2 uppercase tracking-widest">
+                          Platform Preference (Optional)
+                        </label>
+                        <input
+                          type="text"
+                          id="platform_preference"
+                          name="platform_preference"
+                          value={formData.platform_preference}
+                          onChange={handleTextChange}
+                          className="w-full rounded-lg border border-zinc-200 bg-white px-4 py-2.5 text-xs text-black focus:border-[#E30613] focus:outline-none"
+                          placeholder="e.g. Shopify, Next.js, no preference"
+                        />
+                      </div>
+                    </div>
+                  )}
+
+                  {/* SERVICE 2: SECURITY REVIEW FORM */}
+                  {order_type === 'service' && serviceId === 'security-review' && (
+                    <div className="space-y-4 pt-2">
+                      <div>
+                        <label htmlFor="audit_url" className="block text-xs font-black text-black mb-2 uppercase tracking-widest">
+                          Website Environment URL <span className="text-[#E30613]">*</span>
+                        </label>
+                        <input
+                          type="url"
+                          id="audit_url"
+                          name="audit_url"
+                          required
+                          value={formData.audit_url}
+                          onChange={handleTextChange}
+                          className="w-full rounded-lg border border-zinc-200 bg-white px-4 py-2.5 text-xs text-black focus:border-[#E30613] focus:outline-none"
+                          placeholder="https://example.com"
+                        />
+                      </div>
+
+                      <div className="grid sm:grid-cols-2 gap-4">
+                        <div>
+                          <label htmlFor="hosting_provider" className="block text-xs font-black text-black mb-2 uppercase tracking-widest">
+                            Hosting Provider / Stack <span className="text-[#E30613]">*</span>
+                          </label>
+                          <input
+                            type="text"
+                            id="hosting_provider"
+                            name="hosting_provider"
+                            required
+                            value={formData.hosting_provider}
+                            onChange={handleTextChange}
+                            className="w-full rounded-lg border border-zinc-200 bg-white px-4 py-2.5 text-xs text-black focus:border-[#E30613] focus:outline-none"
+                            placeholder="e.g. AWS, Cloudflare, Shopify"
+                          />
+                        </div>
+
+                        <div>
+                          <label htmlFor="compliance_needs" className="block text-xs font-black text-black mb-2 uppercase tracking-widest">
+                            Compliance Target (Optional)
+                          </label>
+                          <input
+                            type="text"
+                            id="compliance_needs"
+                            name="compliance_needs"
+                            value={formData.compliance_needs}
+                            onChange={handleTextChange}
+                            className="w-full rounded-lg border border-zinc-200 bg-white px-4 py-2.5 text-xs text-black focus:border-[#E30613] focus:outline-none"
+                            placeholder="e.g. PCI-DSS, GDPR, HIPAA"
+                          />
+                        </div>
+                      </div>
+
+                      <div>
+                        <label htmlFor="main_concerns" className="block text-xs font-black text-black mb-2 uppercase tracking-widest">
+                          Primary Security Concerns
+                        </label>
+                        <textarea
+                          id="main_concerns"
+                          name="main_concerns"
+                          rows={3}
+                          value={formData.main_concerns}
+                          onChange={handleTextChange}
+                          className="w-full rounded-lg border border-zinc-200 bg-white px-4 py-2.5 text-xs text-black focus:border-[#E30613] focus:outline-none"
+                          placeholder="e.g. SQL exposures, raw API key protection, compliance review..."
+                        />
+                      </div>
+                    </div>
+                  )}
+
+                  {/* SERVICE 3: AI INTEGRATION FORM */}
+                  {order_type === 'service' && serviceId === 'ai-integration' && (
+                    <div className="space-y-4 pt-2">
+                      <div>
+                        <label htmlFor="pipeline_platform" className="block text-xs font-black text-black mb-2 uppercase tracking-widest">
+                          Order / Purchase Platform <span className="text-[#E30613]">*</span>
+                        </label>
+                        <input
+                          type="text"
+                          id="pipeline_platform"
+                          name="pipeline_platform"
+                          required
+                          value={formData.pipeline_platform}
+                          onChange={handleTextChange}
+                          className="w-full rounded-lg border border-zinc-200 bg-white px-4 py-2.5 text-xs text-black focus:border-[#E30613] focus:outline-none"
+                          placeholder="e.g. Notion, Shopify, custom database"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-xs font-black text-black mb-2 uppercase tracking-widest">Agent Tasks to Automate</label>
+                        <div className="grid grid-cols-2 gap-3">
+                          {[
+                            { id: 'agent_needs_support', label: 'Customer support' },
+                            { id: 'agent_needs_orders', label: 'Order verification' },
+                            { id: 'agent_needs_emails', label: 'Follow-up emails' }
+                          ].map((opt) => (
+                            <label key={opt.id} className="flex items-center gap-2.5 p-3 rounded-lg border border-zinc-200 bg-zinc-50/50 cursor-pointer select-none">
+                              <input
+                                type="checkbox"
+                                checked={(formData as any)[opt.id]}
+                                onChange={(e) => setFormData((prev) => ({ ...prev, [opt.id]: e.target.checked }))}
+                                className="rounded border-zinc-300 text-[#E30613] focus:ring-[#E30613] h-4 w-4"
+                              />
+                              <span className="text-xs font-bold text-zinc-700">{opt.label}</span>
+                            </label>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div>
+                        <label htmlFor="agent_llm_vendor" className="block text-xs font-black text-black mb-2 uppercase tracking-widest">
+                          Preferred AI Model / LLM Provider
+                        </label>
+                        <select
+                          id="agent_llm_vendor"
+                          name="agent_llm_vendor"
+                          value={formData.agent_llm_vendor}
+                          onChange={handleTextChange}
+                          className="w-full rounded-lg border border-zinc-200 bg-white px-4 py-2.5 text-xs text-black focus:border-[#E30613] focus:outline-none"
+                        >
+                          <option value="no-preference">No Preference (Recommend best fit)</option>
+                          <option value="openai">OpenAI (GPT-4o)</option>
+                          <option value="anthropic">Anthropic (Claude 3.5 Sonnet)</option>
+                          <option value="gemini">Google Gemini (Gemini Pro/Flash)</option>
+                        </select>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* General Custom Prefs/Design Notes */}
                   <div>
                     <label htmlFor="design_notes" className="block text-xs font-black text-black mb-2 uppercase tracking-widest">
-                      {order_type === 'service' ? 'Project Requirements' : 'Custom Preferences (Optional)'}
+                      {order_type === 'service' ? 'Additional Notes / Requirements' : 'Custom Preferences (Optional)'}
                     </label>
                     <textarea
                       id="design_notes"
                       name="design_notes"
-                      rows={4}
+                      rows={3}
                       value={formData.design_notes}
                       onChange={handleTextChange}
                       className="w-full rounded-lg border border-zinc-200 bg-white px-4 py-2.5 text-xs text-black placeholder-zinc-400 focus:border-[#E30613] focus:outline-none"
                       placeholder={
                         order_type === 'service'
-                          ? 'Describe your project targets, timing requests, or technology goals...'
+                          ? 'Specify details on budget, timing requests, or technology parameters...'
                           : 'e.g. Any custom template fields, logo requests, or formatting notes...'
                       }
                     />
-                    <span className="text-xs text-zinc-400 font-semibold mt-1 block">
-                      Our support team will review this text manually.
-                    </span>
                   </div>
                 </div>
               )}
@@ -994,7 +1253,9 @@ export default function CreateMemoryPage() {
 
                   <div className="rounded-xl border border-zinc-200 bg-zinc-50 p-5 space-y-4">
                     <div className="border-b border-zinc-200 pb-3">
-                      <span className="text-[10px] font-black text-[#E30613] uppercase tracking-widest block mb-0.5">Item</span>
+                      <span className="text-[10px] font-black text-[#E30613] uppercase tracking-widest block mb-0.5">
+                        Selected {order_type === 'service' ? 'Service' : 'Product'}
+                      </span>
                       <span className="text-sm font-bold text-black uppercase">
                         {order_type === 'service' ? targetService?.title : targetProduct?.title}
                       </span>
@@ -1013,6 +1274,40 @@ export default function CreateMemoryPage() {
                       </div>
                     )}
 
+                    {/* Specific Service Summary details */}
+                    {order_type === 'service' && serviceId === 'website-development' && (
+                      <div className="border-b border-zinc-200 pb-3 text-xs font-semibold text-zinc-700 uppercase space-y-1">
+                        <p><span className="text-zinc-400">Instagram URL:</span> {formData.instagram_page}</p>
+                        <p><span className="text-zinc-400">Pref Platform:</span> {formData.platform_preference || 'None'}</p>
+                        <p><span className="text-zinc-400">Automations:</span> {[
+                          formData.needs_whatsapp && 'WhatsApp',
+                          formData.needs_payment && 'Payments',
+                          formData.needs_cms && 'CMS',
+                          formData.needs_notifications && 'Notifications'
+                        ].filter(Boolean).join(', ') || 'None'}</p>
+                      </div>
+                    )}
+
+                    {order_type === 'service' && serviceId === 'security-review' && (
+                      <div className="border-b border-zinc-200 pb-3 text-xs font-semibold text-zinc-700 uppercase space-y-1">
+                        <p><span className="text-zinc-400">Environment URL:</span> {formData.audit_url}</p>
+                        <p><span className="text-zinc-400">Hosting Provider:</span> {formData.hosting_provider}</p>
+                        <p><span className="text-zinc-400">Compliance target:</span> {formData.compliance_needs || 'None'}</p>
+                      </div>
+                    )}
+
+                    {order_type === 'service' && serviceId === 'ai-integration' && (
+                      <div className="border-b border-zinc-200 pb-3 text-xs font-semibold text-zinc-700 uppercase space-y-1">
+                        <p><span className="text-zinc-400">Order Platform:</span> {formData.pipeline_platform}</p>
+                        <p><span className="text-zinc-400">AI Vendor:</span> {formData.agent_llm_vendor}</p>
+                        <p><span className="text-zinc-400">Tasks:</span> {[
+                          formData.agent_needs_support && 'Support',
+                          formData.agent_needs_orders && 'Orders',
+                          formData.agent_needs_emails && 'Emails'
+                        ].filter(Boolean).join(', ') || 'None'}</p>
+                      </div>
+                    )}
+
                     <div className="border-b border-zinc-200 pb-3">
                       <span className="text-[10px] font-black text-zinc-400 uppercase tracking-widest block mb-0.5">Contact</span>
                       <div className="text-xs font-semibold text-zinc-700 uppercase space-y-0.5">
@@ -1024,7 +1319,7 @@ export default function CreateMemoryPage() {
 
                     {formData.design_notes && (
                       <div>
-                        <span className="text-[10px] font-black text-zinc-400 uppercase tracking-widest block mb-0.5">Notes</span>
+                        <span className="text-[10px] font-black text-zinc-400 uppercase tracking-widest block mb-0.5">Additional Notes</span>
                         <p className="text-xs text-zinc-700 italic">{formData.design_notes}</p>
                       </div>
                     )}
