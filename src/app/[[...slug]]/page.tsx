@@ -60,19 +60,19 @@ export async function generateMetadata({ params }: { params: Promise<{ slug?: st
       const categories = {
         travel: { 
           title: 'Travel Memory Canvas | Personalized Travel Wall Art',
-          image: 'https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?q=80&w=800'
+          image: '/images/memories/travel-memories-wall.jpg'
         },
         events: { 
           title: 'Event Memory Canvas | Personalized Celebration Art',
-          image: 'https://images.unsplash.com/photo-1511795409834-ef04bbd61622?q=80&w=800'
+          image: '/images/memories/events-memories-wall.jpg'
         },
         couples: { 
           title: 'Couple Memory Canvas | Modern Relationship Wall Art',
-          image: 'https://images.unsplash.com/photo-1516589178581-6cd7833ae3b2?q=80&w=800'
+          image: '/images/memories/couple-memories-wall.jpg'
         },
         family: { 
-          title: 'Family & Life Memory Canvas | Personalized Family Photo Prints',
-          image: 'https://images.unsplash.com/photo-1536640717463-79105414944d?q=80&w=800'
+          title: 'Family, Life & Pets Memory Canvas | Personalized Family Photo Prints',
+          image: '/images/memories/family-memories-wall.jpg'
         }
       };
       const cat = (categories as any)[categorySlug];

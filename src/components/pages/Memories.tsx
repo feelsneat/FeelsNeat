@@ -48,15 +48,15 @@ export const MEMORY_CATEGORIES = {
   },
   family: {
     slug: 'family',
-    title: 'Family & Life',
+    title: 'Family, Life & Pets',
     positioning: 'The moments you wish you could keep forever.',
-    subtitle: 'A personalized photo artwork connected to your family life.',
-    description: 'Keep everyday family connections alive. Display baby steps, holiday gatherings, reunions, and childhood milestones on premium photographic prints connected directly to family backup albums.',
+    subtitle: 'A personalized photo artwork connected to your family and pets.',
+    description: 'Keep everyday family and pet memories alive. Display baby steps, holiday gatherings, playful pet moments, and childhood milestones on premium photographic prints connected directly to your shared backup albums.',
     cta: 'Create Family Memory',
     image: '/images/memories/family-memories-wall.jpg',
-    tags: ['Children', 'Reunions', 'Holidays'],
-    metaTitle: 'Family Memory Canvas | Personalized Family Photo Prints | FeelsNeat',
-    metaDesc: 'Save child milestones and family moments on premium wall art linked directly to shared Google Photos.',
+    tags: ['Children', 'Pets', 'Reunions'],
+    metaTitle: 'Family & Pet Memory Canvas | Personalized Photo Prints | FeelsNeat',
+    metaDesc: 'Save child milestones, family moments, and playful pet memories on premium wall art linked directly to shared Google Photos.',
   },
 };
 
