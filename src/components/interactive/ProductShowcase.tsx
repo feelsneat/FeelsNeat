@@ -135,13 +135,15 @@ export function ProductShowcase({ products }: ProductShowcaseProps) {
                   Instant Digital Download — No Physical Delivery
                 </span>
 
-                {/* CTA Link to Custom Order Wizard */}
-                <Link
-                  href={`/create?product=${product.id}`}
+                {/* CTA Link to WhatsApp Order */}
+                <a
+                  href={`https://wa.me/919999999999?text=${encodeURIComponent(`Hi FeelsNeat! I would like to order the template: ${product.title}. Please send payment and download instructions.`)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className="inline-flex h-9 items-center justify-center rounded-lg bg-[#000000] hover:bg-[#E30613] text-[#FFFFFF] hover:text-white px-5 text-xs font-black uppercase tracking-wider transition-colors duration-300 cursor-pointer shadow-sm ml-auto sm:ml-0"
                 >
                   Order Template
-                </Link>
+                </a>
               </div>
             </div>
           ))

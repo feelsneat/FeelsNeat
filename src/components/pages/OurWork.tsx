@@ -145,12 +145,14 @@ export default async function OurWorkPage() {
                   <span className="inline-flex items-center gap-2 text-sm font-semibold text-[#F4F4F5]/60">
                     <LucideIcon name="DownloadCloud" className="h-5 w-5 text-[#E30613]" /> Digital Copy
                   </span>
-                  <Link
-                    href={`/create?product=${product.id}`}
-                    className="inline-flex h-10 items-center justify-center rounded-lg bg-white hover:bg-[#E30613] text-black hover:text-white px-4 text-xs font-black uppercase tracking-wider text-white transition-colors duration-300 cursor-pointer shadow-md"
+                  <a
+                    href={`https://wa.me/919999999999?text=${encodeURIComponent(`Hi FeelsNeat! I would like to order the template: ${product.title}. Please send payment and download instructions.`)}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex h-10 items-center justify-center rounded-lg bg-white hover:bg-[#E30613] text-black hover:text-white px-4 text-xs font-black uppercase tracking-wider transition-colors duration-300 cursor-pointer shadow-md"
                   >
                     Order Template
-                  </Link>
+                  </a>
                 </div>
               </div>
             ))}
