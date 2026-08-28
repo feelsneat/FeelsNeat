@@ -15,24 +15,59 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // ────────────────────────────────────────────────────────────────────────
-    // PREPARED FOR CLOUDFLARE WORKER BINDINGS & ACTIONS
-    // ────────────────────────────────────────────────────────────────────────
-    // If you add database/KV bindings in wrangler.json, you can access them here:
-    //   const { env } = req as any; // Next-on-pages injects cloudflare context
-    // 
-    // Example: Storing in Cloudflare KV:
-    //   await env.CONTACT_KV.put(`msg:${Date.now()}:${email}`, JSON.stringify({ name, message, company, phone }));
-    //
-    // Example: Sending email via Resend API:
-    //   await fetch('https://api.resend.com/emails', {
-    //     method: 'POST',
-    //     headers: { Authorization: `Bearer ${env.RESEND_API_KEY}`, 'Content-Type': 'application/json' },
-    //     body: JSON.stringify({ from: 'FeelsNeat Site <hello@feelsneat.com>', to: 'hello@feelsneat.com', subject: 'New Form Submission', html: `<p>${name} sent a message: ${message}<br/>Phone: ${phone || 'N/A'}</p>` })
-    //   });
-    // ────────────────────────────────────────────────────────────────────────
+    const inquiryId = `FN-INQ-${Math.floor(1000 + Math.random() * 9000)}`;
+    const inquiryData = {
+      order_id: inquiryId,
+      order_type: 'general_inquiry',
+      product_id: 'general',
+      created_at: new Date().toISOString(),
+      customer: {
+        name,
+        email,
+        phone: phone || 'N/A',
+        address: null
+      },
+      company: company || 'N/A',
+      design_notes: message,
+      payment: {
+        status: 'N/A',
+        amount: 'N/A',
+        method: 'N/A',
+        reference: ''
+      },
+      production: {
+        design_status: 'NEW',
+        print_status: 'N/A',
+        nfc_status: 'N/A',
+        nfc_test_status: 'N/A',
+        shipping_status: 'N/A'
+      }
+    };
 
-    console.log('Received contact form submission:', { name, email, message, company, phone });
+    // 1. Persist to Cloudflare KV (if context is bound)
+    try {
+      const { getRequestContext } = await import('@cloudflare/next-on-pages');
+      const context = getRequestContext();
+      const env = context?.env;
+      if (env && env.FEELSNEAT_CMS_KV) {
+        await env.FEELSNEAT_CMS_KV.put(`order:${inquiryId}`, JSON.stringify(inquiryData));
+        console.log(`Saved general inquiry ${inquiryId} successfully to Cloudflare KV store.`);
+      }
+    } catch (kvError) {
+      console.warn('KV context write skipped in POST contact API:', kvError);
+    }
+
+    // 2. Persist to development session state for local testing
+    if (process.env.NODE_ENV === 'development') {
+      const ordersSymbol = Symbol.for('feelsneat.orders');
+      if (!(globalThis as any)[ordersSymbol]) {
+        (globalThis as any)[ordersSymbol] = [];
+      }
+      (globalThis as any)[ordersSymbol].unshift(inquiryData);
+      console.log(`Saved general inquiry ${inquiryId} successfully in-memory for dev server.`);
+    }
+
+    console.log('Processed contact form submission:', inquiryData);
 
     // Mock response delay
     await new Promise((resolve) => setTimeout(resolve, 600));

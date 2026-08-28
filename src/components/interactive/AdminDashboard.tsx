@@ -10,7 +10,7 @@ interface AdminDashboardProps {
 export function AdminDashboard({ userEmail }: AdminDashboardProps) {
   const [orders, setOrders] = useState<any[]>([]);
   const [loadingOrders, setLoadingOrders] = useState(true);
-  const [activeTab, setActiveTab] = useState<'all' | 'memories' | 'service' | 'digital_product'>('all');
+  const [activeTab, setActiveTab] = useState<'all' | 'memories' | 'service' | 'digital_product' | 'general_inquiry'>('all');
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [syncMessage, setSyncMessage] = useState('');
@@ -179,6 +179,7 @@ export function AdminDashboard({ userEmail }: AdminDashboardProps) {
             { id: 'memories', label: 'Memories Canvas', icon: 'Image', count: orders.filter(o => o.order_type === 'memories').length },
             { id: 'service', label: 'Services Inquiries', icon: 'Cpu', count: orders.filter(o => o.order_type === 'service').length },
             { id: 'digital_product', label: 'Digital Products', icon: 'DownloadCloud', count: orders.filter(o => o.order_type === 'digital_product').length },
+            { id: 'general_inquiry', label: 'General Inquiries', icon: 'Mail', count: orders.filter(o => o.order_type === 'general_inquiry').length },
           ].map((tab) => (
             <button
               key={tab.id}
@@ -238,7 +239,8 @@ export function AdminDashboard({ userEmail }: AdminDashboardProps) {
                     const typeColors = 
                       order.order_type === 'memories' ? 'bg-red-50 text-red-750 border-red-200' :
                       order.order_type === 'service' ? 'bg-purple-50 text-purple-750 border-purple-200' :
-                      'bg-emerald-50 text-emerald-755 border-emerald-200';
+                      order.order_type === 'digital_product' ? 'bg-emerald-50 text-emerald-755 border-emerald-200' :
+                      'bg-blue-50 text-blue-750 border-blue-200';
                     
                     return (
                       <div
@@ -255,7 +257,7 @@ export function AdminDashboard({ userEmail }: AdminDashboardProps) {
                             {order.order_id}
                           </span>
                           <span className={`text-[8px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-sm border ${typeColors}`}>
-                            {order.order_type === 'digital_product' ? 'digital' : order.order_type}
+                            {order.order_type === 'digital_product' ? 'digital' : order.order_type === 'general_inquiry' ? 'general' : order.order_type}
                           </span>
                         </div>
 
@@ -315,6 +317,12 @@ export function AdminDashboard({ userEmail }: AdminDashboardProps) {
                           <span className="block text-[9px] font-bold text-zinc-400 uppercase tracking-wider">Customer Name</span>
                           <span className="text-xs font-semibold text-zinc-800">{selectedOrder.customer?.name}</span>
                         </div>
+                        {selectedOrder.company && selectedOrder.company !== 'N/A' && (
+                          <div>
+                            <span className="block text-[9px] font-bold text-zinc-400 uppercase tracking-wider">Company / Organization</span>
+                            <span className="text-xs font-semibold text-zinc-800">{selectedOrder.company}</span>
+                          </div>
+                        )}
                         <div>
                           <span className="block text-[9px] font-bold text-zinc-400 uppercase tracking-wider">Phone / WhatsApp</span>
                           <a href={`tel:${selectedOrder.customer?.phone}`} className="text-xs font-bold text-[#E30613] hover:underline block">{selectedOrder.customer?.phone}</a>
@@ -447,6 +455,15 @@ export function AdminDashboard({ userEmail }: AdminDashboardProps) {
                                 &ldquo;{selectedOrder.design_notes}&rdquo;
                               </p>
                             )}
+                          </div>
+                        </div>
+                      )}
+
+                      {selectedOrder.order_type === 'general_inquiry' && (
+                        <div className="border-t border-zinc-200 pt-4 space-y-3">
+                          <span className="block text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-1">General Inquiry Message</span>
+                          <div className="text-xs bg-white border border-zinc-150 p-3 rounded-lg font-semibold text-zinc-700">
+                            <p className="whitespace-pre-wrap leading-relaxed font-sans">&ldquo;{selectedOrder.design_notes}&rdquo;</p>
                           </div>
                         </div>
                       )}
