@@ -78,11 +78,15 @@ export interface ObservationItem {
 
 // Fetch content database dynamically from KV binding at runtime, or fallback to local JSON database
 async function getContentDb() {
-  // In local development, check the global in-memory database first to reflect CMS session updates
   if (process.env.NODE_ENV === 'development') {
     const globalSymbol = Symbol.for('feelsneat.content_db');
     const memoryDb = (globalThis as any)[globalSymbol];
     if (memoryDb) {
+      // Force sync navigation and socials in development to keep new components in sync
+      memoryDb.navigation = db.navigation;
+      if (memoryDb.settings) {
+        memoryDb.settings.socials = db.settings.socials;
+      }
       return memoryDb;
     }
   }
