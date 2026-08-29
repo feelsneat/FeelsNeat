@@ -967,8 +967,8 @@ export default function CreateMemoryPage() {
                     <label className="block text-xs font-black text-black uppercase tracking-widest">Select Format</label>
                     <div className="grid grid-cols-2 gap-3">
                       {[
-                        { id: 'magnet', label: 'Magnet', subtitle: 'Fridge Magnet' },
-                        { id: 'keychain', label: 'Keychain', subtitle: 'Art Keychain' }
+                        { id: 'magnet', label: 'Magnet', subtitle: 'Fridge Magnet', price: '₹199' },
+                        { id: 'keychain', label: 'Keychain', subtitle: 'Art Keychain', price: '₹249' }
                       ].map((format) => (
                         <button
                           key={format.id}
@@ -980,8 +980,13 @@ export default function CreateMemoryPage() {
                               : 'border-zinc-200 bg-white hover:bg-zinc-50'
                           }`}
                         >
-                          <span className="block text-[8px] font-black text-zinc-400 uppercase tracking-widest mb-1">{format.subtitle}</span>
-                          <h4 className="text-xs font-bold uppercase text-black">{format.label}</h4>
+                          <div className="flex justify-between items-start w-full">
+                            <div>
+                              <span className="block text-[8px] font-black text-zinc-400 uppercase tracking-widest mb-1">{format.subtitle}</span>
+                              <h4 className="text-xs font-bold uppercase text-black">{format.label}</h4>
+                            </div>
+                            <span className="text-xs font-bold text-zinc-500">{format.price}</span>
+                          </div>
                         </button>
                       ))}
                     </div>
@@ -1303,6 +1308,10 @@ export default function CreateMemoryPage() {
                       <div>
                         <span className="text-[9px] font-black text-zinc-400 uppercase tracking-widest block">Quantity</span>
                         <span className="font-bold text-black">{formData.quantity} pc</span>
+                      </div>
+                      <div>
+                        <span className="text-[9px] font-black text-zinc-400 uppercase tracking-widest block">Price</span>
+                        <span className="font-bold text-[#E30613]">{formData.size === 'magnet' ? '₹199' : '₹249'}</span>
                       </div>
                     </div>
 
