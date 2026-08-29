@@ -41,6 +41,7 @@ export interface ServiceItem {
   order: number;
   summary: string;
   content: string;
+  price?: string;
   image?: string;
   externalUrl?: string;
   additionalImages?: string[];

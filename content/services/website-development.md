@@ -4,6 +4,7 @@ icon: "Code"
 order: 1
 summary: "We build custom shopping websites for Instagram pages with automated order notifications, manual WhatsApp routing, payment gateways, and tailored external CMS integration."
 image: "/images/services/website-development.jpg"
+price: "₹35,000"
 externalUrl: ""
 ---
 We build professional, fast shopping environments specifically optimized for Instagram businesses. We connect all the automations needed to manage orders and coordinate checkouts.

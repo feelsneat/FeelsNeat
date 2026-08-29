@@ -3,7 +3,7 @@
     "id": "star-interview",
     "category": "career",
     "title": "STAR Interview Prep Dashboard",
-    "price": "$19.00",
+    "price": "₹1,499",
     "features": [
       "STAR Framework Database",
       "Situation/Task/Action/Result organizer",
@@ -17,7 +17,7 @@
     "id": "ats-tech-resume",
     "category": "career",
     "title": "ATS-Friendly Tech Resume Template",
-    "price": "$12.00",
+    "price": "₹999",
     "features": [
       "ATS Scanner Optimized Formatting",
       "Modern Single-Page Layout Grid",
@@ -31,7 +31,7 @@
     "id": "side-hustle-bookkeeping",
     "category": "finance",
     "title": "Side-Hustle Bookkeeping Sheet",
-    "price": "$15.00",
+    "price": "₹1,299",
     "features": [
       "Automated Expense Charting",
       "Visual Profit & Loss Graphs",
@@ -45,7 +45,7 @@
     "id": "life-dashboard",
     "category": "productivity",
     "title": "All-in-One Life Dashboard",
-    "price": "$24.00",
+    "price": "₹1,999",
     "features": [
       "Daily Habit Tracker & Log",
       "Weekly Planner & Goals Board",
@@ -59,7 +59,7 @@
     "id": "creator-os",
     "category": "content",
     "title": "TikTok Creator OS",
-    "price": "$29.00",
+    "price": "₹2,499",
     "features": [
       "Visual Workspace Manager",
       "Content Planning Pipeline",

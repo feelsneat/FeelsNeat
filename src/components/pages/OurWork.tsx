@@ -110,9 +110,16 @@ export default async function OurWorkPage() {
 
                 {/* Content block */}
                 <div className="w-full md:w-1/2 space-y-6 text-left">
-                  <span className="text-xs font-black text-[#E30613] uppercase tracking-widest block">
-                    Capability 0{index + 1}
-                  </span>
+                  <div className="flex justify-between items-center w-full">
+                    <span className="text-xs font-black text-[#E30613] uppercase tracking-widest block">
+                      Capability 0{index + 1}
+                    </span>
+                    {service.price && (
+                      <span className="text-xs font-black text-[#F4F4F5] bg-white/5 border border-white/10 px-2.5 py-0.5 rounded tracking-wider">
+                        {service.price}
+                      </span>
+                    )}
+                  </div>
                   
                   <h3 className="text-2xl font-black text-[#F4F4F5] uppercase tracking-tight leading-none">
                     {service.title}
