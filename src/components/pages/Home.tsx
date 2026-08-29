@@ -186,18 +186,22 @@ export default async function HomePage() {
             <h2 className="text-3xl sm:text-4xl font-black text-[#F4F4F5] uppercase tracking-tight">
               FeelsNeat Tap Tiles
             </h2>
-            <p className="mt-3 text-base text-[#F4F4F5]/75 font-semibold">
+            <p className="mt-3 text-base text-[#F4F4F5] font-semibold leading-relaxed">
               Personalized 2x2 inch art tiles equipped with pre-programmed NFC chips. One tap opens your chosen song, playlist, video, or link.
             </p>
           </div>
 
-          <div className="rounded-2xl border border-white/5 bg-[#0D0D10]/80 p-8 flex flex-col md:flex-row-reverse gap-8 items-center hover:border-white/10 transition-all duration-300">
+          <div className="rounded-2xl border border-white/10 bg-[#0D0D10] p-8 flex flex-col md:flex-row-reverse gap-8 items-center hover:border-white/20 transition-all duration-300">
             <div className="w-full md:w-1/2 aspect-[1.5/1] rounded-xl overflow-hidden border border-white/10 bg-white/5 relative select-none">
-              <div className="absolute inset-0 bg-cover bg-center opacity-70" style={{ backgroundImage: "url('https://images.unsplash.com/photo-1529156069898-49953e39b3ac?q=80&w=600')" }} />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-transparent" />
-              <div className="absolute bottom-4 left-4 right-4 text-left">
-                <span className="text-[8px] font-black text-[#E30613] tracking-widest uppercase">Tap Tile Mockup</span>
-                <p className="text-xs font-bold text-white uppercase mt-0.5">"The group chat in physical form."</p>
+              <img
+                src="/images/tap-tiles/main-mockup.jpg"
+                alt="FeelsNeat Tap Tiles collection showing magnets and keychains"
+                className="w-full h-full object-cover opacity-100 group-hover:scale-102 transition-all duration-500"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent pointer-events-none" />
+              <div className="absolute bottom-4 left-4 right-4 text-left pointer-events-none">
+                <span className="text-[8px] font-black text-[#E30613] tracking-widest uppercase">Tap Tile Mockups</span>
+                <p className="text-xs font-bold text-white uppercase mt-0.5">"Magnets & Keychains in physical form."</p>
               </div>
             </div>
             <div className="w-full md:w-1/2 space-y-6 text-left">
@@ -205,13 +209,13 @@ export default async function HomePage() {
               <h3 className="text-2xl font-black text-[#F4F4F5] uppercase tracking-tight leading-none">
                 Small Art. One Tap. A Whole Memory.
               </h3>
-              <p className="text-sm sm:text-base text-[#F4F4F5]/75 leading-relaxed font-semibold">
+              <p className="text-sm sm:text-base text-[#F4F4F5]/90 leading-relaxed font-semibold">
                 Available as magnets or keychains. Combine retro snapshots, quotes, or jokes with Spotify songs, YouTube clips, or shared Google Photos albums.
               </p>
               <div className="pt-4 flex gap-4">
                 <Link
                   href="/tap-tiles"
-                  className="inline-flex h-10 items-center justify-center rounded-lg bg-[#E30613] hover:bg-zinc-900 text-xs font-black uppercase tracking-wider text-white px-6 transition-colors duration-300 shadow-md"
+                  className="inline-flex h-10 items-center justify-center rounded-lg bg-[#E30613] hover:bg-white hover:text-black text-xs font-black uppercase tracking-wider text-white px-6 transition-colors duration-300 shadow-md"
                 >
                   Explore Tap Tiles
                 </Link>

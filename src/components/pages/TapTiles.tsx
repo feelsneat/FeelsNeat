@@ -316,7 +316,7 @@ export default function TapTilesPage() {
                 <div>
                   <span className="text-[8px] font-black text-[#E30613] tracking-widest uppercase">THROWBACKS</span>
                   <h3 className="text-sm font-bold uppercase tracking-tight text-[#F4F4F5] mt-1">NOSTALGIA TAPS</h3>
-                  <p className="text-xs text-[#F4F4F5]/70 mt-2 leading-relaxed">Turn childhood, school, college, or old friendship memories into something physical.</p>
+                  <p className="text-xs text-[#F4F4F5]/85 mt-2 leading-relaxed">Turn childhood, school, college, or old friendship memories into something physical.</p>
                 </div>
                 <Link
                   href="/tap-tiles/nostalgia"
@@ -337,7 +337,7 @@ export default function TapTilesPage() {
                 <div>
                   <span className="text-[8px] font-black text-[#E30613] tracking-widest uppercase">THE GROUP CHAT</span>
                   <h3 className="text-sm font-bold uppercase tracking-tight text-[#F4F4F5] mt-1">FRIENDS & INSIDE JOKES</h3>
-                  <p className="text-xs text-[#F4F4F5]/70 mt-2 leading-relaxed">The photo everyone remembers. The joke nobody else understands. The song that takes you back.</p>
+                  <p className="text-xs text-[#F4F4F5]/85 mt-2 leading-relaxed">The photo everyone remembers. The joke nobody else understands. The song that takes you back.</p>
                 </div>
                 <Link
                   href="/tap-tiles/friends"
@@ -358,7 +358,7 @@ export default function TapTilesPage() {
                 <div>
                   <span className="text-[8px] font-black text-[#E30613] tracking-widest uppercase">YOUR MOMENT</span>
                   <h3 className="text-sm font-bold uppercase tracking-tight text-[#F4F4F5] mt-1">OUR SONG</h3>
-                  <p className="text-xs text-[#F4F4F5]/70 mt-2 leading-relaxed">A photo, a date, and the song that means something to both of you. Romantic and minimal.</p>
+                  <p className="text-xs text-[#F4F4F5]/85 mt-2 leading-relaxed">A photo, a date, and the song that means something to both of you. Romantic and minimal.</p>
                 </div>
                 <Link
                   href="/tap-tiles/couples"
@@ -379,7 +379,7 @@ export default function TapTilesPage() {
                 <div>
                   <span className="text-[8px] font-black text-[#E30613] tracking-widest uppercase">PERSONALITY INCLUDED</span>
                   <h3 className="text-sm font-bold uppercase tracking-tight text-[#F4F4F5] mt-1">PET TAP TILES</h3>
-                  <p className="text-xs text-[#F4F4F5]/70 mt-2 leading-relaxed">Turn your pet's silly or cozy personality into a tiny, custom piece of art.</p>
+                  <p className="text-xs text-[#F4F4F5]/85 mt-2 leading-relaxed">Turn your pet's silly or cozy personality into a tiny, custom piece of art.</p>
                 </div>
                 <Link
                   href="/tap-tiles/pets"
