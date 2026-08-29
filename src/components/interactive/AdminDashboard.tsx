@@ -177,6 +177,7 @@ export function AdminDashboard({ userEmail }: AdminDashboardProps) {
           {[
             { id: 'all', label: 'All Submissions', icon: 'Inbox', count: orders.length },
             { id: 'memories', label: 'Memories Canvas', icon: 'Image', count: orders.filter(o => o.order_type === 'memories').length },
+            { id: 'tap_tiles', label: 'Tap Tiles', icon: 'Settings', count: orders.filter(o => o.order_type === 'tap_tiles').length },
             { id: 'service', label: 'Services Inquiries', icon: 'Cpu', count: orders.filter(o => o.order_type === 'service').length },
             { id: 'digital_product', label: 'Digital Products', icon: 'DownloadCloud', count: orders.filter(o => o.order_type === 'digital_product').length },
             { id: 'general_inquiry', label: 'General Inquiries', icon: 'Mail', count: orders.filter(o => o.order_type === 'general_inquiry').length },
@@ -414,6 +415,57 @@ export function AdminDashboard({ userEmail }: AdminDashboardProps) {
                                     </a>
                                   </div>
                                 ))}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      )}
+
+                      {selectedOrder.order_type === 'tap_tiles' && (
+                        <div className="border-t border-zinc-200 pt-4 space-y-3">
+                          <span className="block text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-1">Tap Tile Details</span>
+                          <div className="grid sm:grid-cols-2 gap-3 text-xs bg-white border border-zinc-150 p-3 rounded-lg font-semibold text-zinc-700">
+                            <p><span className="text-zinc-400">Niche Category:</span> {selectedOrder.product_id || 'None'}</p>
+                            <p><span className="text-zinc-400">Format:</span> {selectedOrder.product?.size === 'magnet' ? 'Fridge Magnet' : 'Art Keychain'}</p>
+                            <p><span className="text-zinc-400">Design Style:</span> {selectedOrder.product?.memory_type || 'None'}</p>
+                            <p><span className="text-zinc-400">Quantity:</span> {selectedOrder.product?.quantity || 1} pc</p>
+                            <p className="sm:col-span-2">
+                              <span className="text-zinc-400 block mb-0.5">NFC Destination Link:</span>
+                              <a href={selectedOrder.digital_memory?.google_photos_url} target="_blank" rel="noopener noreferrer" className="text-[#E30613] hover:underline block break-all font-mono text-[10px]">{selectedOrder.digital_memory?.google_photos_url}</a>
+                            </p>
+                            {selectedOrder.memory_details?.title && (
+                              <p className="sm:col-span-2"><span className="text-zinc-400">Overlay Text:</span> "{selectedOrder.memory_details.title}"</p>
+                            )}
+                            {selectedOrder.memory_details?.design_notes && (
+                              <p className="sm:col-span-2 bg-yellow-50/50 p-2 border border-yellow-100 rounded text-[#1E1E1E] italic text-[11px] font-medium leading-normal">
+                                &ldquo;{selectedOrder.memory_details.design_notes}&rdquo;
+                              </p>
+                            )}
+                          </div>
+
+                          {/* Canvas Photo Preview */}
+                          {selectedOrder.photos?.main_photo && (
+                            <div className="space-y-1.5">
+                              <div className="flex justify-between items-center max-w-[280px]">
+                                <span className="block text-[9px] font-bold text-zinc-400 uppercase tracking-wider">Custom Artwork Print</span>
+                                <a
+                                  href={selectedOrder.photos.main_photo}
+                                  download={`taptile_${selectedOrder.order_id}.png`}
+                                  className="inline-flex items-center gap-1 text-[9px] font-bold text-[#E30613] hover:underline cursor-pointer select-none"
+                                >
+                                  <LucideIcon name="Download" className="h-3 w-3" /> Download High-Res
+                                </a>
+                              </div>
+                              <div className="max-w-[280px] rounded-lg border border-zinc-200 overflow-hidden bg-white shadow-2xs aspect-square relative group">
+                                <img src={selectedOrder.photos.main_photo} alt="Print Preview" className="w-full h-full object-cover" />
+                                <a
+                                  href={selectedOrder.photos.main_photo}
+                                  download={`taptile_${selectedOrder.order_id}.png`}
+                                  className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 flex flex-col items-center justify-center transition-all duration-200 text-white font-bold text-xs gap-1.5 cursor-pointer"
+                                >
+                                  <LucideIcon name="Download" className="h-5 w-5 animate-bounce" />
+                                  <span>Download Image File</span>
+                                </a>
                               </div>
                             </div>
                           )}

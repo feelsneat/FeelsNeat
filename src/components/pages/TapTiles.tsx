@@ -4,6 +4,50 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { LucideIcon } from '@/components/ui/LucideIcon';
 
+// Centralized Tap Tiles categories registry
+export const TAP_TILES_CATEGORIES = {
+  nostalgia: {
+    slug: 'nostalgia',
+    title: 'Nostalgia Taps',
+    positioning: 'Turn old memories into something physical.',
+    subtitle: 'Retro snapshots, childhood pictures, and high school throwbacks.',
+    description: 'Keep your best childhood memories, school years, college trip snapshots, and retro milestones close by. Link your tile to a Spotify throwback playlist, school memory video, or Google Photos throwback album.',
+    cta: 'Create Nostalgia Tile',
+    image: 'https://images.unsplash.com/photo-1542282088-fe8426682b8f?q=80&w=600',
+    tags: ['Retro', 'Throwback', 'School Days'],
+  },
+  friends: {
+    slug: 'friends',
+    title: 'Friends & Inside Jokes',
+    positioning: 'The group chat in physical form.',
+    subtitle: 'Candid friend snaps, inside jokes, and unforgettable moments.',
+    description: 'The photo everyone remembers. The joke nobody else understands. The song that takes you right back to that trip. Perfect as a pocket keychain or fridge magnet that opens your favorite group chat playlist or travel album.',
+    cta: 'Create Friendship Tile',
+    image: 'https://images.unsplash.com/photo-1501386761578-eac5c94b800a?q=80&w=600',
+    tags: ['Group Chat', 'Inside Jokes', 'Adventure'],
+  },
+  couples: {
+    slug: 'couples',
+    title: 'Our Song',
+    positioning: 'Small art. One tap. A whole memory.',
+    subtitle: 'Couples snapshots, anniversary dates, and relationship timelines.',
+    description: 'An elegant tribute to your relationship. Select a couples photo, customize the typography, and connect it directly to your shared song on Spotify or your Google Photos relationship album.',
+    cta: 'Create Couple Tile',
+    image: 'https://images.unsplash.com/photo-1518199266791-5375a83190b7?q=80&w=600',
+    tags: ['Relationship', 'Soundtrack', 'Anniversary'],
+  },
+  pets: {
+    slug: 'pets',
+    title: 'Pet Tap Tiles',
+    positioning: 'Personality included.',
+    subtitle: 'Silly snapshots, cozy portraits, and funny character overlays.',
+    description: 'Turn your dog or cat\'s unique personality into a small collectible piece of art. Choose your favorite pet snapshot, add a funny caption, and link it directly to their photo album or favorite cozy playlist.',
+    cta: 'Create Pet Tile',
+    image: 'https://images.unsplash.com/photo-1543466835-00a7907e9de1?q=80&w=600',
+    tags: ['Dog Lover', 'Cat Life', 'Portraits'],
+  },
+};
+
 // Reusable FAQ Item component for interactive accordions
 function FaqAccordionItem({ question, answer }: { question: string; answer: string }) {
   const [isOpen, setIsOpen] = useState(false);
@@ -315,10 +359,10 @@ export default function TapTilesPage() {
                   <p className="text-xs text-[#F4F4F5]/70 mt-2 leading-relaxed">Turn childhood, school, college, or old friendship memories into something physical.</p>
                 </div>
                 <Link
-                  href="/create-tap-tile?niche=nostalgia"
-                  className="inline-flex h-8 items-center justify-center rounded bg-white/5 hover:bg-[#E30613] text-xs font-black uppercase tracking-wider text-[#F4F4F5] hover:text-white transition-colors duration-300 mt-4 cursor-pointer"
+                  href="/tap-tiles/nostalgia"
+                  className="inline-flex h-8 items-center justify-center rounded bg-[#E30613] hover:bg-white hover:text-black text-xs font-black uppercase tracking-wider text-white transition-colors duration-300 mt-4 cursor-pointer"
                 >
-                  Explore Niche
+                  Create Tap Tile
                 </Link>
               </div>
             </div>
@@ -336,10 +380,10 @@ export default function TapTilesPage() {
                   <p className="text-xs text-[#F4F4F5]/70 mt-2 leading-relaxed">The photo everyone remembers. The joke nobody else understands. The song that takes you back.</p>
                 </div>
                 <Link
-                  href="/create-tap-tile?niche=friends"
-                  className="inline-flex h-8 items-center justify-center rounded bg-white/5 hover:bg-[#E30613] text-xs font-black uppercase tracking-wider text-[#F4F4F5] hover:text-white transition-colors duration-300 mt-4 cursor-pointer"
+                  href="/tap-tiles/friends"
+                  className="inline-flex h-8 items-center justify-center rounded bg-[#E30613] hover:bg-white hover:text-black text-xs font-black uppercase tracking-wider text-white transition-colors duration-300 mt-4 cursor-pointer"
                 >
-                  Explore Niche
+                  Create Tap Tile
                 </Link>
               </div>
             </div>
@@ -357,10 +401,10 @@ export default function TapTilesPage() {
                   <p className="text-xs text-[#F4F4F5]/70 mt-2 leading-relaxed">A photo, a date, and the song that means something to both of you. Romantic and minimal.</p>
                 </div>
                 <Link
-                  href="/create-tap-tile?niche=couples"
-                  className="inline-flex h-8 items-center justify-center rounded bg-white/5 hover:bg-[#E30613] text-xs font-black uppercase tracking-wider text-[#F4F4F5] hover:text-white transition-colors duration-300 mt-4 cursor-pointer"
+                  href="/tap-tiles/couples"
+                  className="inline-flex h-8 items-center justify-center rounded bg-[#E30613] hover:bg-white hover:text-black text-xs font-black uppercase tracking-wider text-white transition-colors duration-300 mt-4 cursor-pointer"
                 >
-                  Explore Niche
+                  Create Tap Tile
                 </Link>
               </div>
             </div>
@@ -378,10 +422,10 @@ export default function TapTilesPage() {
                   <p className="text-xs text-[#F4F4F5]/70 mt-2 leading-relaxed">Turn your pet's silly or cozy personality into a tiny, custom piece of art.</p>
                 </div>
                 <Link
-                  href="/create-tap-tile?niche=pets"
-                  className="inline-flex h-8 items-center justify-center rounded bg-white/5 hover:bg-[#E30613] text-xs font-black uppercase tracking-wider text-[#F4F4F5] hover:text-white transition-colors duration-300 mt-4 cursor-pointer"
+                  href="/tap-tiles/pets"
+                  className="inline-flex h-8 items-center justify-center rounded bg-[#E30613] hover:bg-white hover:text-black text-xs font-black uppercase tracking-wider text-white transition-colors duration-300 mt-4 cursor-pointer"
                 >
-                  Explore Niche
+                  Create Tap Tile
                 </Link>
               </div>
             </div>

@@ -1,0 +1,161 @@
+'use client';
+
+import { useState } from 'react';
+import Link from 'next/link';
+import { LucideIcon } from '@/components/ui/LucideIcon';
+import { TAP_TILES_CATEGORIES } from './TapTiles';
+
+interface TapTileProductProps {
+  categorySlug: string;
+}
+
+export default function TapTileProductPage({ categorySlug }: TapTileProductProps) {
+  // Safe category lookup
+  const category = (TAP_TILES_CATEGORIES as any)[categorySlug] || TAP_TILES_CATEGORIES.nostalgia;
+
+  // Visual images list mockups
+  const imagesList = [
+    category.image,
+    'https://images.unsplash.com/photo-1540555700478-4be289fbecef?q=80&w=300', // Fridge closeup
+    'https://images.unsplash.com/photo-1582139329536-e7284fece509?q=80&w=300', // Keychain closeup
+    'https://images.unsplash.com/photo-1476234251651-f353703a034d?q=80&w=300'  // Grid collection
+  ];
+
+  const [activeImage, setActiveImage] = useState(imagesList[0]);
+  const [selectedFormat, setSelectedFormat] = useState<'magnet' | 'keychain'>('magnet');
+
+  return (
+    <main className="flex-1 w-full bg-[#0A0A0C] text-[#F4F4F5] relative overflow-hidden py-24 sm:py-32">
+      {/* Background blobs */}
+      <div className="morphing-blob absolute top-10 left-5 opacity-20" />
+      <div className="morphing-blob absolute bottom-20 right-5 opacity-15" />
+
+      <div className="mx-auto max-w-5xl px-4 sm:px-6 relative z-10">
+        {/* Category breadcrumb */}
+        <div className="mb-8">
+          <Link
+            href="/tap-tiles"
+            className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-[#F4F4F5]/60 hover:text-[#E30613] transition-colors"
+          >
+            <LucideIcon name="ArrowLeft" className="h-3 w-3" /> Back to Tap Tiles
+          </Link>
+        </div>
+
+        {/* Product Info Block */}
+        <div className="grid lg:grid-cols-12 gap-12 items-start mb-20">
+          {/* Product Gallery (Left) */}
+          <div className="lg:col-span-6 space-y-6">
+            <div className="relative rounded-2xl overflow-hidden border border-white/10 shadow-lg aspect-square bg-[#0E0E12] select-none">
+              <img
+                src={activeImage}
+                alt={`${category.title} photographic mini artwork display mockup`}
+                className="w-full h-full object-cover transition-all duration-300"
+              />
+            </div>
+
+            {/* Thumbnail Selectors */}
+            <div className="grid grid-cols-4 gap-2">
+              {imagesList.map((img, idx) => (
+                <button
+                  key={idx}
+                  type="button"
+                  onClick={() => setActiveImage(img)}
+                  className={`relative rounded-lg overflow-hidden border aspect-square bg-white/5 cursor-pointer transition-all ${
+                    activeImage === img ? 'border-[#E30613] scale-102' : 'border-white/10 hover:border-white/20'
+                  }`}
+                >
+                  <img src={img} alt={`Gallery view thumbnail ${idx}`} className="w-full h-full object-cover" />
+                </button>
+              ))}
+            </div>
+            
+            {/* Visual Specs summary cards */}
+            <div className="grid grid-cols-3 gap-4 pt-2">
+              <div className="p-3 rounded-xl border border-white/5 bg-white/5 text-center">
+                <span className="block text-[10px] font-black text-[#F4F4F5]/60 uppercase tracking-wider mb-1">Dimensions</span>
+                <span className="text-xs font-bold text-[#F4F4F5] uppercase">~2x2 inches</span>
+              </div>
+              <div className="p-3 rounded-xl border border-white/5 bg-white/5 text-center">
+                <span className="block text-[10px] font-black text-[#F4F4F5]/60 uppercase tracking-wider mb-1">Thickness</span>
+                <span className="text-xs font-bold text-[#F4F4F5] uppercase">~3 mm Rigid</span>
+              </div>
+              <div className="p-3 rounded-xl border border-white/5 bg-white/5 text-center">
+                <span className="block text-[10px] font-black text-[#F4F4F5]/60 uppercase tracking-wider mb-1">NFC Chip</span>
+                <span className="text-xs font-bold text-[#F4F4F5] uppercase">Embedded NTAG</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Product Details (Right) */}
+          <div className="lg:col-span-6 space-y-8 text-left">
+            <div>
+              <span className="text-xs font-black text-[#E30613] uppercase tracking-widest block mb-2 font-mono">
+                {category.positioning}
+              </span>
+              <h1 className="text-3xl font-extrabold uppercase tracking-tight leading-none mb-4">
+                {category.title}
+              </h1>
+              <p className="text-sm sm:text-base text-[#F4F4F5]/90 leading-relaxed font-semibold">
+                {category.subtitle}
+              </p>
+            </div>
+
+            <p className="text-sm sm:text-base text-[#F4F4F5]/80 leading-relaxed font-medium">
+              {category.description} Each physical tile is custom-crafted from premium photographic print material, mounted onto a rigid wood composite base, and carries a completely invisible embedded NFC chip pre-programmed with your target link destination.
+            </p>
+
+            {/* Configurable Product Format Selector */}
+            <div className="space-y-4 pt-4 border-t border-white/5">
+              <h3 className="text-xs font-bold tracking-wider uppercase text-[#F4F4F5]">Available Format Types</h3>
+              
+              <div className="grid gap-3 sm:grid-cols-2">
+                {/* Format Magnet */}
+                <button
+                  type="button"
+                  onClick={() => setSelectedFormat('magnet')}
+                  className={`p-4 rounded-xl border text-left flex flex-col justify-between transition-all cursor-pointer select-none ${
+                    selectedFormat === 'magnet'
+                      ? 'border-[#E30613] bg-[#E30613]/5'
+                      : 'border-white/10 bg-[#0E0E12] hover:border-white/20'
+                  }`}
+                >
+                  <div>
+                    <span className="block text-[8px] font-black text-[#E30613] uppercase tracking-wider mb-1">Attach to Fridge</span>
+                    <h4 className="text-xs font-black uppercase text-[#F4F4F5]">Magnet Version</h4>
+                  </div>
+                  <span className="text-xs font-bold text-[#F4F4F5]/60 mt-4">UPI/Manual Checkout</span>
+                </button>
+                {/* Format Keychain */}
+                <button
+                  type="button"
+                  onClick={() => setSelectedFormat('keychain')}
+                  className={`p-4 rounded-xl border text-left flex flex-col justify-between transition-all cursor-pointer select-none ${
+                    selectedFormat === 'keychain'
+                      ? 'border-[#E30613] bg-[#E30613]/5'
+                      : 'border-white/10 bg-[#0E0E12] hover:border-white/20'
+                  }`}
+                >
+                  <div>
+                    <span className="block text-[8px] font-black text-[#E30613] uppercase tracking-wider mb-1">Carry with You</span>
+                    <h4 className="text-xs font-black uppercase text-[#F4F4F5]">Keychain Version</h4>
+                  </div>
+                  <span className="text-xs font-bold text-[#F4F4F5]/60 mt-4">UPI/Manual Checkout</span>
+                </button>
+              </div>
+            </div>
+
+            {/* CTAs */}
+            <div className="pt-6 flex flex-col sm:flex-row gap-4">
+              <Link
+                href={`/create?type=tap_tiles&product=${categorySlug}&format=${selectedFormat}`}
+                className="inline-flex h-11 items-center justify-center rounded-lg bg-[#E30613] hover:bg-white hover:text-black px-8 text-xs font-black uppercase tracking-widest text-white transition-colors duration-300 shadow-md cursor-pointer text-center"
+              >
+                {category.cta}
+              </Link>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  );
+}

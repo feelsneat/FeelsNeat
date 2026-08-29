@@ -58,11 +58,13 @@ export default function CreateMemoryPage() {
   const serviceId = searchParams.get('service') || '';
 
   // Determine current checkout mode
-  let order_type: 'memories' | 'digital_product' | 'service' = 'memories';
+  let order_type: 'memories' | 'digital_product' | 'service' | 'tap_tiles' = 'memories';
   let targetProduct = null;
   let targetService = null;
 
-  if (productId && DIGITAL_PRODUCTS[productId]) {
+  if (initialType === 'tap_tiles') {
+    order_type = 'tap_tiles';
+  } else if (productId && DIGITAL_PRODUCTS[productId]) {
     order_type = 'digital_product';
     targetProduct = DIGITAL_PRODUCTS[productId];
   } else if (serviceId && SERVICES[serviceId]) {
@@ -80,6 +82,14 @@ export default function CreateMemoryPage() {
         { id: 5, label: 'Details' },
         { id: 6, label: 'Review' },
       ]
+    : order_type === 'tap_tiles'
+    ? [
+        { id: 1, label: 'Customization' },
+        { id: 2, label: 'NFC Link' },
+        { id: 3, label: 'Photos' },
+        { id: 4, label: 'Delivery' },
+        { id: 5, label: 'Review' },
+      ]
     : [
         { id: 1, label: 'Configure' },
         { id: 2, label: 'Contact' },
@@ -90,8 +100,8 @@ export default function CreateMemoryPage() {
 
   // Main order customization state
   const [formData, setFormData] = useState({
-    memory_type: initialType || 'travel',
-    size: 'standard', // mini, standard, landscape
+    memory_type: initialType === 'tap_tiles' ? 'minimal' : (initialType || 'travel'),
+    size: initialType === 'tap_tiles' ? (searchParams.get('format') || 'magnet') : 'standard',
     quantity: 1,
     google_photos_url: '',
     title: '',
@@ -279,11 +289,52 @@ export default function CreateMemoryPage() {
           return false;
         }
       }
-    } else {
-      // Digital Products Flow
       if (step === 2) {
         if (!formData.customer_name || !formData.customer_email || !formData.customer_phone) {
           setValidationError('Please fill in your contact information.');
+          return false;
+        }
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(formData.customer_email)) {
+          setValidationError('Invalid email address format.');
+          return false;
+        }
+        const phoneRegex = /^[6-9]\d{9}$|^[+]\d{1,4}\d{9,10}$/;
+        if (!phoneRegex.test(formData.customer_phone.replace(/[\s-]/g, ''))) {
+          setValidationError('Invalid phone number format.');
+          return false;
+        }
+      }
+    } else if (order_type === 'tap_tiles') {
+      if (step === 1) {
+        if (!formData.size) {
+          setValidationError('Please select a format type.');
+          return false;
+        }
+        if (!formData.memory_type) {
+          setValidationError('Please select a visual style.');
+          return false;
+        }
+      }
+      if (step === 2) {
+        if (!formData.google_photos_url) {
+          setValidationError('Please enter a target link destination.');
+          return false;
+        }
+      }
+      if (step === 3) {
+        if (!mainPhoto) {
+          setValidationError('Please upload your print photo or artwork file.');
+          return false;
+        }
+      }
+      if (step === 4) {
+        if (!formData.customer_name || !formData.customer_email || !formData.customer_phone) {
+          setValidationError('Please fill in your contact details.');
+          return false;
+        }
+        if (!formData.address_line || !formData.city || !formData.state || !formData.pincode) {
+          setValidationError('Please fill in your complete delivery address details.');
           return false;
         }
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -321,9 +372,10 @@ export default function CreateMemoryPage() {
     setStatus('submitting');
     setValidationError(null);
 
-    const payload = order_type === 'memories'
+    const payload = (order_type === 'memories' || order_type === 'tap_tiles')
       ? {
           order_type,
+          product_id: productId || null,
           ...formData,
           main_photo: mainPhoto,
           additional_photos: additionalPhotos.map((p) => p.data),
@@ -898,9 +950,398 @@ export default function CreateMemoryPage() {
           )}
 
           {/* =========================================================================
+              TAP TILES WIZARD FLOW (5 STEPS)
+              ========================================================================= */}
+          {order_type === 'tap_tiles' && (
+            <>
+              {/* STEP 1: STYLE & FORMAT */}
+              {currentStep === 1 && (
+                <div className="space-y-6 animate-fade-in text-left">
+                  <div>
+                    <h2 className="text-base font-black uppercase text-black mb-1">Customize your Tap Tile</h2>
+                    <p className="text-xs text-zinc-500 font-bold tracking-wider">Select your preferred format, style, and optional text</p>
+                  </div>
+
+                  {/* Format selection */}
+                  <div className="space-y-2">
+                    <label className="block text-xs font-black text-black uppercase tracking-widest">Select Format</label>
+                    <div className="grid grid-cols-2 gap-3">
+                      {[
+                        { id: 'magnet', label: 'Magnet', subtitle: 'Fridge Magnet' },
+                        { id: 'keychain', label: 'Keychain', subtitle: 'Art Keychain' }
+                      ].map((format) => (
+                        <button
+                          key={format.id}
+                          type="button"
+                          onClick={() => setFormData((prev) => ({ ...prev, size: format.id }))}
+                          className={`p-4 rounded-xl border text-left cursor-pointer transition-all duration-200 select-none ${
+                            formData.size === format.id
+                              ? 'border-[#E30613] bg-[#E30613]/5'
+                              : 'border-zinc-200 bg-white hover:bg-zinc-50'
+                          }`}
+                        >
+                          <span className="block text-[8px] font-black text-zinc-400 uppercase tracking-widest mb-1">{format.subtitle}</span>
+                          <h4 className="text-xs font-bold uppercase text-black">{format.label}</h4>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Style selection */}
+                  <div className="space-y-2">
+                    <label className="block text-xs font-black text-black uppercase tracking-widest">Visual Direction Style</label>
+                    <div className="grid grid-cols-5 gap-2">
+                      {['minimal', 'retro', 'modern', 'vintage', 'funny'].map((style) => (
+                        <button
+                          key={style}
+                          type="button"
+                          onClick={() => setFormData((prev) => ({ ...prev, memory_type: style }))}
+                          className={`py-2 rounded-lg border text-center text-[10px] font-black uppercase tracking-wider transition-all cursor-pointer ${
+                            formData.memory_type === style
+                              ? 'border-[#E30613] bg-[#E30613] text-white shadow-sm'
+                              : 'border-zinc-200 bg-white text-zinc-700 hover:bg-zinc-50'
+                          }`}
+                        >
+                          {style}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Custom overlay text */}
+                  <div>
+                    <label htmlFor="title" className="block text-xs font-black text-black mb-2 uppercase tracking-widest">
+                      Custom Overlay Text / Caption (Optional)
+                    </label>
+                    <input
+                      type="text"
+                      id="title"
+                      name="title"
+                      maxLength={40}
+                      value={formData.title}
+                      onChange={handleTextChange}
+                      className="w-full rounded-lg border border-zinc-200 bg-white px-4 py-2.5 text-xs text-black placeholder-zinc-400 focus:border-[#E30613] focus:outline-none"
+                      placeholder="e.g. 2008 was a personality."
+                    />
+                    <div className="text-[9px] text-zinc-400 font-bold text-right mt-1.5 uppercase">
+                      {formData.title.length}/40 characters
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* STEP 2: NFC LINK */}
+              {currentStep === 2 && (
+                <div className="space-y-6 animate-fade-in text-left">
+                  <div>
+                    <h2 className="text-base font-black uppercase text-black mb-1">Connect your NFC link</h2>
+                    <p className="text-xs text-zinc-500 font-bold tracking-wider">Provide the URL destination programmed into the tile</p>
+                  </div>
+
+                  <div>
+                    <label htmlFor="google_photos_url" className="block text-xs font-black text-black mb-2 uppercase tracking-widest">
+                      Destination Link URL <span className="text-[#E30613]">*</span>
+                    </label>
+                    <input
+                      type="url"
+                      id="google_photos_url"
+                      name="google_photos_url"
+                      required
+                      value={formData.google_photos_url}
+                      onChange={handleTextChange}
+                      className="w-full rounded-lg border border-zinc-200 bg-white px-4 py-3 text-sm text-black placeholder-zinc-400 focus:border-[#E30613] focus:outline-none transition-colors"
+                      placeholder="Paste Spotify song, YouTube link, or website..."
+                    />
+                  </div>
+
+                  <div className="rounded-lg bg-zinc-50 p-4 border border-zinc-150 text-left">
+                    <p className="text-xs text-zinc-600 leading-relaxed font-semibold">
+                      Provide a Spotify track/playlist link, YouTube video URL, Google Photos shared album, or custom webpage. FeelsNeat will program this link onto the NFC chip before shipping.
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {/* STEP 3: PHOTO UPLOAD */}
+              {currentStep === 3 && (
+                <div className="space-y-6 animate-fade-in text-left">
+                  <div>
+                    <h2 className="text-base font-black uppercase text-black mb-1">Upload your photo</h2>
+                    <p className="text-xs text-zinc-500 font-bold tracking-wider">Choose the main artwork image for your tile</p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="block text-xs font-black text-black uppercase tracking-widest">
+                      Tile Artwork Photo <span className="text-[#E30613]">*</span>
+                    </label>
+                    
+                    {!mainPhoto ? (
+                      <label className="flex flex-col items-center justify-center border-2 border-dashed border-zinc-200 rounded-xl p-8 hover:border-zinc-300 transition-colors cursor-pointer bg-zinc-50/50">
+                        <LucideIcon name="Feather" className="h-8 w-8 text-zinc-400 mb-2 animate-pulse" />
+                        <span className="text-xs font-bold text-zinc-600 uppercase">Select Tile Artwork</span>
+                        <span className="text-[10px] text-zinc-400 mt-1.5 font-semibold">JPG, PNG, or WEBP (Max 12MB)</span>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={(e) => handlePhotoUpload(e, true)}
+                          className="hidden"
+                        />
+                      </label>
+                    ) : (
+                      <div className="relative rounded-xl overflow-hidden border border-zinc-200 aspect-square max-w-[240px] mx-auto bg-zinc-50">
+                        <img src={mainPhoto} alt="Tile preview" className="w-full h-full object-cover" />
+                        <button
+                          type="button"
+                          onClick={() => { setMainPhoto(null); setMainPhotoName(''); }}
+                          className="absolute top-2 right-2 bg-black/70 hover:bg-black text-white rounded-full p-1.5 transition-colors cursor-pointer"
+                        >
+                          <LucideIcon name="X" className="h-3.5 w-3.5" />
+                        </button>
+                        <div className="absolute bottom-0 inset-x-0 bg-black/60 px-3 py-1.5 text-[9px] font-bold text-white truncate text-center select-none">
+                          {mainPhotoName || 'uploaded_image.png'}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* STEP 4: CONTACT & SHIPPING */}
+              {currentStep === 4 && (
+                <div className="space-y-6 animate-fade-in text-left">
+                  <div>
+                    <h2 className="text-base font-black uppercase text-black mb-1">Delivery details</h2>
+                    <p className="text-xs text-zinc-500 font-bold tracking-wider">Provide details for shipping and manual payments coordinate</p>
+                  </div>
+
+                  <div className="space-y-4">
+                    <div className="grid sm:grid-cols-2 gap-4">
+                      <div>
+                        <label htmlFor="customer_name" className="block text-xs font-black text-black mb-2 uppercase tracking-widest">
+                          Full Name <span className="text-[#E30613]">*</span>
+                        </label>
+                        <input
+                          type="text"
+                          id="customer_name"
+                          name="customer_name"
+                          required
+                          value={formData.customer_name}
+                          onChange={handleTextChange}
+                          className="w-full rounded-lg border border-zinc-200 bg-white px-4 py-2.5 text-xs text-black placeholder-zinc-400 focus:border-[#E30613] focus:outline-none"
+                          placeholder="Your name"
+                        />
+                      </div>
+                      <div>
+                        <label htmlFor="customer_phone" className="block text-xs font-black text-black mb-2 uppercase tracking-widest">
+                          WhatsApp Number <span className="text-[#E30613]">*</span>
+                        </label>
+                        <input
+                          type="tel"
+                          id="customer_phone"
+                          name="customer_phone"
+                          required
+                          value={formData.customer_phone}
+                          onChange={handleTextChange}
+                          className="w-full rounded-lg border border-zinc-200 bg-white px-4 py-2.5 text-xs text-black placeholder-zinc-400 focus:border-[#E30613] focus:outline-none"
+                          placeholder="e.g. 9876543210"
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label htmlFor="customer_email" className="block text-xs font-black text-black mb-2 uppercase tracking-widest">
+                        Email Address <span className="text-[#E30613]">*</span>
+                      </label>
+                      <input
+                        type="email"
+                        id="customer_email"
+                        name="customer_email"
+                        required
+                        value={formData.customer_email}
+                        onChange={handleTextChange}
+                        className="w-full rounded-lg border border-zinc-200 bg-white px-4 py-2.5 text-xs text-black placeholder-zinc-400 focus:border-[#E30613] focus:outline-none"
+                        placeholder="email@example.com"
+                      />
+                    </div>
+
+                    <div className="border-t border-zinc-100 pt-4 space-y-4">
+                      <div>
+                        <label htmlFor="address_line" className="block text-xs font-black text-black mb-2 uppercase tracking-widest">
+                          Shipping Address <span className="text-[#E30613]">*</span>
+                        </label>
+                        <input
+                          type="text"
+                          id="address_line"
+                          name="address_line"
+                          required
+                          value={formData.address_line}
+                          onChange={handleTextChange}
+                          className="w-full rounded-lg border border-zinc-200 bg-white px-4 py-2.5 text-xs text-black placeholder-zinc-400 focus:border-[#E30613] focus:outline-none"
+                          placeholder="Flat/House No, Building, Street"
+                        />
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <label htmlFor="city" className="block text-xs font-black text-black mb-2 uppercase tracking-widest">
+                            City <span className="text-[#E30613]">*</span>
+                          </label>
+                          <input
+                            type="text"
+                            id="city"
+                            name="city"
+                            required
+                            value={formData.city}
+                            onChange={handleTextChange}
+                            className="w-full rounded-lg border border-zinc-200 bg-white px-4 py-2.5 text-xs text-black focus:border-[#E30613] focus:outline-none"
+                          />
+                        </div>
+                        <div>
+                          <label htmlFor="state" className="block text-xs font-black text-black mb-2 uppercase tracking-widest">
+                            State <span className="text-[#E30613]">*</span>
+                          </label>
+                          <input
+                            type="text"
+                            id="state"
+                            name="state"
+                            required
+                            value={formData.state}
+                            onChange={handleTextChange}
+                            className="w-full rounded-lg border border-zinc-200 bg-white px-4 py-2.5 text-xs text-black focus:border-[#E30613] focus:outline-none"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <label htmlFor="pincode" className="block text-xs font-black text-black mb-2 uppercase tracking-widest">
+                            Pincode <span className="text-[#E30613]">*</span>
+                          </label>
+                          <input
+                            type="text"
+                            id="pincode"
+                            name="pincode"
+                            required
+                            value={formData.pincode}
+                            onChange={handleTextChange}
+                            className="w-full rounded-lg border border-zinc-200 bg-white px-4 py-2.5 text-xs text-black focus:border-[#E30613] focus:outline-none"
+                            placeholder="6-digit PIN code"
+                          />
+                        </div>
+                        <div>
+                          <label htmlFor="country" className="block text-xs font-black text-black mb-2 uppercase tracking-widest">
+                            Country
+                          </label>
+                          <input
+                            type="text"
+                            id="country"
+                            name="country"
+                            value={formData.country}
+                            onChange={handleTextChange}
+                            className="w-full rounded-lg border border-zinc-200 bg-zinc-50 px-4 py-2.5 text-xs text-zinc-500 focus:outline-none"
+                            disabled
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="pt-4 border-t border-zinc-100 flex items-center justify-between">
+                      <div>
+                        <label className="block text-xs font-black text-black uppercase tracking-widest">Quantity</label>
+                        <p className="text-[10px] text-zinc-450 font-bold uppercase mt-0.5">Order multiple identical pieces</p>
+                      </div>
+                      
+                      <div className="flex items-center border border-zinc-200 rounded-lg overflow-hidden h-9 bg-white">
+                        <button
+                          type="button"
+                          onClick={() => setFormData((prev) => ({ ...prev, quantity: Math.max(1, prev.quantity - 1) }))}
+                          className="px-3 text-zinc-500 hover:bg-zinc-50 h-full font-bold transition-colors cursor-pointer select-none"
+                        >
+                          -
+                        </button>
+                        <span className="px-4 text-xs font-black text-black">{formData.quantity}</span>
+                        <button
+                          type="button"
+                          onClick={() => setFormData((prev) => ({ ...prev, quantity: prev.quantity + 1 }))}
+                          className="px-3 text-zinc-500 hover:bg-zinc-50 h-full font-bold transition-colors cursor-pointer select-none"
+                        >
+                          +
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* STEP 5: REVIEW */}
+              {currentStep === 5 && (
+                <div className="space-y-6 animate-fade-in text-left">
+                  <div>
+                    <h2 className="text-base font-black uppercase text-black mb-1">Review your Tap Tile</h2>
+                    <p className="text-xs text-zinc-500 font-bold tracking-wider">Confirm customization details before registering design</p>
+                  </div>
+
+                  <div className="rounded-xl border border-zinc-200 bg-zinc-50 p-5 space-y-4 text-black text-xs font-semibold uppercase">
+                    <div className="border-b border-zinc-200 pb-3">
+                      <span className="text-[9px] font-black text-[#E30613] uppercase tracking-widest block mb-0.5">
+                        Selected Niche
+                      </span>
+                      <span className="text-xs font-bold uppercase">
+                        {productId || 'General'} Tap Tile
+                      </span>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4 border-b border-zinc-200 pb-3">
+                      <div>
+                        <span className="text-[9px] font-black text-zinc-400 uppercase tracking-widest block">Format</span>
+                        <span className="font-bold text-black">{formData.size === 'magnet' ? 'Fridge Magnet' : 'Art Keychain'}</span>
+                      </div>
+                      <div>
+                        <span className="text-[9px] font-black text-zinc-400 uppercase tracking-widest block">Design Style</span>
+                        <span className="font-bold text-black">{formData.memory_type}</span>
+                      </div>
+                      <div>
+                        <span className="text-[9px] font-black text-zinc-400 uppercase tracking-widest block">Quantity</span>
+                        <span className="font-bold text-black">{formData.quantity} pc</span>
+                      </div>
+                    </div>
+
+                    <div className="border-b border-zinc-200 pb-3">
+                      <span className="text-[9px] font-black text-zinc-400 uppercase tracking-widest block">NFC Destination Link</span>
+                      <code className="text-[10px] font-mono break-all font-bold text-[#E30613]">{formData.google_photos_url}</code>
+                    </div>
+
+                    {formData.title && (
+                      <div className="border-b border-zinc-200 pb-3">
+                        <span className="text-[9px] font-black text-zinc-400 uppercase tracking-widest block">Overlay Text</span>
+                        <p className="font-semibold text-xs text-black">"{formData.title}"</p>
+                      </div>
+                    )}
+
+                    <div className="border-b border-zinc-200 pb-3 space-y-1">
+                      <span className="text-[9px] font-black text-zinc-400 uppercase tracking-widest block">Delivery To</span>
+                      <p className="font-bold text-black">{formData.customer_name}</p>
+                      <p className="text-zinc-500 leading-relaxed font-sans font-medium text-[11px] normal-case">
+                        {formData.address_line}, {formData.city}, {formData.state} - {formData.pincode}
+                      </p>
+                    </div>
+
+                    {formData.design_notes && (
+                      <div>
+                        <span className="text-[9px] font-black text-zinc-400 uppercase tracking-widest block">Special Instructions</span>
+                        <p className="text-xs text-zinc-500 italic lowercase first-letter:uppercase">"{formData.design_notes}"</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+            </>
+          )}
+
+          {/* =========================================================================
               DIGITAL PRODUCTS / SERVICES FLOW (3 STEPS)
               ========================================================================= */}
-          {order_type !== 'memories' && (
+          {(order_type === 'digital_product' || order_type === 'service') && (
             <>
               {/* STEP 1: CONFIGURE & PREFERENCES */}
               {currentStep === 1 && (

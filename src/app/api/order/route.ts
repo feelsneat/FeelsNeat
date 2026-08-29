@@ -282,6 +282,20 @@ export async function POST(req: NextRequest) {
           { status: 400 }
         );
       }
+    } else if (order_type === 'tap_tiles') {
+      if (!memory_type || !size || !quantity || !google_photos_url || !main_photo) {
+        return NextResponse.json(
+          { error: 'Missing required configuration selections (Style, format format, quantity, NFC link destination, and artwork photo are required).' },
+          { status: 400 }
+        );
+      }
+
+      if (!address_line || !city || !state || !pincode) {
+        return NextResponse.json(
+          { error: 'Customer contact information and complete shipping address details are required.' },
+          { status: 400 }
+        );
+      }
     } else if (order_type === 'service') {
       if (!product_id) {
         return NextResponse.json(
@@ -333,7 +347,7 @@ export async function POST(req: NextRequest) {
     }
 
     const orderNum = Math.floor(1000 + Math.random() * 9000);
-    const prefix = order_type === 'memories' ? 'FN-MEM' : order_type === 'service' ? 'FN-SRV' : 'FN-DIG';
+    const prefix = order_type === 'memories' ? 'FN-MEM' : order_type === 'tap_tiles' ? 'FN-TAP' : order_type === 'service' ? 'FN-SRV' : 'FN-DIG';
     const orderId = `${prefix}-${orderNum}`;
 
     const orderData = {
@@ -345,7 +359,7 @@ export async function POST(req: NextRequest) {
         name: customer_name,
         email: customer_email,
         phone: customer_phone,
-        address: order_type === 'memories' ? {
+        address: (order_type === 'memories' || order_type === 'tap_tiles') ? {
           line: address_line,
           city,
           state,
@@ -353,14 +367,14 @@ export async function POST(req: NextRequest) {
           country,
         } : null,
       },
-      product: order_type === 'memories' ? {
+      product: (order_type === 'memories' || order_type === 'tap_tiles') ? {
         memory_type,
         size,
         quantity: Number(quantity),
       } : {
         quantity: Number(quantity),
       },
-      photos: order_type === 'memories' ? {
+      photos: (order_type === 'memories' || order_type === 'tap_tiles') ? {
         main_photo,
         additional_photos: Array.isArray(additional_photos) ? additional_photos : [],
       } : null,
@@ -371,7 +385,7 @@ export async function POST(req: NextRequest) {
         caption: caption || '',
         design_notes: design_notes || '',
       },
-      digital_memory: order_type === 'memories' ? {
+      digital_memory: (order_type === 'memories' || order_type === 'tap_tiles') ? {
         google_photos_url,
       } : null,
       service_details: order_type === 'service' ? {
@@ -399,10 +413,10 @@ export async function POST(req: NextRequest) {
       },
       production: {
         design_status: 'NEW',
-        print_status: order_type === 'memories' ? 'NEW' : 'N/A',
-        nfc_status: order_type === 'memories' ? 'NEW' : 'N/A',
-        nfc_test_status: order_type === 'memories' ? 'NEW' : 'N/A',
-        shipping_status: order_type === 'memories' ? 'NEW' : 'N/A',
+        print_status: (order_type === 'memories' || order_type === 'tap_tiles') ? 'NEW' : 'N/A',
+        nfc_status: (order_type === 'memories' || order_type === 'tap_tiles') ? 'NEW' : 'N/A',
+        nfc_test_status: (order_type === 'memories' || order_type === 'tap_tiles') ? 'NEW' : 'N/A',
+        shipping_status: (order_type === 'memories' || order_type === 'tap_tiles') ? 'NEW' : 'N/A',
       },
     };
 

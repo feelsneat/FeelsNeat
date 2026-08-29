@@ -18,6 +18,7 @@ import CreatePage from '@/components/pages/Create';
 import OrderConfirmationPage from '@/components/pages/Confirmation';
 import TapTilesPage from '@/components/pages/TapTiles';
 import CreateTapTilePage from '@/components/pages/CreateTapTile';
+import TapTileProductPage from '@/components/pages/TapTileProduct';
 
 export const runtime = 'edge';
 
@@ -101,16 +102,32 @@ export async function generateMetadata({ params }: { params: Promise<{ slug?: st
       }
     };
   }
-  if (route === 'tap-tiles' && slug.length === 1) {
-    return {
-      title: `FeelsNeat Tap Tiles | Personalized Mini NFC Art Tiles`,
-      description: 'Small personalized art tiles that connect you to something meaningful with one tap. Choose your photo, words, and link — we program it for you.',
-      openGraph: {
+  if (route === 'tap-tiles') {
+    if (slug.length === 1) {
+      return {
         title: `FeelsNeat Tap Tiles | Personalized Mini NFC Art Tiles`,
         description: 'Small personalized art tiles that connect you to something meaningful with one tap. Choose your photo, words, and link — we program it for you.',
-        images: [{ url: '/images/tap-tiles/hero-mockup.jpg' }]
-      }
-    };
+        openGraph: {
+          title: `FeelsNeat Tap Tiles | Personalized Mini NFC Art Tiles`,
+          description: 'Small personalized art tiles that connect you to something meaningful with one tap. Choose your photo, words, and link — we program it for you.',
+          images: [{ url: '/images/tap-tiles/hero-mockup.jpg' }]
+        }
+      };
+    }
+    if (slug.length === 2) {
+      const categorySlug = slug[1];
+      const categories = {
+        nostalgia: 'Nostalgia Taps | Retro NFC Art Tiles',
+        friends: 'Friends & Inside Jokes | Personalized NFC Keychains',
+        couples: 'Our Song | Custom NFC Couple Magnet Prints',
+        pets: 'Pet Tap Tiles | Personalized Custom Pet Art'
+      };
+      const title = (categories as any)[categorySlug] || 'Personalized Tap Tile';
+      return {
+        title: `${title} | ${settings.siteName}`,
+        description: 'Turn your favorite memories, songs, playlists, or pet photos into tiny NFC art collectibles.'
+      };
+    }
   }
   if (route === 'create-tap-tile' && slug.length === 1) {
     return {
@@ -182,9 +199,18 @@ export default async function CatchAllPage({ params, searchParams }: PageProps) 
     return <CreatePage />;
   }
 
-  // 4.65. Tap Tiles Route (e.g. /tap-tiles)
-  if (route === 'tap-tiles' && slug.length === 1) {
-    return <TapTilesPage />;
+  // 4.65. Tap Tiles Routes (e.g. /tap-tiles and /tap-tiles/[category])
+  if (route === 'tap-tiles') {
+    if (slug.length === 1) {
+      return <TapTilesPage />;
+    }
+    if (slug.length === 2) {
+      const cat = slug[1];
+      if (['nostalgia', 'friends', 'couples', 'pets'].includes(cat)) {
+        return <TapTileProductPage categorySlug={cat} />;
+      }
+      notFound();
+    }
   }
 
   // 4.66. Create Tap Tile Customizer Route (e.g. /create-tap-tile)
