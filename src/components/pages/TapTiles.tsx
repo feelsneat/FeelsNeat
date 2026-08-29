@@ -43,7 +43,7 @@ export const TAP_TILES_CATEGORIES = {
     subtitle: 'Silly snapshots, cozy portraits, and funny character overlays.',
     description: 'Turn your dog or cat\'s unique personality into a small collectible piece of art. Choose your favorite pet snapshot, add a funny caption, and link it directly to their photo album or favorite cozy playlist.',
     cta: 'Create Pet Tile',
-    image: '/images/tap-tiles/sports.jpg',
+    image: '/images/tap-tiles/pets-hero.jpg',
     tags: ['Dog Lover', 'Cat Life', 'Portraits'],
   },
 };
@@ -372,7 +372,7 @@ export default function TapTilesPage() {
             {/* Card 4: Pets */}
             <div className="group rounded-2xl border border-white/5 bg-[#0E0E12] overflow-hidden flex flex-col justify-between h-[380px] shadow-sm hover:border-white/10 transition-all duration-300">
               <div className="relative h-48 w-full bg-zinc-950 overflow-hidden select-none">
-                <div className="absolute inset-0 bg-cover bg-center opacity-70 group-hover:scale-102 transition-transform duration-500" style={{ backgroundImage: "url('/images/tap-tiles/sports.jpg')" }} />
+                <div className="absolute inset-0 bg-cover bg-center opacity-70 group-hover:scale-102 transition-transform duration-500" style={{ backgroundImage: "url('/images/tap-tiles/pets-hero.jpg')" }} />
                 <div className="absolute inset-0 bg-gradient-to-t from-[#0E0E12] to-transparent" />
               </div>
               <div className="p-5 flex-1 flex flex-col justify-between text-left">

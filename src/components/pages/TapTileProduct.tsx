@@ -14,12 +14,19 @@ export default function TapTileProductPage({ categorySlug }: TapTileProductProps
   const category = (TAP_TILES_CATEGORIES as any)[categorySlug] || TAP_TILES_CATEGORIES.nostalgia;
 
   // Visual images list mockups
-  const imagesList = [
-    category.image,
-    '/images/tap-tiles/boys-magnet.jpg', // Fridge closeup
-    '/images/tap-tiles/friends.jpg', // Keychain closeup
-    '/images/tap-tiles/hero-mockup.jpg'  // Grid collection
-  ];
+  const imagesList = categorySlug === 'pets' 
+    ? [
+        '/images/tap-tiles/pets-hero.jpg',
+        '/images/tap-tiles/pets-detail-1.jpg',
+        '/images/tap-tiles/pets-detail-2.jpg',
+        '/images/tap-tiles/pets-detail-3.jpg'
+      ]
+    : [
+        category.image,
+        '/images/tap-tiles/boys-magnet.jpg', // Fridge closeup
+        '/images/tap-tiles/friends.jpg', // Keychain closeup
+        '/images/tap-tiles/hero-mockup.jpg'  // Grid collection
+      ];
 
   const [activeImage, setActiveImage] = useState(imagesList[0]);
   const [selectedFormat, setSelectedFormat] = useState<'magnet' | 'keychain'>('magnet');
