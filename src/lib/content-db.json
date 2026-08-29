@@ -247,20 +247,6 @@
       "etsyUrl": "https://feelsneat.etsy.com"
     },
     {
-      "id": "side-hustle-bookkeeping",
-      "category": "finance",
-      "title": "Side-Hustle Bookkeeping Sheet",
-      "price": "₹599",
-      "features": [
-        "Automated Expense Charting",
-        "Visual Profit & Loss Graphs",
-        "Etsy & Stripe Invoice Import Log",
-        "Multi-currency Conversion Engine"
-      ],
-      "mockupText": "Bookkeeping Sheet Layout",
-      "etsyUrl": "https://feelsneat.etsy.com"
-    },
-    {
       "id": "life-dashboard",
       "category": "productivity",
       "title": "All-in-One Life Dashboard",
@@ -277,7 +263,7 @@
     {
       "id": "creator-os",
       "category": "content",
-      "title": "TikTok Creator OS",
+      "title": "Creator OS",
       "price": "₹199",
       "features": [
         "Visual Workspace Manager",
