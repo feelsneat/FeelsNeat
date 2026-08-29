@@ -46,19 +46,14 @@ export async function GET(req: NextRequest) {
     console.warn('KV context list error in GET admin/orders:', e);
   }
 
-  // 2. Fetch from local JSON file in development mode
+  // 2. Fetch from local JSON file dev-db API in development mode
   if (process.env.NODE_ENV === 'development') {
     try {
-      const processObj = (globalThis as any)['process'];
-      const reqFn = processObj?.['mainModule']?.['require'];
-      if (reqFn) {
-        const fs = reqFn('fs');
-        const path = reqFn('path');
-        const cwd = processObj['cwd']();
-        const dbPath = path.join(cwd, 'src/lib/orders-db-dev.json');
-        if (fs.existsSync(dbPath)) {
-          const fileContent = fs.readFileSync(dbPath, 'utf-8');
-          const fileOrders = JSON.parse(fileContent);
+      const devDbUrl = new URL('/api/dev-db', req.url).toString();
+      const res = await fetch(devDbUrl);
+      if (res.ok) {
+        const fileOrders = await res.json();
+        if (Array.isArray(fileOrders)) {
           // Merge only unique IDs
           const merged = [...orders];
           fileOrders.forEach((fo: any) => {
@@ -70,7 +65,7 @@ export async function GET(req: NextRequest) {
         }
       }
     } catch (err) {
-      console.error('Failed to read dev orders database file in GET:', err);
+      console.error('Failed to read dev orders database via GET /api/dev-db:', err);
     }
   }
 
@@ -126,35 +121,14 @@ export async function POST(req: NextRequest) {
       // 2. Update in local JSON file in development mode
       if (process.env.NODE_ENV === 'development') {
         try {
-          const processObj = (globalThis as any)['process'];
-          const reqFn = processObj?.['mainModule']?.['require'];
-          if (reqFn) {
-            const fs = reqFn('fs');
-            const path = reqFn('path');
-            const cwd = processObj['cwd']();
-            const dbPath = path.join(cwd, 'src/lib/orders-db-dev.json');
-            if (fs.existsSync(dbPath)) {
-              const fileContent = fs.readFileSync(dbPath, 'utf-8');
-              let fileOrders = JSON.parse(fileContent);
-              if (action === 'delete') {
-                fileOrders = fileOrders.filter((o: any) => o.order_id !== order_id);
-              } else {
-                fileOrders = fileOrders.map((o: any) => {
-                  if (o.order_id === order_id) {
-                    return {
-                      ...o,
-                      payment: { ...o.payment, ...(statusUpdates.payment || {}) },
-                      production: { ...o.production, ...(statusUpdates.production || {}) }
-                    };
-                  }
-                  return o;
-                });
-              }
-              fs.writeFileSync(dbPath, JSON.stringify(fileOrders, null, 2), 'utf-8');
-            }
-          }
+          const devDbUrl = new URL('/api/dev-db', req.url).toString();
+          await fetch(devDbUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action, order_id, statusUpdates })
+          });
         } catch (err) {
-          console.error('Failed to update dev orders file in POST:', err);
+          console.error('Failed to update dev orders file via POST /api/dev-db:', err);
         }
       }
 
@@ -261,24 +235,14 @@ export async function POST(req: NextRequest) {
       // Dev file DB Save
       if (process.env.NODE_ENV === 'development') {
         try {
-          const processObj = (globalThis as any)['process'];
-          const reqFn = processObj?.['mainModule']?.['require'];
-          if (reqFn) {
-            const fs = reqFn('fs');
-            const path = reqFn('path');
-            const cwd = processObj['cwd']();
-            const dbPath = path.join(cwd, 'src/lib/orders-db-dev.json');
-            
-            let existingOrders: any[] = [];
-            if (fs.existsSync(dbPath)) {
-              const content = fs.readFileSync(dbPath, 'utf-8');
-              existingOrders = JSON.parse(content);
-            }
-            existingOrders.unshift(inquiryData);
-            fs.writeFileSync(dbPath, JSON.stringify(existingOrders, null, 2), 'utf-8');
-          }
+          const devDbUrl = new URL('/api/dev-db', req.url).toString();
+          await fetch(devDbUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'save_order', orderData: inquiryData })
+          });
         } catch (err) {
-          console.error('Failed to save general inquiry to local dev file:', err);
+          console.error('Failed to save general inquiry via POST /api/dev-db:', err);
         }
       }
 
@@ -457,24 +421,14 @@ export async function POST(req: NextRequest) {
     // Dev file DB Save
     if (process.env.NODE_ENV === 'development') {
       try {
-        const processObj = (globalThis as any)['process'];
-        const reqFn = processObj?.['mainModule']?.['require'];
-        if (reqFn) {
-          const fs = reqFn('fs');
-          const path = reqFn('path');
-          const cwd = processObj['cwd']();
-          const dbPath = path.join(cwd, 'src/lib/orders-db-dev.json');
-          
-          let existingOrders: any[] = [];
-          if (fs.existsSync(dbPath)) {
-            const content = fs.readFileSync(dbPath, 'utf-8');
-            existingOrders = JSON.parse(content);
-          }
-          existingOrders.unshift(orderData);
-          fs.writeFileSync(dbPath, JSON.stringify(existingOrders, null, 2), 'utf-8');
-        }
+        const devDbUrl = new URL('/api/dev-db', req.url).toString();
+        await fetch(devDbUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'save_order', orderData })
+        });
       } catch (err) {
-        console.error('Failed to save order to local dev file:', err);
+        console.error('Failed to save order via POST /api/dev-db:', err);
       }
     }
 
