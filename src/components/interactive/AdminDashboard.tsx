@@ -373,9 +373,47 @@ export function AdminDashboard({ userEmail }: AdminDashboardProps) {
                           {/* Main Print Image Attachment Preview */}
                           {selectedOrder.photos?.main_photo && (
                             <div className="space-y-1.5">
-                              <span className="block text-[9px] font-bold text-zinc-400 uppercase tracking-wider">Canvas Photo Preview</span>
-                              <div className="max-w-[280px] rounded-lg border border-zinc-200 overflow-hidden bg-white shadow-2xs aspect-[1.5/1]">
+                              <div className="flex justify-between items-center max-w-[280px]">
+                                <span className="block text-[9px] font-bold text-zinc-400 uppercase tracking-wider">Canvas Photo Preview</span>
+                                <a
+                                  href={selectedOrder.photos.main_photo}
+                                  download={`canvas_${selectedOrder.order_id}.png`}
+                                  className="inline-flex items-center gap-1 text-[9px] font-bold text-[#E30613] hover:underline cursor-pointer select-none"
+                                >
+                                  <LucideIcon name="Download" className="h-3 w-3" /> Download High-Res
+                                </a>
+                              </div>
+                              <div className="max-w-[280px] rounded-lg border border-zinc-200 overflow-hidden bg-white shadow-2xs aspect-[1.5/1] relative group">
                                 <img src={selectedOrder.photos.main_photo} alt="Print Preview" className="w-full h-full object-cover" />
+                                <a
+                                  href={selectedOrder.photos.main_photo}
+                                  download={`canvas_${selectedOrder.order_id}.png`}
+                                  className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 flex flex-col items-center justify-center transition-all duration-200 text-white font-bold text-xs gap-1.5 cursor-pointer"
+                                >
+                                  <LucideIcon name="Download" className="h-5 w-5 animate-bounce" />
+                                  <span>Download Image File</span>
+                                </a>
+                              </div>
+                            </div>
+                          )}
+
+                          {/* Additional Photos Attachment Previews */}
+                          {selectedOrder.photos?.additional_photos && selectedOrder.photos.additional_photos.length > 0 && (
+                            <div className="space-y-1.5 pt-2">
+                              <span className="block text-[9px] font-bold text-zinc-400 uppercase tracking-wider">Additional Photo Attachments</span>
+                              <div className="grid grid-cols-3 gap-2 max-w-[280px]">
+                                {selectedOrder.photos.additional_photos.map((photo: string, idx: number) => (
+                                  <div key={idx} className="relative group rounded-md border border-zinc-150 overflow-hidden bg-zinc-50 aspect-square">
+                                    <img src={photo} alt={`Additional ${idx + 1}`} className="w-full h-full object-cover" />
+                                    <a
+                                      href={photo}
+                                      download={`additional_${selectedOrder.order_id}_${idx + 1}.png`}
+                                      className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-all duration-200 text-white font-black text-[9px] gap-1 cursor-pointer"
+                                    >
+                                      <LucideIcon name="Download" className="h-3 w-3" /> Get
+                                    </a>
+                                  </div>
+                                ))}
                               </div>
                             </div>
                           )}
