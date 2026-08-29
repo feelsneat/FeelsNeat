@@ -967,8 +967,8 @@ export default function CreateMemoryPage() {
                     <label className="block text-xs font-black text-black uppercase tracking-widest">Select Format</label>
                     <div className="grid grid-cols-2 gap-3">
                       {[
-                        { id: 'magnet', label: 'Magnet', subtitle: 'Fridge Magnet', price: '₹199' },
-                        { id: 'keychain', label: 'Keychain', subtitle: 'Art Keychain', price: '₹249' }
+                        { id: 'magnet', label: 'Magnet', subtitle: 'Fridge Magnet', price: '₹99' },
+                        { id: 'keychain', label: 'Keychain', subtitle: 'Art Keychain', price: '₹49' }
                       ].map((format) => (
                         <button
                           key={format.id}
@@ -1311,7 +1311,7 @@ export default function CreateMemoryPage() {
                       </div>
                       <div>
                         <span className="text-[9px] font-black text-zinc-400 uppercase tracking-widest block">Price</span>
-                        <span className="font-bold text-[#E30613]">{formData.size === 'magnet' ? '₹199' : '₹249'}</span>
+                        <span className="font-bold text-[#E30613]">{formData.size === 'magnet' ? '₹99' : '₹49'}</span>
                       </div>
                     </div>
 

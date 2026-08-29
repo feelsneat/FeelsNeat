@@ -131,7 +131,7 @@ export default function TapTileProductPage({ categorySlug }: TapTileProductProps
                       <span className="block text-[8px] font-black text-[#E30613] uppercase tracking-wider mb-1">Attach to Fridge</span>
                       <h4 className="text-xs font-black uppercase text-[#F4F4F5]">Magnet Version</h4>
                     </div>
-                    <span className="text-xs font-black text-[#F4F4F5] bg-white/5 border border-white/10 px-2.5 py-0.5 rounded tracking-wider">₹199</span>
+                    <span className="text-xs font-black text-[#F4F4F5] bg-white/5 border border-white/10 px-2.5 py-0.5 rounded tracking-wider">₹99</span>
                   </div>
                   <span className="text-xs font-bold text-[#F4F4F5]/60 mt-4">UPI/Manual Checkout</span>
                 </button>
@@ -150,7 +150,7 @@ export default function TapTileProductPage({ categorySlug }: TapTileProductProps
                       <span className="block text-[8px] font-black text-[#E30613] uppercase tracking-wider mb-1">Carry with You</span>
                       <h4 className="text-xs font-black uppercase text-[#F4F4F5]">Keychain Version</h4>
                     </div>
-                    <span className="text-xs font-black text-[#F4F4F5] bg-white/5 border border-white/10 px-2.5 py-0.5 rounded tracking-wider">₹249</span>
+                    <span className="text-xs font-black text-[#F4F4F5] bg-white/5 border border-white/10 px-2.5 py-0.5 rounded tracking-wider">₹49</span>
                   </div>
                   <span className="text-xs font-bold text-[#F4F4F5]/60 mt-4">UPI/Manual Checkout</span>
                 </button>
