@@ -13,7 +13,7 @@ export const TAP_TILES_CATEGORIES = {
     subtitle: 'Retro snapshots, childhood pictures, and high school throwbacks.',
     description: 'Keep your best childhood memories, school years, college trip snapshots, and retro milestones close by. Link your tile to a Spotify throwback playlist, school memory video, or Google Photos throwback album.',
     cta: 'Create Nostalgia Tile',
-    image: 'https://images.unsplash.com/photo-1542282088-fe8426682b8f?q=80&w=600',
+    image: '/images/tap-tiles/nostalgia.jpg',
     tags: ['Retro', 'Throwback', 'School Days'],
   },
   friends: {
@@ -23,7 +23,7 @@ export const TAP_TILES_CATEGORIES = {
     subtitle: 'Candid friend snaps, inside jokes, and unforgettable moments.',
     description: 'The photo everyone remembers. The joke nobody else understands. The song that takes you right back to that trip. Perfect as a pocket keychain or fridge magnet that opens your favorite group chat playlist or travel album.',
     cta: 'Create Friendship Tile',
-    image: 'https://images.unsplash.com/photo-1501386761578-eac5c94b800a?q=80&w=600',
+    image: '/images/tap-tiles/friends.jpg',
     tags: ['Group Chat', 'Inside Jokes', 'Adventure'],
   },
   couples: {
@@ -33,7 +33,7 @@ export const TAP_TILES_CATEGORIES = {
     subtitle: 'Couples snapshots, anniversary dates, and relationship timelines.',
     description: 'An elegant tribute to your relationship. Select a couples photo, customize the typography, and connect it directly to your shared song on Spotify or your Google Photos relationship album.',
     cta: 'Create Couple Tile',
-    image: 'https://images.unsplash.com/photo-1518199266791-5375a83190b7?q=80&w=600',
+    image: '/images/tap-tiles/hero-mockup.jpg',
     tags: ['Relationship', 'Soundtrack', 'Anniversary'],
   },
   pets: {
@@ -43,7 +43,7 @@ export const TAP_TILES_CATEGORIES = {
     subtitle: 'Silly snapshots, cozy portraits, and funny character overlays.',
     description: 'Turn your dog or cat\'s unique personality into a small collectible piece of art. Choose your favorite pet snapshot, add a funny caption, and link it directly to their photo album or favorite cozy playlist.',
     cta: 'Create Pet Tile',
-    image: 'https://images.unsplash.com/photo-1543466835-00a7907e9de1?q=80&w=600',
+    image: '/images/tap-tiles/sports.jpg',
     tags: ['Dog Lover', 'Cat Life', 'Portraits'],
   },
 };
@@ -150,53 +150,13 @@ export default function TapTilesPage() {
 
             {/* Hero Right Visual Composition */}
             <div className="lg:col-span-6 flex justify-center">
-              <div className="relative w-full max-w-[460px] aspect-[4/3] rounded-2xl border border-white/10 bg-[#0E0E12]/80 p-6 flex flex-col justify-between overflow-hidden shadow-2xl group">
-                <div className="absolute top-0 right-0 p-4 opacity-30 select-none pointer-events-none">
-                  {/* Subtle NFC wave graphic */}
-                  <svg className="w-12 h-12 text-[#E30613]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M12 2a10 10 0 0 1 10 10M12 6a6 6 0 0 1 6 6M12 10a2 2 0 0 1 2 2" strokeLinecap="round" />
-                    <circle cx="12" cy="12" r="1" />
-                  </svg>
-                </div>
-                
-                {/* 2x2 Grid of Tap Tiles Mockups */}
-                <div className="grid grid-cols-2 gap-4 w-full">
-                  {/* Tile 1: Retro childhood photo */}
-                  <div className="aspect-square bg-zinc-900 border border-white/5 rounded-xl p-3 flex flex-col justify-between shadow-md relative overflow-hidden group/tile">
-                    <div className="absolute inset-0 bg-cover bg-center opacity-60 filter grayscale group-hover/tile:grayscale-0 transition-all duration-500" style={{ backgroundImage: "url('https://images.unsplash.com/photo-1476234251651-f353703a034d?q=80&w=300')" }} />
-                    <div className="relative z-10 flex flex-col h-full justify-between">
-                      <span className="text-[7px] font-black text-white/50 tracking-widest uppercase">THROWBACKS</span>
-                      <span className="text-[9px] font-black text-white bg-black/60 px-1.5 py-0.5 rounded w-fit select-none">"2008 was a personality."</span>
-                    </div>
-                  </div>
-                  
-                  {/* Tile 2: Inside jokes */}
-                  <div className="aspect-square bg-zinc-900 border border-white/5 rounded-xl p-3 flex flex-col justify-between shadow-md relative overflow-hidden group/tile">
-                    <div className="absolute inset-0 bg-cover bg-center opacity-60 group-hover/tile:scale-105 transition-all duration-500" style={{ backgroundImage: "url('https://images.unsplash.com/photo-1529156069898-49953e39b3ac?q=80&w=300')" }} />
-                    <div className="relative z-10 flex flex-col h-full justify-between">
-                      <span className="text-[7px] font-black text-white/50 tracking-widest uppercase">THE GROUP CHAT</span>
-                      <span className="text-[9px] font-black text-white bg-black/60 px-1.5 py-0.5 rounded w-fit select-none">"Certified bad influence."</span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Smartphone tap interaction mockup */}
-                <div className="mt-4 flex items-center justify-between bg-black/40 border border-white/5 rounded-xl p-3">
-                  <div className="flex items-center gap-3">
-                    <div className="h-10 w-10 rounded-lg bg-zinc-800 border border-white/10 flex items-center justify-center text-[#E30613] overflow-hidden shrink-0">
-                      <svg className="h-6 w-6" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2zm4.586 12.586c-.18.18-.43.293-.707.293s-.527-.113-.707-.293c-1.39-1.39-3.238-2.156-5.207-2.156s-3.817.766-5.207 2.156c-.18.18-.43.293-.707.293s-.527-.113-.707-.293a.996.996 0 0 1 0-1.414c1.768-1.768 4.12-2.742 6.621-2.742s4.853.974 6.621 2.742a.996.996 0 0 1 0 1.414z" />
-                      </svg>
-                    </div>
-                    <div className="text-left">
-                      <span className="block text-[8px] font-black text-[#E30613] tracking-widest uppercase">TAP DETECTED</span>
-                      <span className="block text-[11px] font-bold text-white leading-tight">Opening Spotify Playlist...</span>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-1 text-[8px] font-black uppercase text-[#F4F4F5]/50 border border-white/10 px-2 py-1 rounded">
-                    <span>TAP. OPEN. PLAY.</span>
-                  </div>
-                </div>
+              <div className="relative w-full max-w-[500px] aspect-[3/2] rounded-2xl border border-white/10 bg-[#0E0E12] overflow-hidden shadow-2xl group select-none">
+                <img
+                  src="/images/tap-tiles/friends.jpg"
+                  alt="FeelsNeat Tap Tiles keychain and smartphone music tap demo"
+                  className="w-full h-full object-cover group-hover:scale-102 transition-transform duration-700 ease-out"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent pointer-events-none" />
               </div>
             </div>
           </div>
@@ -349,7 +309,7 @@ export default function TapTilesPage() {
             {/* Card 1: Nostalgia */}
             <div className="group rounded-2xl border border-white/5 bg-[#0E0E12] overflow-hidden flex flex-col justify-between h-[380px] shadow-sm hover:border-white/10 transition-all duration-300">
               <div className="relative h-48 w-full bg-zinc-950 overflow-hidden select-none">
-                <div className="absolute inset-0 bg-cover bg-center filter grayscale contrast-110 opacity-70 group-hover:scale-102 transition-transform duration-500" style={{ backgroundImage: "url('https://images.unsplash.com/photo-1542282088-fe8426682b8f?q=80&w=300')" }} />
+                <div className="absolute inset-0 bg-cover bg-center filter grayscale contrast-110 opacity-70 group-hover:scale-102 transition-transform duration-500" style={{ backgroundImage: "url('/images/tap-tiles/nostalgia.jpg')" }} />
                 <div className="absolute inset-0 bg-gradient-to-t from-[#0E0E12] to-transparent" />
               </div>
               <div className="p-5 flex-1 flex flex-col justify-between text-left">
@@ -370,7 +330,7 @@ export default function TapTilesPage() {
             {/* Card 2: Friends */}
             <div className="group rounded-2xl border border-white/5 bg-[#0E0E12] overflow-hidden flex flex-col justify-between h-[380px] shadow-sm hover:border-white/10 transition-all duration-300">
               <div className="relative h-48 w-full bg-zinc-950 overflow-hidden select-none">
-                <div className="absolute inset-0 bg-cover bg-center opacity-70 group-hover:scale-102 transition-transform duration-500" style={{ backgroundImage: "url('https://images.unsplash.com/photo-1501386761578-eac5c94b800a?q=80&w=300')" }} />
+                <div className="absolute inset-0 bg-cover bg-center opacity-70 group-hover:scale-102 transition-transform duration-500" style={{ backgroundImage: "url('/images/tap-tiles/friends.jpg')" }} />
                 <div className="absolute inset-0 bg-gradient-to-t from-[#0E0E12] to-transparent" />
               </div>
               <div className="p-5 flex-1 flex flex-col justify-between text-left">
@@ -391,7 +351,7 @@ export default function TapTilesPage() {
             {/* Card 3: Couples */}
             <div className="group rounded-2xl border border-white/5 bg-[#0E0E12] overflow-hidden flex flex-col justify-between h-[380px] shadow-sm hover:border-white/10 transition-all duration-300">
               <div className="relative h-48 w-full bg-zinc-950 overflow-hidden select-none">
-                <div className="absolute inset-0 bg-cover bg-center opacity-70 group-hover:scale-102 transition-transform duration-500" style={{ backgroundImage: "url('https://images.unsplash.com/photo-1518199266791-5375a83190b7?q=80&w=300')" }} />
+                <div className="absolute inset-0 bg-cover bg-center opacity-70 group-hover:scale-102 transition-transform duration-500" style={{ backgroundImage: "url('/images/tap-tiles/hero-mockup.jpg')" }} />
                 <div className="absolute inset-0 bg-gradient-to-t from-[#0E0E12] to-transparent" />
               </div>
               <div className="p-5 flex-1 flex flex-col justify-between text-left">
@@ -412,7 +372,7 @@ export default function TapTilesPage() {
             {/* Card 4: Pets */}
             <div className="group rounded-2xl border border-white/5 bg-[#0E0E12] overflow-hidden flex flex-col justify-between h-[380px] shadow-sm hover:border-white/10 transition-all duration-300">
               <div className="relative h-48 w-full bg-zinc-950 overflow-hidden select-none">
-                <div className="absolute inset-0 bg-cover bg-center opacity-70 group-hover:scale-102 transition-transform duration-500" style={{ backgroundImage: "url('https://images.unsplash.com/photo-1543466835-00a7907e9de1?q=80&w=300')" }} />
+                <div className="absolute inset-0 bg-cover bg-center opacity-70 group-hover:scale-102 transition-transform duration-500" style={{ backgroundImage: "url('/images/tap-tiles/sports.jpg')" }} />
                 <div className="absolute inset-0 bg-gradient-to-t from-[#0E0E12] to-transparent" />
               </div>
               <div className="p-5 flex-1 flex flex-col justify-between text-left">
@@ -452,7 +412,7 @@ export default function TapTilesPage() {
             {/* Magnet Version */}
             <div className="border border-white/5 bg-[#0E0E12] rounded-2xl p-6 flex flex-col gap-4 text-left shadow-sm">
               <div className="h-44 bg-zinc-950 rounded-xl overflow-hidden relative select-none">
-                <div className="absolute inset-0 bg-cover bg-center opacity-60" style={{ backgroundImage: "url('https://images.unsplash.com/photo-1540555700478-4be289fbecef?q=80&w=400')" }} />
+                <div className="absolute inset-0 bg-cover bg-center opacity-60" style={{ backgroundImage: "url('/images/tap-tiles/boys-magnet.jpg')" }} />
                 <div className="absolute top-3 left-3 bg-[#E30613] text-white text-[8px] font-black uppercase tracking-widest px-2 py-0.5 rounded">MAGNET</div>
               </div>
               <div>
@@ -466,7 +426,7 @@ export default function TapTilesPage() {
             {/* Keychain Version */}
             <div className="border border-white/5 bg-[#0E0E12] rounded-2xl p-6 flex flex-col gap-4 text-left shadow-sm">
               <div className="h-44 bg-zinc-950 rounded-xl overflow-hidden relative select-none">
-                <div className="absolute inset-0 bg-cover bg-center opacity-60" style={{ backgroundImage: "url('https://images.unsplash.com/photo-1582139329536-e7284fece509?q=80&w=400')" }} />
+                <div className="absolute inset-0 bg-cover bg-center opacity-60" style={{ backgroundImage: "url('/images/tap-tiles/friends.jpg')" }} />
                 <div className="absolute top-3 left-3 bg-[#E30613] text-white text-[8px] font-black uppercase tracking-widest px-2 py-0.5 rounded">KEYCHAIN</div>
               </div>
               <div>

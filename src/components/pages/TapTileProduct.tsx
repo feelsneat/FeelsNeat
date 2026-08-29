@@ -16,9 +16,9 @@ export default function TapTileProductPage({ categorySlug }: TapTileProductProps
   // Visual images list mockups
   const imagesList = [
     category.image,
-    'https://images.unsplash.com/photo-1540555700478-4be289fbecef?q=80&w=300', // Fridge closeup
-    'https://images.unsplash.com/photo-1582139329536-e7284fece509?q=80&w=300', // Keychain closeup
-    'https://images.unsplash.com/photo-1476234251651-f353703a034d?q=80&w=300'  // Grid collection
+    '/images/tap-tiles/boys-magnet.jpg', // Fridge closeup
+    '/images/tap-tiles/friends.jpg', // Keychain closeup
+    '/images/tap-tiles/hero-mockup.jpg'  // Grid collection
   ];
 
   const [activeImage, setActiveImage] = useState(imagesList[0]);
