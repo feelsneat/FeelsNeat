@@ -16,6 +16,8 @@ import MemoriesPage from '@/components/pages/Memories';
 import MemoryProductPage from '@/components/pages/MemoryProduct';
 import CreatePage from '@/components/pages/Create';
 import OrderConfirmationPage from '@/components/pages/Confirmation';
+import TapTilesPage from '@/components/pages/TapTiles';
+import CreateTapTilePage from '@/components/pages/CreateTapTile';
 
 export const runtime = 'edge';
 
@@ -99,6 +101,23 @@ export async function generateMetadata({ params }: { params: Promise<{ slug?: st
       }
     };
   }
+  if (route === 'tap-tiles' && slug.length === 1) {
+    return {
+      title: `FeelsNeat Tap Tiles | Personalized Mini NFC Art Tiles`,
+      description: 'Small personalized art tiles that connect you to something meaningful with one tap. Choose your photo, words, and link — we program it for you.',
+      openGraph: {
+        title: `FeelsNeat Tap Tiles | Personalized Mini NFC Art Tiles`,
+        description: 'Small personalized art tiles that connect you to something meaningful with one tap. Choose your photo, words, and link — we program it for you.',
+        images: [{ url: '/images/tap-tiles/hero-mockup.jpg' }]
+      }
+    };
+  }
+  if (route === 'create-tap-tile' && slug.length === 1) {
+    return {
+      title: `Configure Tap Tile | FeelsNeat`,
+      description: 'Design and customize your personalized NFC Tap Tile magnet or keychain with a custom photo, message, and target link.'
+    };
+  }
   if (route === 'confirmation' && slug.length === 1) {
     return { title: `Order Confirmed | ${settings.siteName}` };
   }
@@ -161,6 +180,16 @@ export default async function CatchAllPage({ params, searchParams }: PageProps) 
   // 4.6. Create Memory Route (e.g. /create)
   if (route === 'create' && slug.length === 1) {
     return <CreatePage />;
+  }
+
+  // 4.65. Tap Tiles Route (e.g. /tap-tiles)
+  if (route === 'tap-tiles' && slug.length === 1) {
+    return <TapTilesPage />;
+  }
+
+  // 4.66. Create Tap Tile Customizer Route (e.g. /create-tap-tile)
+  if (route === 'create-tap-tile' && slug.length === 1) {
+    return <CreateTapTilePage />;
   }
 
   // 4.7. Confirmation Route (e.g. /confirmation)
