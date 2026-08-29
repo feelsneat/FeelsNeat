@@ -1,7 +1,7 @@
 {
   "headerLinks": [
     { "label": "Home", "path": "/" },
-    { "label": "Our Work", "path": "/our-work" },
+    { "label": "Output", "path": "/output" },
     { "label": "About", "path": "/about" },
     { "label": "Contact", "path": "/contact" }
   ],
@@ -10,7 +10,7 @@
       "title": "Pages",
       "items": [
         { "label": "Home", "path": "/" },
-        { "label": "Our Work", "path": "/our-work" },
+        { "label": "Output", "path": "/output" },
         { "label": "About", "path": "/about" },
         { "label": "Contact", "path": "/contact" }
       ]

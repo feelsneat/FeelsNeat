@@ -7,7 +7,7 @@ import { fetchSubstackFeed, SubstackPost } from '@/lib/substack';
 export const runtime = 'edge';
 
 export const metadata: Metadata = {
-  title: 'Our Work',
+  title: 'Output',
   description: 'A complete index of services, digital templates, and product lines by FeelsNeat.',
 };
 
@@ -68,7 +68,7 @@ export default async function OurWorkPage() {
         <div className="max-w-3xl scroll-reveal">
           <span className="text-sm font-black text-[#E30613] uppercase tracking-widest block mb-3">Portfolio & Capabilities</span>
           <h1 className="text-4xl sm:text-6xl font-black tracking-tight text-[#F4F4F5] uppercase">
-            Our Work
+            Output
           </h1>
           <p className="mt-6 text-lg sm:text-xl text-[#F4F4F5]/80 leading-relaxed font-semibold">
             A comprehensive catalog of everything we design, prototype, and engineer. Below you will find our professional consultation services, instant digital tools, physical art categories, and technical observations.

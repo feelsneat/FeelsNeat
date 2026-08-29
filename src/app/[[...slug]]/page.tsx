@@ -224,20 +224,25 @@ export default async function CatchAllPage({ params, searchParams }: PageProps) 
     return <OrderConfirmationPage whatsappNumber={waNum} />;
   }
 
-  // 5. Our Work Routes (e.g. /our-work and /our-work/[slug])
+  // 5. Output Route (e.g. /output)
+  if (route === 'output' && slug.length === 1) {
+    return <OurWorkPage />;
+  }
+
+  // 5.5. Legacy Our Work Redirects
   if (route === 'our-work') {
     if (slug.length === 1) {
-      return <OurWorkPage />;
+      redirect('/output');
     }
     if (slug.length === 2) {
-      return <ProjectDetailPage projectSlug={slug[1]} />;
+      redirect('/output');
     }
   }
 
   // 6. Observations Routes (e.g. /observations and /observations/[slug] redirect)
   if (route === 'observations') {
     if (slug.length === 1) {
-      redirect('/our-work#observations');
+      redirect('/output#observations');
     }
     if (slug.length === 2) {
       const targetSlug = slug[1];
