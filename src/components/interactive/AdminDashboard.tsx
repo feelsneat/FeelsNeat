@@ -16,6 +16,60 @@ export function AdminDashboard({ userEmail }: AdminDashboardProps) {
   const [syncMessage, setSyncMessage] = useState('');
   const [syncStatus, setSyncStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
 
+  // WhatsApp Redirect Config State
+  const [contentDb, setContentDb] = useState<any>(null);
+  const [whatsappNumber, setWhatsappNumber] = useState('');
+  const [updatingWhatsapp, setUpdatingWhatsapp] = useState(false);
+
+  // Load content settings (which contains whatsappNumber)
+  const loadContentSettings = async () => {
+    try {
+      const res = await fetch('/api/admin/content');
+      if (res.ok) {
+        const data = await res.json();
+        setContentDb(data);
+        setWhatsappNumber(data.settings?.whatsappNumber || '919999999999');
+      }
+    } catch (err) {
+      console.error('Failed to load content settings:', err);
+    }
+  };
+
+  // Update redirect whatsapp number inside settings object
+  const handleSaveWhatsappNumber = async () => {
+    if (!whatsappNumber.trim()) {
+      alert('Please enter a valid WhatsApp phone number.');
+      return;
+    }
+    setUpdatingWhatsapp(true);
+    try {
+      const updatedDb = {
+        ...contentDb,
+        settings: {
+          ...(contentDb?.settings || {}),
+          whatsappNumber: whatsappNumber.replace(/[+\s-]/g, '') // strip spacing/symbols
+        }
+      };
+
+      const res = await fetch('/api/admin/content', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updatedDb)
+      });
+
+      if (res.ok) {
+        setContentDb(updatedDb);
+        alert('WhatsApp redirect number updated successfully!');
+      } else {
+        alert('Failed to update WhatsApp redirect number.');
+      }
+    } catch (err) {
+      alert('Error connecting to settings update API.');
+    } finally {
+      setUpdatingWhatsapp(false);
+    }
+  };
+
   // Load orders list from API
   const loadOrders = async () => {
     setSyncStatus('loading');
@@ -40,6 +94,7 @@ export function AdminDashboard({ userEmail }: AdminDashboardProps) {
 
   useEffect(() => {
     loadOrders();
+    loadContentSettings();
   }, []);
 
   // Update order fields (payment references, production status, etc.)
@@ -203,6 +258,28 @@ export function AdminDashboard({ userEmail }: AdminDashboardProps) {
               </span>
             </button>
           ))}
+
+          {/* WhatsApp Redirect Config Box */}
+          <div className="mt-4 pt-4 border-t border-zinc-150 px-3">
+            <span className="text-[10px] font-bold text-foreground/50 uppercase tracking-widest block mb-2 text-left">WhatsApp Redirect</span>
+            <div className="space-y-2">
+              <input
+                type="text"
+                value={whatsappNumber}
+                onChange={(e) => setWhatsappNumber(e.target.value)}
+                className="w-full rounded-lg border border-zinc-200 bg-white px-3 py-1.5 text-xs text-[#1E1E1E] placeholder-zinc-400 focus:outline-none focus:ring-1 focus:ring-[#E30613]"
+                placeholder="e.g. 919999999999"
+              />
+              <button
+                type="button"
+                onClick={handleSaveWhatsappNumber}
+                disabled={updatingWhatsapp}
+                className="w-full flex h-8 items-center justify-center rounded bg-[#E30613] hover:bg-zinc-900 text-[10px] font-black uppercase tracking-wider text-white transition-colors cursor-pointer disabled:opacity-50"
+              >
+                {updatingWhatsapp ? 'Saving...' : 'Update Number'}
+              </button>
+            </div>
+          </div>
         </div>
 
         {/* Console Workspace area */}

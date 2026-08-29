@@ -4,7 +4,11 @@ import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { LucideIcon } from '@/components/ui/LucideIcon';
 
-export default function OrderConfirmationPage() {
+interface OrderConfirmationPageProps {
+  whatsappNumber?: string;
+}
+
+export default function OrderConfirmationPage({ whatsappNumber }: OrderConfirmationPageProps) {
   const searchParams = useSearchParams();
   const orderId = searchParams.get('orderId') || 'FN-MEM-XXXX';
 
@@ -26,9 +30,16 @@ export default function OrderConfirmationPage() {
     typeLabel = 'Project Coordination';
     bodyInstruction = 'To align on specifications and start coordination for your service requirement, please tap below to connect with us on WhatsApp. Our engineer will sync with you directly.';
     whatsappMessage = `Hi FeelsNeat! I have submitted a new service project order with ID: ${orderId}. Please connect to align on next steps.`;
+  } else if (orderId.startsWith('FN-TAP-')) {
+    orderType = 'tap_tiles';
+    headerTitle = 'Your Tap Tile order has been received.';
+    typeLabel = 'Tap Tile Confirmation';
+    bodyInstruction = 'To finalize and program your custom NFC mini artwork tile, please tap below to connect with us on WhatsApp. We will verify your photo crop and target link.';
+    whatsappMessage = `Hi FeelsNeat! I have submitted a new Tap Tile order with ID: ${orderId}. Please send payment instructions.`;
   }
 
-  const whatsappUrl = `https://wa.me/919999999999?text=${encodeURIComponent(whatsappMessage)}`;
+  const targetPhone = whatsappNumber || '919999999999';
+  const whatsappUrl = `https://wa.me/${targetPhone.replace(/[+\s-]/g, '')}?text=${encodeURIComponent(whatsappMessage)}`;
 
   return (
     <main className="flex-1 w-full bg-[#0A0A0C] text-[#000000] py-24 sm:py-32 px-4 sm:px-6 relative overflow-hidden flex flex-col items-center justify-center">

@@ -220,7 +220,9 @@ export default async function CatchAllPage({ params, searchParams }: PageProps) 
 
   // 4.7. Confirmation Route (e.g. /confirmation)
   if (route === 'confirmation' && slug.length === 1) {
-    return <OrderConfirmationPage />;
+    const settings = await getSettings();
+    const waNum = (settings as any).whatsappNumber || '919999999999';
+    return <OrderConfirmationPage whatsappNumber={waNum} />;
   }
 
   // 5. Our Work Routes (e.g. /our-work and /our-work/[slug])

@@ -82,8 +82,11 @@ async function getContentDb() {
     const globalSymbol = Symbol.for('feelsneat.content_db');
     const memoryDb = (globalThis as any)[globalSymbol];
     if (memoryDb) {
-      // Force sync navigation and socials in development to keep new components in sync
+      // Force sync navigation, socials, services, and work in development to keep new components in sync
       memoryDb.navigation = db.navigation;
+      memoryDb.services = db.services;
+      memoryDb.work = db.work;
+      memoryDb.observations = db.observations;
       if (memoryDb.settings) {
         memoryDb.settings.socials = db.settings.socials;
       }
@@ -99,9 +102,12 @@ async function getContentDb() {
       const kvData = await env.FEELSNEAT_CMS_KV.get('content_db');
       if (kvData) {
         const parsed = JSON.parse(kvData);
-        // Force sync socials and products from codebase fallback to prevent stale cache bugs
+        // Force sync settings, navigation, services, work, and observations to prevent stale cache bugs
         parsed.settings.socials = db.settings.socials;
         parsed.navigation = db.navigation;
+        parsed.services = db.services;
+        parsed.work = db.work;
+        parsed.observations = db.observations;
         if (!parsed.products || parsed.products.length === 0) {
           parsed.products = db.products;
         }
