@@ -4,6 +4,7 @@
     "category": "career",
     "title": "STAR Interview Prep Dashboard",
     "price": "₹299",
+    "originalPrice": "₹999",
     "features": [
       "STAR Framework Database",
       "Situation/Task/Action/Result organizer",
@@ -18,6 +19,7 @@
     "category": "career",
     "title": "ATS-Friendly Tech Resume Template",
     "price": "₹99",
+    "originalPrice": "₹299",
     "features": [
       "ATS Scanner Optimized Formatting",
       "Modern Single-Page Layout Grid",
@@ -32,6 +34,7 @@
     "category": "productivity",
     "title": "All-in-One Life Dashboard",
     "price": "₹199",
+    "originalPrice": "₹599",
     "features": [
       "Daily Habit Tracker & Log",
       "Weekly Planner & Goals Board",
@@ -46,6 +49,7 @@
     "category": "content",
     "title": "Creator OS",
     "price": "₹199",
+    "originalPrice": "₹599",
     "features": [
       "Visual Workspace Manager",
       "Content Planning Pipeline",

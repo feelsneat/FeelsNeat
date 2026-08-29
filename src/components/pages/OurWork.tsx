@@ -115,9 +115,16 @@ export default async function OurWorkPage() {
                       Capability 0{index + 1}
                     </span>
                     {service.price && (
-                      <span className="text-xs font-black text-[#F4F4F5] bg-white/5 border border-white/10 px-2.5 py-0.5 rounded tracking-wider">
-                        {service.price}
-                      </span>
+                      <div className="flex items-center gap-2">
+                        {service.originalPrice && (
+                          <span className="text-xs text-[#F4F4F5]/40 line-through font-semibold font-mono">
+                            {service.originalPrice}
+                          </span>
+                        )}
+                        <span className="text-xs font-black text-white bg-[#E30613]/10 border border-[#E30613]/20 px-2.5 py-0.5 rounded tracking-wider">
+                          {service.price}
+                        </span>
+                      </div>
                     )}
                   </div>
                   
@@ -168,13 +175,20 @@ export default async function OurWorkPage() {
               >
                 {/* Header info */}
                 <div className="space-y-4">
-                  <div className="flex justify-between items-start">
+                  <div className="flex justify-between items-center">
                     <span className="text-xs font-black text-[#E30613] uppercase tracking-widest bg-[#E30613]/5 border border-[#E30613]/15 px-2.5 py-0.5 rounded">
                       {product.category}
                     </span>
-                    <span className="text-base font-black text-[#F4F4F5]">
-                      {product.price}
-                    </span>
+                    <div className="flex items-center gap-2">
+                      {product.originalPrice && (
+                        <span className="text-xs text-[#F4F4F5]/40 line-through font-semibold font-mono">
+                          {product.originalPrice}
+                        </span>
+                      )}
+                      <span className="text-base font-black text-[#F4F4F5]">
+                        {product.price}
+                      </span>
+                    </div>
                   </div>
                   
                   <h3 className="text-xl font-black text-[#F4F4F5] uppercase tracking-tight leading-snug">

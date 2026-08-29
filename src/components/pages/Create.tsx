@@ -526,9 +526,9 @@ export default function CreateMemoryPage() {
                     <label className="block text-xs font-black text-black uppercase tracking-widest">Select Size</label>
                     <div className="grid gap-3">
                       {[
-                        { id: 'mini', label: 'Mini', dims: '4x4 inches', price: PRODUCT_PRICES.mini },
-                        { id: 'standard', label: 'Standard', dims: '6x6 inches', price: PRODUCT_PRICES.standard },
-                        { id: 'landscape', label: 'Landscape', dims: '8x6 inches', price: PRODUCT_PRICES.landscape },
+                        { id: 'mini', label: 'Mini', dims: '4x4 inches', price: PRODUCT_PRICES.mini.current, original: PRODUCT_PRICES.mini.original },
+                        { id: 'standard', label: 'Standard', dims: '6x6 inches', price: PRODUCT_PRICES.standard.current, original: PRODUCT_PRICES.standard.original },
+                        { id: 'landscape', label: 'Landscape', dims: '8x6 inches', price: PRODUCT_PRICES.landscape.current, original: PRODUCT_PRICES.landscape.original },
                       ].map((size) => {
                         const isSelected = formData.size === size.id;
                         return (
@@ -546,7 +546,12 @@ export default function CreateMemoryPage() {
                               <h4 className="text-xs font-black uppercase">{size.label}</h4>
                               <span className="text-xs text-zinc-400 font-semibold uppercase">{size.dims}</span>
                             </div>
-                            <span className="text-xs font-bold text-zinc-500">{size.price}</span>
+                            <div className="text-right flex flex-col items-end">
+                              {size.original && (
+                                <span className="text-[10px] text-zinc-400 line-through font-semibold font-mono">{size.original}</span>
+                              )}
+                              <span className="text-xs font-bold text-zinc-700">{size.price}</span>
+                            </div>
                           </button>
                         );
                       })}
@@ -967,8 +972,8 @@ export default function CreateMemoryPage() {
                     <label className="block text-xs font-black text-black uppercase tracking-widest">Select Format</label>
                     <div className="grid grid-cols-2 gap-3">
                       {[
-                        { id: 'magnet', label: 'Magnet', subtitle: 'Fridge Magnet', price: '₹99' },
-                        { id: 'keychain', label: 'Keychain', subtitle: 'Art Keychain', price: '₹49' }
+                        { id: 'magnet', label: 'Magnet', subtitle: 'Fridge Magnet', price: '₹99', original: '₹299' },
+                        { id: 'keychain', label: 'Keychain', subtitle: 'Art Keychain', price: '₹49', original: '₹149' }
                       ].map((format) => (
                         <button
                           key={format.id}
@@ -985,7 +990,12 @@ export default function CreateMemoryPage() {
                               <span className="block text-[8px] font-black text-zinc-400 uppercase tracking-widest mb-1">{format.subtitle}</span>
                               <h4 className="text-xs font-bold uppercase text-black">{format.label}</h4>
                             </div>
-                            <span className="text-xs font-bold text-zinc-500">{format.price}</span>
+                            <div className="text-right flex flex-col items-end">
+                              {format.original && (
+                                <span className="text-[10px] text-zinc-400 line-through font-semibold font-mono">{format.original}</span>
+                              )}
+                              <span className="text-xs font-bold text-zinc-700">{format.price}</span>
+                            </div>
                           </div>
                         </button>
                       ))}

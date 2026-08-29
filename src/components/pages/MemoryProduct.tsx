@@ -113,27 +113,42 @@ export default function MemoryProductPage({ categorySlug }: MemoryProductProps) 
               <div className="grid gap-3 sm:grid-cols-3">
                 {/* Size Mini */}
                 <div className="p-4 rounded-xl border border-white/10 bg-[#0E0E12] flex flex-col justify-between">
-                  <div>
-                    <span className="block text-[8px] font-black text-[#E30613] uppercase tracking-wider mb-1">4x4 inches</span>
-                    <h4 className="text-xs font-black uppercase text-[#F4F4F5]">Mini</h4>
+                  <div className="flex justify-between items-start w-full">
+                    <div>
+                      <span className="block text-[8px] font-black text-[#E30613] uppercase tracking-wider mb-1">4x4 inches</span>
+                      <h4 className="text-xs font-black uppercase text-[#F4F4F5]">Mini</h4>
+                    </div>
+                    <div className="text-right flex flex-col items-end">
+                      <span className="text-[10px] text-[#F4F4F5]/40 line-through font-semibold font-mono">{PRODUCT_PRICES.mini.original}</span>
+                      <span className="text-xs font-black text-[#F4F4F5] bg-white/5 border border-white/10 px-2.5 py-0.5 rounded tracking-wider mt-0.5">{PRODUCT_PRICES.mini.current}</span>
+                    </div>
                   </div>
-                  <span className="text-xs font-bold text-[#F4F4F5]/60 mt-4">{PRODUCT_PRICES.mini}</span>
                 </div>
                 {/* Size Standard */}
                 <div className="p-4 rounded-xl border border-white/10 bg-[#0E0E12] flex flex-col justify-between">
-                  <div>
-                    <span className="block text-[8px] font-black text-[#E30613] uppercase tracking-wider mb-1">6x6 inches</span>
-                    <h4 className="text-xs font-black uppercase text-[#F4F4F5]">Standard</h4>
+                  <div className="flex justify-between items-start w-full">
+                    <div>
+                      <span className="block text-[8px] font-black text-[#E30613] uppercase tracking-wider mb-1">6x6 inches</span>
+                      <h4 className="text-xs font-black uppercase text-[#F4F4F5]">Standard</h4>
+                    </div>
+                    <div className="text-right flex flex-col items-end">
+                      <span className="text-[10px] text-[#F4F4F5]/40 line-through font-semibold font-mono">{PRODUCT_PRICES.standard.original}</span>
+                      <span className="text-xs font-black text-[#F4F4F5] bg-white/5 border border-white/10 px-2.5 py-0.5 rounded tracking-wider mt-0.5">{PRODUCT_PRICES.standard.current}</span>
+                    </div>
                   </div>
-                  <span className="text-xs font-bold text-[#F4F4F5]/60 mt-4">{PRODUCT_PRICES.standard}</span>
                 </div>
                 {/* Size Landscape */}
                 <div className="p-4 rounded-xl border border-white/10 bg-[#0E0E12] flex flex-col justify-between">
-                  <div>
-                    <span className="block text-[8px] font-black text-[#E30613] uppercase tracking-wider mb-1">8x6 inches</span>
-                    <h4 className="text-xs font-black uppercase text-[#F4F4F5]">Landscape</h4>
+                  <div className="flex justify-between items-start w-full">
+                    <div>
+                      <span className="block text-[8px] font-black text-[#E30613] uppercase tracking-wider mb-1">8x6 inches</span>
+                      <h4 className="text-xs font-black uppercase text-[#F4F4F5]">Landscape</h4>
+                    </div>
+                    <div className="text-right flex flex-col items-end">
+                      <span className="text-[10px] text-[#F4F4F5]/40 line-through font-semibold font-mono">{PRODUCT_PRICES.landscape.original}</span>
+                      <span className="text-xs font-black text-[#F4F4F5] bg-white/5 border border-white/10 px-2.5 py-0.5 rounded tracking-wider mt-0.5">{PRODUCT_PRICES.landscape.current}</span>
+                    </div>
                   </div>
-                  <span className="text-xs font-bold text-[#F4F4F5]/60 mt-4">{PRODUCT_PRICES.landscape}</span>
                 </div>
               </div>
             </div>

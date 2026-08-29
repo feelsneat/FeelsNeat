@@ -42,6 +42,7 @@ export interface ServiceItem {
   summary: string;
   content: string;
   price?: string;
+  originalPrice?: string;
   image?: string;
   externalUrl?: string;
   additionalImages?: string[];
@@ -170,6 +171,7 @@ export interface ProductItem {
   category: 'career' | 'finance' | 'productivity' | 'content';
   title: string;
   price: string;
+  originalPrice?: string;
   features: string[];
   mockupText: string;
   etsyUrl?: string;

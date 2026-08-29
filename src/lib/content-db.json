@@ -121,6 +121,7 @@
       "summary": "We build custom shopping websites for Instagram pages with automated order notifications, manual WhatsApp routing, payment gateways, and tailored external CMS integration.",
       "image": "/images/services/website-development.jpg",
       "price": "₹4,999",
+      "originalPrice": "₹14,999",
       "externalUrl": "",
       "content": "<p>We build professional, fast shopping environments specifically optimized for Instagram businesses. We connect all the automations needed to manage orders and coordinate checkouts.</p>\n<p>Our capabilities include:</p>\n<ul>\n<li><strong>Social Shopping</strong>: Turn your Instagram catalog into a high-speed custom shopping website.</li>\n<li><strong>WhatsApp Automations</strong>: Instantly routing new orders, custom choices, and customer details directly to your WhatsApp Business channel.</li>\n<li><strong>Payment Gateways</strong>: Seamlessly integrating payment providers and checkout options.</li>\n<li><strong>External CMS Setup</strong>: Setting up simple, user-friendly CMS managers so you can update products and inventory without touching any code.</li>\n</ul>\n"
     },
@@ -132,6 +133,7 @@
       "summary": "We conduct manual security reviews of your web applications and environment setups to ensure data compliance, leak prevention, and lock down secure access keys.",
       "image": "/images/services/security-review.jpg",
       "price": "₹2,999",
+      "originalPrice": "₹9,999",
       "externalUrl": "",
       "content": "<p>We run comprehensive, manual security audits of your web server configurations, API keys, hosting environments, and customer database stores.</p>\n<p>Our audit includes:</p>\n<ul>\n<li><strong>Environment Audit</strong>: Checking API keys, environment parameters, and hosting permissions.</li>\n<li><strong>Data Compliance</strong>: Ensuring your database records and order databases are structured securely.</li>\n<li><strong>Vulnerability Sweeping</strong>: Reviewing potential access vulnerabilities, CSRF exposures, and cross-site scripting risks.</li>\n</ul>\n"
     },
@@ -143,6 +145,7 @@
       "summary": "We integrate custom AI agents for order processing, customer queries, and business process automation tailored specifically to your company needs.",
       "image": "/images/services/ai-integration.jpg",
       "price": "₹7,999",
+      "originalPrice": "₹19,999",
       "externalUrl": "",
       "content": "<p>We help you identify and choose the best AI agent models to automate order processing, respond to product queries, and handle routine checkout pipeline steps.</p>\n<p>Our integration solutions:</p>\n<ul>\n<li><strong>Order Automation</strong>: Processing order states and details automatically via intelligent LLM agents.</li>\n<li><strong>Custom Website Integration</strong>: Linking agents directly to your database, CRM, and customer dashboard feeds.</li>\n<li><strong>Tailored Agent Selection</strong>: Identifying the exact model and agent configuration that matches your budget and operational goals.</li>\n</ul>\n"
     }
@@ -223,6 +226,7 @@
       "category": "career",
       "title": "STAR Interview Prep Dashboard",
       "price": "₹299",
+      "originalPrice": "₹999",
       "features": [
         "STAR Framework Database",
         "Situation/Task/Action/Result organizer",
@@ -237,6 +241,7 @@
       "category": "career",
       "title": "ATS-Friendly Tech Resume Template",
       "price": "₹99",
+      "originalPrice": "₹299",
       "features": [
         "ATS Scanner Optimized Formatting",
         "Modern Single-Page Layout Grid",
@@ -251,6 +256,7 @@
       "category": "productivity",
       "title": "All-in-One Life Dashboard",
       "price": "₹199",
+      "originalPrice": "₹599",
       "features": [
         "Daily Habit Tracker & Log",
         "Weekly Planner & Goals Board",
@@ -265,6 +271,7 @@
       "category": "content",
       "title": "Creator OS",
       "price": "₹199",
+      "originalPrice": "₹599",
       "features": [
         "Visual Workspace Manager",
         "Content Planning Pipeline",

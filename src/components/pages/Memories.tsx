@@ -3,9 +3,9 @@ import { LucideIcon } from '@/components/ui/LucideIcon';
 
 // Centralized pricing configuration
 export const PRODUCT_PRICES = {
-  mini: '₹499',
-  standard: '₹699',
-  landscape: '₹899',
+  mini: { current: '₹499', original: '₹1,299' },
+  standard: { current: '₹699', original: '₹1,999' },
+  landscape: { current: '₹899', original: '₹2,499' },
 };
 
 // Reusable category content registry
