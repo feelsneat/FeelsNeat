@@ -8,6 +8,7 @@
       "icon": "logo.png"
     },
     "contactEmail": "feelsneatofficial@gmail.com",
+    "whatsappNumber": "919999999999",
     "socials": [
       {
         "platform": "YouTube",
@@ -34,14 +35,6 @@
         "path": "/our-work"
       },
       {
-        "label": "Memories",
-        "path": "/memories"
-      },
-      {
-        "label": "Observations",
-        "path": "/observations"
-      },
-      {
         "label": "About",
         "path": "/about"
       },
@@ -61,14 +54,6 @@
           {
             "label": "Our Work",
             "path": "/our-work"
-          },
-          {
-            "label": "Memories",
-            "path": "/memories"
-          },
-          {
-            "label": "Observations",
-            "path": "/observations"
           },
           {
             "label": "About",

@@ -10,7 +10,6 @@ import AboutPage from '@/components/pages/About';
 import ContactPage from '@/components/pages/Contact';
 import OurWorkPage from '@/components/pages/OurWork';
 import ProjectDetailPage from '@/components/pages/OurWorkDetail';
-import ObservationsPage from '@/components/pages/Observations';
 import AdminPage from '@/components/pages/Admin';
 import MemoriesPage from '@/components/pages/Memories';
 import MemoryProductPage from '@/components/pages/MemoryProduct';
@@ -238,7 +237,7 @@ export default async function CatchAllPage({ params, searchParams }: PageProps) 
   // 6. Observations Routes (e.g. /observations and /observations/[slug] redirect)
   if (route === 'observations') {
     if (slug.length === 1) {
-      return <ObservationsPage />;
+      redirect('/our-work#observations');
     }
     if (slug.length === 2) {
       const targetSlug = slug[1];

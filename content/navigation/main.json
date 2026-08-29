@@ -2,8 +2,6 @@
   "headerLinks": [
     { "label": "Home", "path": "/" },
     { "label": "Our Work", "path": "/our-work" },
-    { "label": "Memories", "path": "/memories" },
-    { "label": "Observations", "path": "/observations" },
     { "label": "About", "path": "/about" },
     { "label": "Contact", "path": "/contact" }
   ],
@@ -13,8 +11,6 @@
       "items": [
         { "label": "Home", "path": "/" },
         { "label": "Our Work", "path": "/our-work" },
-        { "label": "Memories", "path": "/memories" },
-        { "label": "Observations", "path": "/observations" },
         { "label": "About", "path": "/about" },
         { "label": "Contact", "path": "/contact" }
       ]
