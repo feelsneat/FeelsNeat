@@ -20,7 +20,7 @@ export function AdminDashboard({ userEmail }: AdminDashboardProps) {
   const loadOrders = async () => {
     setSyncStatus('loading');
     try {
-      const res = await fetch('/api/admin/orders');
+      const res = await fetch('/api/order');
       if (res.ok) {
         const data = await res.json();
         setOrders(data);
@@ -45,7 +45,7 @@ export function AdminDashboard({ userEmail }: AdminDashboardProps) {
   // Update order fields (payment references, production status, etc.)
   const handleUpdateOrderStatus = async (orderId: string, statusUpdates: any) => {
     try {
-      const res = await fetch('/api/admin/orders', {
+      const res = await fetch('/api/order', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action: 'update', order_id: orderId, statusUpdates }),
@@ -77,7 +77,7 @@ export function AdminDashboard({ userEmail }: AdminDashboardProps) {
       return;
     }
     try {
-      const res = await fetch('/api/admin/orders', {
+      const res = await fetch('/api/order', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action: 'delete', order_id: orderId }),

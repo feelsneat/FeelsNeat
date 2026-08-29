@@ -1,13 +1,170 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { verifySession } from '@/lib/auth';
 
 export const runtime = 'edge';
 
+// Helper to authenticate admin sessions
+async function authenticateAdmin(req: NextRequest): Promise<boolean> {
+  const sessionCookie = req.cookies.get('feelsneat_session');
+  if (!sessionCookie || !sessionCookie.value) return false;
+  
+  const authSecret = process.env.AUTH_SECRET || (
+    process.env.NODE_ENV === 'development' 
+      ? 'local_dev_secret_key_needs_to_be_long_and_secure_32_chars' 
+      : undefined
+  );
+  if (!authSecret) return false;
+  
+  const decoded = await verifySession(sessionCookie.value, authSecret);
+  return decoded !== null;
+}
+
+// GET: List all orders/inquiries (Admin only)
+export async function GET(req: NextRequest) {
+  const isAuthed = await authenticateAdmin(req);
+  if (!isAuthed) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
+  let orders: any[] = [];
+
+  // 1. Fetch from Cloudflare KV if bound
+  try {
+    const { getRequestContext } = await import('@cloudflare/next-on-pages');
+    const context = getRequestContext();
+    const env = context?.env;
+    if (env && env.FEELSNEAT_CMS_KV) {
+      const list = await env.FEELSNEAT_CMS_KV.list({ prefix: 'order:' });
+      const fetchPromises = list.keys.map(async (keyObj: any) => {
+        const val = await env.FEELSNEAT_CMS_KV.get(keyObj.name);
+        return val ? JSON.parse(val) : null;
+      });
+      const resolved = await Promise.all(fetchPromises);
+      orders = resolved.filter(Boolean);
+    }
+  } catch (e) {
+    console.warn('KV context list error in GET admin/orders:', e);
+  }
+
+  // 2. Fetch from local JSON file in development mode
+  if (process.env.NODE_ENV === 'development') {
+    try {
+      const processObj = (globalThis as any)['process'];
+      const reqFn = processObj?.['mainModule']?.['require'];
+      if (reqFn) {
+        const fs = reqFn('fs');
+        const path = reqFn('path');
+        const cwd = processObj['cwd']();
+        const dbPath = path.join(cwd, 'src/lib/orders-db-dev.json');
+        if (fs.existsSync(dbPath)) {
+          const fileContent = fs.readFileSync(dbPath, 'utf-8');
+          const fileOrders = JSON.parse(fileContent);
+          // Merge only unique IDs
+          const merged = [...orders];
+          fileOrders.forEach((fo: any) => {
+            if (!merged.some((o) => o.order_id === fo.order_id)) {
+              merged.push(fo);
+            }
+          });
+          orders = merged;
+        }
+      }
+    } catch (err) {
+      console.error('Failed to read dev orders database file in GET:', err);
+    }
+  }
+
+  // Sort orders by created_at date descending
+  orders.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+
+  return NextResponse.json(orders);
+}
+
+// POST: Handles Admin Actions (Update/Delete) OR Customer Order Submissions & Contact Inquiries
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
+    const { action, order_id, statusUpdates } = body;
+
+    // ─── ADMIN ACTIONS ROUTING ───────────────────────────────────────────────
+    if (action === 'update' || action === 'delete') {
+      const isAuthed = await authenticateAdmin(req);
+      if (!isAuthed) {
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      }
+
+      if (!order_id) {
+        return NextResponse.json({ error: 'Order ID is required' }, { status: 400 });
+      }
+
+      // 1. Update in Cloudflare KV if bound
+      try {
+        const { getRequestContext } = await import('@cloudflare/next-on-pages');
+        const context = getRequestContext();
+        const env = context?.env;
+        if (env && env.FEELSNEAT_CMS_KV) {
+          const key = `order:${order_id}`;
+          if (action === 'delete') {
+            await env.FEELSNEAT_CMS_KV.delete(key);
+          } else {
+            const val = await env.FEELSNEAT_CMS_KV.get(key);
+            if (val) {
+              const parsed = JSON.parse(val);
+              const merged = {
+                ...parsed,
+                payment: { ...parsed.payment, ...(statusUpdates.payment || {}) },
+                production: { ...parsed.production, ...(statusUpdates.production || {}) }
+              };
+              await env.FEELSNEAT_CMS_KV.put(key, JSON.stringify(merged));
+            }
+          }
+        }
+      } catch (kvError) {
+        console.warn('KV update failed in POST orders admin action:', kvError);
+      }
+
+      // 2. Update in local JSON file in development mode
+      if (process.env.NODE_ENV === 'development') {
+        try {
+          const processObj = (globalThis as any)['process'];
+          const reqFn = processObj?.['mainModule']?.['require'];
+          if (reqFn) {
+            const fs = reqFn('fs');
+            const path = reqFn('path');
+            const cwd = processObj['cwd']();
+            const dbPath = path.join(cwd, 'src/lib/orders-db-dev.json');
+            if (fs.existsSync(dbPath)) {
+              const fileContent = fs.readFileSync(dbPath, 'utf-8');
+              let fileOrders = JSON.parse(fileContent);
+              if (action === 'delete') {
+                fileOrders = fileOrders.filter((o: any) => o.order_id !== order_id);
+              } else {
+                fileOrders = fileOrders.map((o: any) => {
+                  if (o.order_id === order_id) {
+                    return {
+                      ...o,
+                      payment: { ...o.payment, ...(statusUpdates.payment || {}) },
+                      production: { ...o.production, ...(statusUpdates.production || {}) }
+                    };
+                  }
+                  return o;
+                });
+              }
+              fs.writeFileSync(dbPath, JSON.stringify(fileOrders, null, 2), 'utf-8');
+            }
+          }
+        } catch (err) {
+          console.error('Failed to update dev orders file in POST:', err);
+        }
+      }
+
+      return NextResponse.json({ success: true });
+    }
+
+    // ─── PUBLIC CUSTOMER FORM SUBMISSIONS ───────────────────────────────────
     const {
-      order_type = 'memories', // 'memories' | 'digital_product' | 'service'
-      product_id, // e.g. 'ats-resume' or 'digital-engineering'
+      order_type = 'memories', // 'memories' | 'digital_product' | 'service' | 'general_inquiry'
+      product_id,
       memory_type,
       size,
       quantity = 1,
@@ -44,9 +201,94 @@ export async function POST(req: NextRequest) {
       agent_needs_orders,
       agent_needs_emails,
       agent_llm_vendor,
+
+      // General Contact Inquiry specific fields
+      message,
+      company,
+      phone
     } = body;
 
-    // 1. Server-Side Validations
+    // A. Format General Inquiry as an Order schema entry
+    if (order_type === 'general_inquiry') {
+      if (!customer_name || !customer_email || !message) {
+        return NextResponse.json(
+          { error: 'Name, email, and message are required.' },
+          { status: 400 }
+        );
+      }
+
+      const inquiryId = `FN-INQ-${Math.floor(1000 + Math.random() * 9000)}`;
+      const inquiryData = {
+        order_id: inquiryId,
+        order_type: 'general_inquiry',
+        product_id: 'general',
+        created_at: new Date().toISOString(),
+        customer: {
+          name: customer_name,
+          email: customer_email,
+          phone: customer_phone || phone || 'N/A',
+          address: null
+        },
+        company: company || 'N/A',
+        design_notes: message,
+        payment: {
+          status: 'N/A',
+          amount: 'N/A',
+          method: 'N/A',
+          reference: ''
+        },
+        production: {
+          design_status: 'NEW',
+          print_status: 'N/A',
+          nfc_status: 'N/A',
+          nfc_test_status: 'N/A',
+          shipping_status: 'N/A'
+        }
+      };
+
+      // KV Save
+      try {
+        const { getRequestContext } = await import('@cloudflare/next-on-pages');
+        const context = getRequestContext();
+        const env = context?.env;
+        if (env && env.FEELSNEAT_CMS_KV) {
+          await env.FEELSNEAT_CMS_KV.put(`order:${inquiryId}`, JSON.stringify(inquiryData));
+        }
+      } catch (kvError) {
+        console.warn('KV context write skipped in contact API:', kvError);
+      }
+
+      // Dev file DB Save
+      if (process.env.NODE_ENV === 'development') {
+        try {
+          const processObj = (globalThis as any)['process'];
+          const reqFn = processObj?.['mainModule']?.['require'];
+          if (reqFn) {
+            const fs = reqFn('fs');
+            const path = reqFn('path');
+            const cwd = processObj['cwd']();
+            const dbPath = path.join(cwd, 'src/lib/orders-db-dev.json');
+            
+            let existingOrders: any[] = [];
+            if (fs.existsSync(dbPath)) {
+              const content = fs.readFileSync(dbPath, 'utf-8');
+              existingOrders = JSON.parse(content);
+            }
+            existingOrders.unshift(inquiryData);
+            fs.writeFileSync(dbPath, JSON.stringify(existingOrders, null, 2), 'utf-8');
+          }
+        } catch (err) {
+          console.error('Failed to save general inquiry to local dev file:', err);
+        }
+      }
+
+      return NextResponse.json(
+        { success: true, message: 'Message received! We will get back to you shortly.' },
+        { status: 200 }
+      );
+    }
+
+    // B. Format Product / Service submissions
     if (!customer_name || !customer_email || !customer_phone) {
       return NextResponse.json(
         { error: 'Customer contact details (name, email, and phone) are required.' },
@@ -69,7 +311,6 @@ export async function POST(req: NextRequest) {
         );
       }
 
-      // Google Photos Shared URL pattern verification
       const photosUrlRegex = /^(https?:\/\/)?(www\.)?(photos\.app\.goo\.gl|photos\.google\.com)\/.+$/;
       if (!photosUrlRegex.test(google_photos_url)) {
         return NextResponse.json(
@@ -111,7 +352,6 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // Email address formatting check
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(customer_email)) {
       return NextResponse.json(
@@ -120,7 +360,6 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Phone format verification (matches standard mobile digits)
     const phoneRegex = /^[6-9]\d{9}$|^[+]\d{1,4}\d{9,10}$/;
     if (!phoneRegex.test(customer_phone.replace(/[\s-]/g, ''))) {
       return NextResponse.json(
@@ -129,12 +368,10 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // 2. Generate Unique Order ID
     const orderNum = Math.floor(1000 + Math.random() * 9000);
     const prefix = order_type === 'memories' ? 'FN-MEM' : order_type === 'service' ? 'FN-SRV' : 'FN-DIG';
     const orderId = `${prefix}-${orderNum}`;
 
-    // 3. Assemble Internal Order Structure
     const orderData = {
       order_id: orderId,
       order_type,
@@ -205,37 +442,41 @@ export async function POST(req: NextRequest) {
       },
     };
 
-    // 4. Persist in Cloudflare KV (if context is bound)
+    // KV Save
     try {
       const { getRequestContext } = await import('@cloudflare/next-on-pages');
       const context = getRequestContext();
       const env = context?.env;
       if (env && env.FEELSNEAT_CMS_KV) {
-        // Store order JSON document directly in KV (limits allow up to 25MB)
         await env.FEELSNEAT_CMS_KV.put(`order:${orderId}`, JSON.stringify(orderData));
-        console.log(`Saved order ${orderId} successfully to Cloudflare KV store.`);
-      } else {
-        console.warn('FEELSNEAT_CMS_KV binding is not available in request context.');
       }
     } catch (kvError) {
-      console.warn('Failed to resolve Cloudflare KV execution context for order:', kvError);
+      console.warn('Failed to resolve Cloudflare KV for order:', kvError);
     }
 
-    // Save order in-memory for local development admin session testing
+    // Dev file DB Save
     if (process.env.NODE_ENV === 'development') {
-      const ordersSymbol = Symbol.for('feelsneat.orders');
-      if (!(globalThis as any)[ordersSymbol]) {
-        (globalThis as any)[ordersSymbol] = [];
+      try {
+        const processObj = (globalThis as any)['process'];
+        const reqFn = processObj?.['mainModule']?.['require'];
+        if (reqFn) {
+          const fs = reqFn('fs');
+          const path = reqFn('path');
+          const cwd = processObj['cwd']();
+          const dbPath = path.join(cwd, 'src/lib/orders-db-dev.json');
+          
+          let existingOrders: any[] = [];
+          if (fs.existsSync(dbPath)) {
+            const content = fs.readFileSync(dbPath, 'utf-8');
+            existingOrders = JSON.parse(content);
+          }
+          existingOrders.unshift(orderData);
+          fs.writeFileSync(dbPath, JSON.stringify(existingOrders, null, 2), 'utf-8');
+        }
+      } catch (err) {
+        console.error('Failed to save order to local dev file:', err);
       }
-      (globalThis as any)[ordersSymbol].unshift(orderData);
-      console.log(`Saved order ${orderId} successfully in-memory for dev server.`);
     }
-
-    // Always log the details for traceability (excluding very long base64 image strings to keep logs neat)
-    const logData = order_type === 'memories' 
-      ? { ...orderData, photos: { main_photo: '[Base64 String]', additional_photos: [] } }
-      : orderData;
-    console.log(`Processed order submission of type ${order_type}:`, logData);
 
     return NextResponse.json(
       { success: true, orderId: orderId, message: 'Custom order received successfully.' },

@@ -1,0 +1,116 @@
+[
+  {
+    "order_id": "FN-MEM-9921",
+    "order_type": "memories",
+    "product_id": null,
+    "created_at": "2026-08-28T16:20:00.000Z",
+    "customer": {
+      "name": "Aravind Sharma",
+      "email": "aravind@gmail.com",
+      "phone": "9845012345",
+      "address": {
+        "line": "Flat 402, Block A, Prestige Heights",
+        "city": "Bangalore",
+        "state": "Karnataka",
+        "pincode": "560001",
+        "country": "India"
+      }
+    },
+    "product": {
+      "memory_type": "travel",
+      "size": "standard",
+      "quantity": 2
+    },
+    "photos": {
+      "main_photo": "https://images.unsplash.com/photo-1513519245088-0e12902e5a38?q=80&w=600",
+      "additional_photos": []
+    },
+    "memory_details": {
+      "title": "Manali Honeymoon",
+      "location": "Manali, HP",
+      "date": "December 2025",
+      "caption": "The cold mountains and warm hot-chocolate cups",
+      "design_notes": "Please center the snow mountain landscape nicely."
+    },
+    "digital_memory": {
+      "google_photos_url": "https://photos.app.goo.gl/manali-trip-honeymoon-link"
+    },
+    "payment": {
+      "status": "AWAITING_PAYMENT",
+      "amount": "₹3,400",
+      "method": "UPI/WhatsApp Manual",
+      "reference": ""
+    },
+    "production": {
+      "design_status": "NEW",
+      "print_status": "NEW",
+      "nfc_status": "NEW",
+      "nfc_test_status": "NEW",
+      "shipping_status": "NEW"
+    }
+  },
+  {
+    "order_id": "FN-DIG-7811",
+    "order_type": "digital_product",
+    "product_id": "star-interview",
+    "created_at": "2026-08-28T02:20:00.000Z",
+    "customer": {
+      "name": "Meera Patel",
+      "email": "meera.patel@yahoo.com",
+      "phone": "9920134567",
+      "address": null
+    },
+    "product": {
+      "quantity": 1
+    },
+    "payment": {
+      "status": "PAID",
+      "amount": "$19.00",
+      "method": "WhatsApp Manual UPI",
+      "reference": "UPI-TXN-8829012"
+    },
+    "production": {
+      "design_status": "DELIVERED",
+      "print_status": "N/A",
+      "nfc_status": "N/A",
+      "nfc_test_status": "N/A",
+      "shipping_status": "N/A"
+    }
+  },
+  {
+    "order_id": "FN-SRV-3329",
+    "order_type": "service",
+    "product_id": "website-development",
+    "created_at": "2026-08-27T18:20:00.000Z",
+    "customer": {
+      "name": "Rohan Mehta (BakeCraft)",
+      "email": "bakecraft.in@gmail.com",
+      "phone": "9820011223",
+      "address": null
+    },
+    "product": {
+      "quantity": 1
+    },
+    "service_details": {
+      "instagram_page": "instagram.com/bakecraft_cakes",
+      "platform_preference": "Shopify preferred",
+      "needs_whatsapp": true,
+      "needs_payment": true,
+      "needs_cms": true,
+      "needs_notifications": false
+    },
+    "payment": {
+      "status": "AWAITING_PAYMENT",
+      "amount": "Custom Quote",
+      "method": "UPI/WhatsApp Manual",
+      "reference": ""
+    },
+    "production": {
+      "design_status": "NEW",
+      "print_status": "N/A",
+      "nfc_status": "N/A",
+      "nfc_test_status": "N/A",
+      "shipping_status": "N/A"
+    }
+  }
+]
