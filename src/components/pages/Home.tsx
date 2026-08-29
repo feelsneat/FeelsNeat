@@ -175,6 +175,52 @@ export default async function HomePage() {
         </div>
       </section>
 
+      {/* SECTION 3.5: FEELSNEAT TAP TILES SECTION */}
+      <section className="py-28 bg-[#0A0A0C] border-b border-white/5 relative z-10 scroll-reveal">
+        <div className="mx-auto max-w-5xl px-4 sm:px-6 space-y-16">
+          {/* Section Header */}
+          <div className="max-w-2xl text-left">
+            <span className="text-sm font-black text-[#E30613] uppercase tracking-widest block mb-2">
+              Collectible Mini Art
+            </span>
+            <h2 className="text-3xl sm:text-4xl font-black text-[#F4F4F5] uppercase tracking-tight">
+              FeelsNeat Tap Tiles
+            </h2>
+            <p className="mt-3 text-base text-[#F4F4F5]/75 font-semibold">
+              Personalized 2x2 inch art tiles equipped with pre-programmed NFC chips. One tap opens your chosen song, playlist, video, or link.
+            </p>
+          </div>
+
+          <div className="rounded-2xl border border-white/5 bg-[#0D0D10]/80 p-8 flex flex-col md:flex-row-reverse gap-8 items-center hover:border-white/10 transition-all duration-300">
+            <div className="w-full md:w-1/2 aspect-[1.5/1] rounded-xl overflow-hidden border border-white/10 bg-white/5 relative select-none">
+              <div className="absolute inset-0 bg-cover bg-center opacity-70" style={{ backgroundImage: "url('https://images.unsplash.com/photo-1529156069898-49953e39b3ac?q=80&w=600')" }} />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-transparent" />
+              <div className="absolute bottom-4 left-4 right-4 text-left">
+                <span className="text-[8px] font-black text-[#E30613] tracking-widest uppercase">Tap Tile Mockup</span>
+                <p className="text-xs font-bold text-white uppercase mt-0.5">"The group chat in physical form."</p>
+              </div>
+            </div>
+            <div className="w-full md:w-1/2 space-y-6 text-left">
+              <span className="text-xs font-black text-[#E30613] uppercase tracking-widest block">Interactive Mini Collectibles</span>
+              <h3 className="text-2xl font-black text-[#F4F4F5] uppercase tracking-tight leading-none">
+                Small Art. One Tap. A Whole Memory.
+              </h3>
+              <p className="text-sm sm:text-base text-[#F4F4F5]/75 leading-relaxed font-semibold">
+                Available as magnets or keychains. Combine retro snapshots, quotes, or jokes with Spotify songs, YouTube clips, or shared Google Photos albums.
+              </p>
+              <div className="pt-4 flex gap-4">
+                <Link
+                  href="/tap-tiles"
+                  className="inline-flex h-10 items-center justify-center rounded-lg bg-[#E30613] hover:bg-zinc-900 text-xs font-black uppercase tracking-wider text-white px-6 transition-colors duration-300 shadow-md"
+                >
+                  Explore Tap Tiles
+                </Link>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* SECTION 4: SUBSTACK ARTICLES STREAM */}
       <section className="py-28 relative z-10 scroll-reveal">
         <div className="mx-auto max-w-5xl px-4 sm:px-6">
