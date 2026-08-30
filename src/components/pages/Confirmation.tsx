@@ -13,6 +13,8 @@ export default function OrderConfirmationPage({ whatsappNumber }: OrderConfirmat
   const orderId = searchParams.get('orderId') || 'FN-MEM-XXXX';
   const type = searchParams.get('type') || '';
   const subType = searchParams.get('subType') || '';
+  const format = searchParams.get('format') || 'magnet';
+  const hostingType = searchParams.get('hostingType') || 'hosted';
 
   let orderType = 'memories';
   let headerTitle = 'Your memory is on its way.';
@@ -104,15 +106,46 @@ export default function OrderConfirmationPage({ whatsappNumber }: OrderConfirmat
 
         {/* Manual Payment WhatsApp Instructions Callout OR Pet Confirmation Alert Box */}
         {orderType === 'pet_tap_tile' ? (
-          <div className="bg-zinc-50 border border-zinc-200 rounded-xl p-5 mb-8 text-left space-y-3">
-            <div className="flex items-center gap-2 text-zinc-800">
-              <LucideIcon name="ShieldCheck" className="h-4.5 w-4.5 shrink-0 text-emerald-600" />
-              <h3 className="text-sm font-black uppercase tracking-wider">{typeLabel}</h3>
+          <div className="space-y-4 mb-8">
+            <div className="bg-zinc-50 border border-zinc-200 rounded-xl p-5 text-left space-y-3">
+              <div className="flex items-center gap-2 text-zinc-800">
+                <LucideIcon name="ShieldCheck" className="h-4.5 w-4.5 shrink-0 text-emerald-600" />
+                <h3 className="text-sm font-black uppercase tracking-wider">{typeLabel}</h3>
+              </div>
+              
+              <p className="text-sm text-zinc-650 leading-relaxed font-semibold whitespace-pre-line">
+                {bodyInstruction}
+              </p>
             </div>
-            
-            <p className="text-sm text-zinc-650 leading-relaxed font-semibold whitespace-pre-line">
-              {bodyInstruction}
-            </p>
+
+            {/* Request Summary Card */}
+            <div className="bg-zinc-50 border border-zinc-200 rounded-xl p-5 text-left space-y-3">
+              <h3 className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Request Summary</h3>
+              <div className="space-y-2 text-xs text-zinc-800 font-semibold uppercase">
+                <div className="flex justify-between">
+                  <span className="text-zinc-400 font-bold">Product:</span>
+                  <span className="text-black font-bold">{format === 'magnet' ? 'Pet Tap Tile Magnet' : 'Pet Tap Tile Keychain'}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-zinc-400 font-bold">Product Price:</span>
+                  <span className="text-black font-bold">₹{format === 'magnet' ? '149' : '199'}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-zinc-400 font-bold">NFC Link Setup:</span>
+                  <span className="text-black font-bold">{hostingType === 'custom_url' ? 'Your Own Link' : 'FeelsNeat Pet Profile'}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-zinc-400 font-bold">Hosting Charge:</span>
+                  <span className="text-black font-bold">{hostingType === 'custom_url' ? '₹0' : '₹99 (1 Year)'}</span>
+                </div>
+                <div className="border-t border-zinc-200 pt-2 flex justify-between items-center text-sm font-black text-black">
+                  <span>Estimated Total:</span>
+                  <span className="text-[#E30613] font-mono">
+                    ₹{(format === 'magnet' ? 149 : 199) + (hostingType === 'custom_url' ? 0 : 99)}
+                  </span>
+                </div>
+              </div>
+            </div>
           </div>
         ) : (
           <div className="bg-[#E30613]/5 border border-[#E30613]/20 rounded-xl p-5 mb-8 text-left space-y-4">

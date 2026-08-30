@@ -464,6 +464,9 @@ export async function POST(req: NextRequest) {
       alt_phone,
 
       // NFC profile fields
+      nfc_hosting_type,
+      nfc_custom_url,
+      nfc_custom_url_notes,
       nfc_public_name,
       nfc_owner_phone,
       nfc_emergency_contact,
@@ -578,6 +581,22 @@ export async function POST(req: NextRequest) {
             { error: 'Pet name, pet type (Dog/Cat/Other), and pet photo are required.' },
             { status: 400 }
           );
+        }
+        if (nfc_hosting_type === 'custom_url') {
+          if (!nfc_custom_url) {
+            return NextResponse.json(
+              { error: 'NFC destination URL is required for custom link configuration.' },
+              { status: 400 }
+            );
+          }
+          try {
+            new URL(nfc_custom_url);
+          } catch (_) {
+            return NextResponse.json(
+              { error: 'Please enter a valid URL (starting with http:// or https://).' },
+              { status: 400 }
+            );
+          }
         }
       } else {
         if (!memory_type || !size || !quantity || !google_photos_url || !main_photo) {
@@ -697,7 +716,18 @@ export async function POST(req: NextRequest) {
         pet_age: pet_age || '',
         pet_description: pet_description || '',
         alt_phone: alt_phone || '',
-        nfc_profile: {
+        nfc_hosting_type: nfc_hosting_type || 'hosted',
+        nfc_custom_url: nfc_hosting_type === 'custom_url' ? (nfc_custom_url || '') : '',
+        nfc_custom_url_notes: nfc_hosting_type === 'custom_url' ? (nfc_custom_url_notes || '') : '',
+        nfc_hosting_fee: nfc_hosting_type === 'custom_url' ? 0 : 99,
+        nfc_hosting_start_date: nfc_hosting_type === 'custom_url' ? null : new Date().toISOString(),
+        nfc_hosting_expiry_date: nfc_hosting_type === 'custom_url' ? null : (() => {
+          const d = new Date();
+          d.setFullYear(d.getFullYear() + 1);
+          return d.toISOString();
+        })(),
+        nfc_hosting_status: nfc_hosting_type === 'custom_url' ? null : 'ACTIVE',
+        nfc_profile: nfc_hosting_type === 'custom_url' ? null : {
           public_name: nfc_public_name || '',
           owner_phone: nfc_owner_phone || '',
           emergency_contact: nfc_emergency_contact || '',
@@ -724,7 +754,9 @@ export async function POST(req: NextRequest) {
       } : null,
       payment: {
         status: 'AWAITING_PAYMENT',
-        amount: 'TBD',
+        amount: product_id === 'pets'
+          ? String((size === 'magnet' ? 149 : 199) * Number(quantity || 1) + (nfc_hosting_type === 'custom_url' ? 0 : 99))
+          : 'TBD',
         method: 'UPI/WhatsApp Manual',
         reference: '',
       },

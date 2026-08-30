@@ -135,6 +135,9 @@ export default function CreateMemoryPage() {
     alt_phone: '',
 
     // Future NFC profile details
+    nfc_hosting_type: 'hosted', // 'hosted' | 'custom_url'
+    nfc_custom_url: '',
+    nfc_custom_url_notes: '',
     nfc_public_name: '',
     nfc_owner_phone: '',
     nfc_emergency_contact: '',
@@ -351,18 +354,31 @@ export default function CreateMemoryPage() {
           }
         }
         if (step === 3) {
-          if (!formData.nfc_public_name) {
-            setValidationError('Please enter a public pet name for the NFC profile.');
-            return false;
-          }
-          if (!formData.nfc_owner_phone) {
-            setValidationError('Please enter an owner contact phone number.');
-            return false;
-          }
-          const phoneRegex = /^[6-9]\d{9}$|^[+]\d{1,4}\d{9,10}$/;
-          if (!phoneRegex.test(formData.nfc_owner_phone.replace(/[\s-]/g, ''))) {
-            setValidationError('Invalid owner phone number format.');
-            return false;
+          if (formData.nfc_hosting_type === 'custom_url') {
+            if (!formData.nfc_custom_url) {
+              setValidationError('Please enter your custom NFC destination link.');
+              return false;
+            }
+            try {
+              new URL(formData.nfc_custom_url);
+            } catch (_) {
+              setValidationError('Please enter a valid URL (starting with http:// or https://).');
+              return false;
+            }
+          } else {
+            if (!formData.nfc_public_name) {
+              setValidationError('Please enter a public pet name for the NFC profile.');
+              return false;
+            }
+            if (!formData.nfc_owner_phone) {
+              setValidationError('Please enter an owner contact phone number.');
+              return false;
+            }
+            const phoneRegex = /^[6-9]\d{9}$|^[+]\d{1,4}\d{9,10}$/;
+            if (!phoneRegex.test(formData.nfc_owner_phone.replace(/[\s-]/g, ''))) {
+              setValidationError('Invalid owner phone number format.');
+              return false;
+            }
           }
         }
         if (step === 4) {
@@ -503,11 +519,13 @@ export default function CreateMemoryPage() {
       if (response.ok && result.success) {
         localStorage.removeItem('feelsneat_memories_draft');
         const subType = order_type === 'memories' || order_type === 'tap_tiles'
-          ? formData.memory_type
+          ? (productId === 'pets' ? 'pets' : formData.memory_type)
           : order_type === 'service'
           ? serviceId
           : productId;
-        router.push(`/confirmation?orderId=${result.orderId}&type=${order_type}&subType=${subType || ''}`);
+        const hostingParam = formData.nfc_hosting_type || 'hosted';
+        const formatParam = formData.size || 'magnet';
+        router.push(`/confirmation?orderId=${result.orderId}&type=${order_type}&subType=${subType || ''}&format=${formatParam}&hostingType=${hostingParam}`);
       } else {
         setStatus('error');
         setValidationError(result.error || 'Failed to submit order. Please try again.');
@@ -1197,8 +1215,8 @@ export default function CreateMemoryPage() {
                         <label className="block text-xs font-black text-black uppercase tracking-widest">Select Format</label>
                         <div className="grid grid-cols-2 gap-3">
                           {[
-                            { id: 'magnet', label: 'Magnet', subtitle: 'Fridge Magnet', price: '₹99', original: '₹299' },
-                            { id: 'keychain', label: 'Keychain', subtitle: 'Art Keychain', price: '₹49', original: '₹149' }
+                            { id: 'magnet', label: 'Magnet', subtitle: 'Fridge Magnet', price: '₹149', original: '₹299' },
+                            { id: 'keychain', label: 'Keychain', subtitle: 'Art Keychain', price: '₹199', original: '₹399' }
                           ].map((format) => (
                             <button
                               key={format.id}
@@ -1306,93 +1324,182 @@ export default function CreateMemoryPage() {
                   {currentStep === 3 && (
                     <div className="space-y-6 animate-fade-in text-left">
                       <div>
-                        <h2 className="text-base font-black uppercase text-black mb-1">🔗 Future Pet NFC Profile</h2>
-                        <p className="text-xs text-zinc-500 font-bold tracking-wider">Provide details to show on public pet tag profile when scanned</p>
+                        <h2 className="text-base font-black uppercase text-black mb-1">🔗 NFC Profile & Link Setup</h2>
+                        <p className="text-xs text-zinc-500 font-bold tracking-wider">Configure your pet tag's destination when tapped</p>
                       </div>
 
-                      <div className="bg-zinc-50 rounded-xl p-4 border border-zinc-150 text-xs text-zinc-650 leading-relaxed font-semibold space-y-1">
-                        <span className="text-black font-black uppercase tracking-wider block">🔒 Privacy & Security First</span>
-                        <p>This profile will only be activated after your confirmation. Home addresses are kept private and never exposed. Public scans show only owner-approved emergency/contact information.</p>
+                      <div className="bg-zinc-50 rounded-xl p-4 border border-zinc-150 text-xs text-zinc-650 leading-relaxed font-semibold">
+                        <span className="text-zinc-500 font-black uppercase tracking-wider block mb-1">How NFC Tiles Work</span>
+                        <p className="normal-case">Your Pet Tap Tile needs a web link that opens when someone taps it with their phone. You can either use a secure FeelsNeat-hosted Pet Profile or provide your own custom link.</p>
                       </div>
 
-                      <div className="space-y-4">
-                        <div>
-                          <label htmlFor="nfc_public_name" className="block text-xs font-black text-black mb-2 uppercase tracking-widest">
-                            Public Pet Name <span className="text-[#E30613]">*</span>
-                          </label>
-                          <input
-                            type="text"
-                            id="nfc_public_name"
-                            name="nfc_public_name"
-                            required
-                            value={formData.nfc_public_name}
-                            onChange={handleTextChange}
-                            className="w-full rounded-lg border border-zinc-200 bg-white px-4 py-2.5 text-xs text-black placeholder-zinc-400 focus:border-[#E30613] focus:outline-none"
-                            placeholder="Name displayed on public profile scan (e.g. Bella)"
-                          />
-                        </div>
-
-                        <div>
-                          <label htmlFor="nfc_owner_phone" className="block text-xs font-black text-black mb-2 uppercase tracking-widest">
-                            Owner Contact Number <span className="text-[#E30613]">*</span>
-                          </label>
-                          <input
-                            type="tel"
-                            id="nfc_owner_phone"
-                            name="nfc_owner_phone"
-                            required
-                            value={formData.nfc_owner_phone}
-                            onChange={handleTextChange}
-                            className="w-full rounded-lg border border-zinc-200 bg-white px-4 py-2.5 text-xs text-black placeholder-zinc-400 focus:border-[#E30613] focus:outline-none"
-                            placeholder="Primary phone number to contact owner"
-                          />
-                        </div>
-
-                        <div>
-                          <label htmlFor="nfc_emergency_contact" className="block text-xs font-black text-black mb-2 uppercase tracking-widest">
-                            Emergency Contact Phone <span className="text-zinc-400">(Optional)</span>
-                          </label>
-                          <input
-                            type="tel"
-                            id="nfc_emergency_contact"
-                            name="nfc_emergency_contact"
-                            value={formData.nfc_emergency_contact}
-                            onChange={handleTextChange}
-                            className="w-full rounded-lg border border-zinc-200 bg-white px-4 py-2.5 text-xs text-black placeholder-zinc-400 focus:border-[#E30613] focus:outline-none"
-                            placeholder="Alternative phone number for emergencies"
-                          />
-                        </div>
-
-                        <div>
-                          <label htmlFor="nfc_medical_info" className="block text-xs font-black text-black mb-2 uppercase tracking-widest">
-                            Important / Medical Information <span className="text-zinc-400">(Optional)</span>
-                          </label>
-                          <textarea
-                            id="nfc_medical_info"
-                            name="nfc_medical_info"
-                            rows={3}
-                            value={formData.nfc_medical_info}
-                            onChange={handleTextChange}
-                            className="w-full rounded-lg border border-zinc-200 bg-white px-4 py-2.5 text-xs text-black placeholder-zinc-400 focus:border-[#E30613] focus:outline-none resize-none"
-                            placeholder="e.g. Allergic to penicillin, requires daily insulin, friendly but nervous, microchipped..."
-                          />
-                        </div>
-
-                        <div>
-                          <label htmlFor="nfc_message" className="block text-xs font-black text-black mb-2 uppercase tracking-widest">
-                            Public Emergency Message <span className="text-zinc-400">(Optional)</span>
-                          </label>
-                          <textarea
-                            id="nfc_message"
-                            name="nfc_message"
-                            rows={2}
-                            value={formData.nfc_message}
-                            onChange={handleTextChange}
-                            className="w-full rounded-lg border border-zinc-200 bg-white px-4 py-2.5 text-xs text-black placeholder-zinc-400 focus:border-[#E30613] focus:outline-none resize-none"
-                            placeholder="e.g. 'If you find me, please call my human immediately! Thank you!'"
-                          />
+                      {/* Selection container */}
+                      <div className="space-y-2">
+                        <label className="block text-xs font-black text-black uppercase tracking-widest">Select Setup Type</label>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                          {[
+                            { id: 'hosted', label: 'FeelsNeat Pet Profile', subtitle: '₹99 for 1 year', desc: 'We\'ll create and host a personalized Pet Profile for your NFC Tap Tile.' },
+                            { id: 'custom_url', label: 'Use My Own Link', subtitle: 'No hosting charge', desc: 'Provide your own webpage or custom web link.' }
+                          ].map((option) => (
+                            <button
+                              key={option.id}
+                              type="button"
+                              onClick={() => setFormData((prev) => ({ ...prev, nfc_hosting_type: option.id }))}
+                              className={`p-4 rounded-xl border text-left cursor-pointer transition-all duration-200 select-none ${
+                                formData.nfc_hosting_type === option.id
+                                  ? 'border-[#E30613] bg-[#E30613]/5'
+                                  : 'border-zinc-200 bg-white hover:bg-zinc-50'
+                              }`}
+                            >
+                              <div className="flex justify-between items-start mb-2">
+                                <h4 className="text-xs font-black uppercase text-black">{option.label}</h4>
+                                <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded ${
+                                  formData.nfc_hosting_type === option.id ? 'bg-[#E30613] text-white' : 'bg-zinc-100 text-zinc-600'
+                                }`}>
+                                  {option.subtitle}
+                                </span>
+                              </div>
+                              <p className="text-[10px] leading-relaxed text-zinc-500 font-semibold lowercase first-letter:uppercase">{option.desc}</p>
+                            </button>
+                          ))}
                         </div>
                       </div>
+
+                      {formData.nfc_hosting_type === 'custom_url' ? (
+                        /* OPTION B: CUSTOM URL FORM FIELDS */
+                        <div className="space-y-4 pt-2 animate-fade-in">
+                          <div>
+                            <label htmlFor="nfc_custom_url" className="block text-xs font-black text-black mb-2 uppercase tracking-widest">
+                              Your NFC Link <span className="text-[#E30613]">*</span>
+                            </label>
+                            <input
+                              type="url"
+                              id="nfc_custom_url"
+                              name="nfc_custom_url"
+                              required={formData.nfc_hosting_type === 'custom_url'}
+                              value={formData.nfc_custom_url}
+                              onChange={handleTextChange}
+                              className="w-full rounded-lg border border-zinc-200 bg-white px-4 py-2.5 text-xs text-black placeholder-zinc-400 focus:border-[#E30613] focus:outline-none"
+                              placeholder="e.g. https://example.com/my-pet"
+                            />
+                            <p className="text-[10px] text-zinc-400 mt-1 font-semibold leading-relaxed">
+                              Please make sure the link is active and accessible. FeelsNeat is not responsible for maintaining or hosting third-party links.
+                            </p>
+                          </div>
+
+                          <div>
+                            <label htmlFor="nfc_custom_url_notes" className="block text-xs font-black text-black mb-2 uppercase tracking-widest">
+                              Link Description / Notes <span className="text-zinc-400">(Optional)</span>
+                            </label>
+                            <textarea
+                              id="nfc_custom_url_notes"
+                              name="nfc_custom_url_notes"
+                              rows={3}
+                              value={formData.nfc_custom_url_notes}
+                              onChange={handleTextChange}
+                              className="w-full rounded-lg border border-zinc-200 bg-white px-4 py-2.5 text-xs text-black placeholder-zinc-400 focus:border-[#E30613] focus:outline-none resize-none"
+                              placeholder="e.g. This link opens my existing pet information page."
+                            />
+                            <p className="text-[10px] text-zinc-400 mt-1 font-semibold leading-relaxed">
+                              We'll program the link you provide into your NFC Tap Tile. Make sure the URL is correct and active before submitting your order.
+                            </p>
+                          </div>
+                        </div>
+                      ) : (
+                        /* OPTION A: FEELSNEAT HOSTED PET PROFILE FORM FIELDS */
+                        <div className="space-y-4 pt-2 animate-fade-in">
+                          <div className="bg-zinc-50 rounded-xl p-4 border border-zinc-150 text-xs text-zinc-650 leading-relaxed font-semibold space-y-1">
+                            <span className="text-black font-black uppercase tracking-wider block">🔒 Hosted Profile Information</span>
+                            <p className="normal-case">We'll create and host a personalized online profile for your pet. When someone taps your NFC Tap Tile, they can view your pet's information and use the contact details you choose to share.</p>
+                            <p className="text-[11px] text-zinc-500 font-bold block pt-1.5 leading-relaxed">
+                              Your personalized FeelsNeat Pet Profile is hosted for 1 year for ₹99. After the included hosting period ends, renewal options may be available to keep the profile active. Private order/customer information will not automatically appear publicly.
+                            </p>
+                          </div>
+
+                          <div className="border-t border-zinc-100 pt-3">
+                            <span className="block text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-3">Pet Public Information</span>
+                            
+                            <div className="space-y-4">
+                              <div>
+                                <label htmlFor="nfc_public_name" className="block text-xs font-black text-black mb-2 uppercase tracking-widest">
+                                  Public Pet Name <span className="text-[#E30613]">*</span>
+                                </label>
+                                <input
+                                  type="text"
+                                  id="nfc_public_name"
+                                  name="nfc_public_name"
+                                  required={formData.nfc_hosting_type === 'hosted'}
+                                  value={formData.nfc_public_name}
+                                  onChange={handleTextChange}
+                                  className="w-full rounded-lg border border-zinc-200 bg-white px-4 py-2.5 text-xs text-black placeholder-zinc-400 focus:border-[#E30613] focus:outline-none"
+                                  placeholder="Name displayed on public profile scan (e.g. Bella)"
+                                />
+                              </div>
+
+                              <div>
+                                <label htmlFor="nfc_owner_phone" className="block text-xs font-black text-black mb-2 uppercase tracking-widest">
+                                  Owner Contact Number <span className="text-[#E30613]">*</span>
+                                </label>
+                                <input
+                                  type="tel"
+                                  id="nfc_owner_phone"
+                                  name="nfc_owner_phone"
+                                  required={formData.nfc_hosting_type === 'hosted'}
+                                  value={formData.nfc_owner_phone}
+                                  onChange={handleTextChange}
+                                  className="w-full rounded-lg border border-zinc-200 bg-white px-4 py-2.5 text-xs text-black placeholder-zinc-400 focus:border-[#E30613] focus:outline-none"
+                                  placeholder="Primary phone number to contact owner"
+                                />
+                              </div>
+
+                              <div>
+                                <label htmlFor="nfc_emergency_contact" className="block text-xs font-black text-black mb-2 uppercase tracking-widest">
+                                  Emergency Contact Phone <span className="text-zinc-400">(Optional)</span>
+                                </label>
+                                <input
+                                  type="tel"
+                                  id="nfc_emergency_contact"
+                                  name="nfc_emergency_contact"
+                                  value={formData.nfc_emergency_contact}
+                                  onChange={handleTextChange}
+                                  className="w-full rounded-lg border border-zinc-200 bg-white px-4 py-2.5 text-xs text-black placeholder-zinc-400 focus:border-[#E30613] focus:outline-none"
+                                  placeholder="Alternative phone number for emergencies"
+                                />
+                              </div>
+
+                              <div>
+                                <label htmlFor="nfc_medical_info" className="block text-xs font-black text-black mb-2 uppercase tracking-widest">
+                                  Important / Medical Information <span className="text-zinc-400">(Optional)</span>
+                                </label>
+                                <textarea
+                                  id="nfc_medical_info"
+                                  name="nfc_medical_info"
+                                  rows={3}
+                                  value={formData.nfc_medical_info}
+                                  onChange={handleTextChange}
+                                  className="w-full rounded-lg border border-zinc-200 bg-white px-4 py-2.5 text-xs text-black placeholder-zinc-400 focus:border-[#E30613] focus:outline-none resize-none"
+                                  placeholder="e.g. Allergic to penicillin, friendly but nervous, microchipped..."
+                                />
+                              </div>
+
+                              <div>
+                                <label htmlFor="nfc_message" className="block text-xs font-black text-black mb-2 uppercase tracking-widest">
+                                  Public Emergency Message <span className="text-zinc-400">(Optional)</span>
+                                </label>
+                                <textarea
+                                  id="nfc_message"
+                                  name="nfc_message"
+                                  rows={2}
+                                  value={formData.nfc_message}
+                                  onChange={handleTextChange}
+                                  className="w-full rounded-lg border border-zinc-200 bg-white px-4 py-2.5 text-xs text-black placeholder-zinc-400 focus:border-[#E30613] focus:outline-none resize-none"
+                                  placeholder="e.g. 'If you find me, please call my human immediately! Thank you!'"
+                                />
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   )}
 
@@ -1586,18 +1693,41 @@ export default function CreateMemoryPage() {
                             <span className="font-bold text-black">{formData.quantity} pc</span>
                           </div>
                           <div>
-                            <span className="text-[9px] font-black text-zinc-400 uppercase tracking-widest block">Pricing Option</span>
-                            <span className="font-bold text-[#E30613]">{formData.size === 'magnet' ? '₹99' : '₹49'}</span>
+                            <span className="text-[9px] font-black text-zinc-400 uppercase tracking-widest block">Product Price</span>
+                            <span className="font-bold text-zinc-700">₹{formData.size === 'magnet' ? '149' : '199'} each</span>
+                          </div>
+                          <div>
+                            <span className="text-[9px] font-black text-zinc-400 uppercase tracking-widest block">NFC Setup & Hosting</span>
+                            <span className="font-bold text-zinc-700">
+                              {formData.nfc_hosting_type === 'custom_url' ? 'Own URL (₹0)' : 'FeelsNeat Profile (₹99 / 1 yr)'}
+                            </span>
+                          </div>
+                          <div className="col-span-2 pt-2 border-t border-dashed border-zinc-200 flex justify-between items-center">
+                            <span className="text-xs font-black text-black uppercase tracking-widest">Estimated Total</span>
+                            <span className="text-sm font-black text-[#E30613] font-mono">
+                              ₹{(formData.size === 'magnet' ? 149 : 199) * Number(formData.quantity || 1) + (formData.nfc_hosting_type === 'custom_url' ? 0 : 99)}
+                            </span>
                           </div>
                         </div>
 
-                        <div className="border-b border-zinc-200 pb-3 space-y-1 text-zinc-750">
-                          <span className="text-[9px] font-black text-zinc-400 uppercase tracking-widest block">Public NFC Profile Data</span>
-                          <p><span className="text-zinc-400 font-bold">Public Name:</span> {formData.nfc_public_name}</p>
-                          <p><span className="text-zinc-400 font-bold">Owner Contact:</span> {formData.nfc_owner_phone}</p>
-                          {formData.nfc_emergency_contact && <p><span className="text-zinc-400 font-bold">Emergency Phone:</span> {formData.nfc_emergency_contact}</p>}
-                          {formData.nfc_medical_info && <p className="normal-case text-zinc-500 font-semibold"><span className="text-zinc-400 uppercase font-black">Medical:</span> {formData.nfc_medical_info}</p>}
-                        </div>
+                        {formData.nfc_hosting_type === 'custom_url' ? (
+                          <div className="border-b border-zinc-200 pb-3 space-y-1 text-zinc-750">
+                            <span className="text-[9px] font-black text-zinc-400 uppercase tracking-widest block">NFC Destination Link</span>
+                            <p className="font-mono text-[11px] text-zinc-650 normal-case break-all">{formData.nfc_custom_url}</p>
+                            {formData.nfc_custom_url_notes && (
+                              <p className="text-[10px] text-zinc-500 italic normal-case mt-1"><span className="font-bold uppercase text-[9px] text-zinc-400 not-italic">Notes:</span> {formData.nfc_custom_url_notes}</p>
+                            )}
+                          </div>
+                        ) : (
+                          <div className="border-b border-zinc-200 pb-3 space-y-1 text-zinc-750">
+                            <span className="text-[9px] font-black text-zinc-400 uppercase tracking-widest block">Public NFC Profile Data</span>
+                            <p className="normal-case"><span className="text-zinc-400 font-bold uppercase text-[9px]">Public Name:</span> {formData.nfc_public_name}</p>
+                            <p className="normal-case"><span className="text-zinc-400 font-bold uppercase text-[9px]">Owner Contact:</span> {formData.nfc_owner_phone}</p>
+                            {formData.nfc_emergency_contact && <p className="normal-case"><span className="text-zinc-400 font-bold uppercase text-[9px]">Emergency Phone:</span> {formData.nfc_emergency_contact}</p>}
+                            {formData.nfc_medical_info && <p className="normal-case text-zinc-500 font-semibold"><span className="text-zinc-400 uppercase font-black">Medical:</span> {formData.nfc_medical_info}</p>}
+                            {formData.nfc_message && <p className="normal-case text-zinc-500 font-semibold"><span className="text-zinc-400 uppercase font-black">Message:</span> {formData.nfc_message}</p>}
+                          </div>
+                        )}
 
                         <div className="border-b border-zinc-200 pb-3 space-y-1">
                           <span className="text-[9px] font-black text-zinc-400 uppercase tracking-widest block">Delivery To</span>

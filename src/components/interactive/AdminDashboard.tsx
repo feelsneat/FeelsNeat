@@ -873,7 +873,7 @@ export function AdminDashboard({ userEmail }: AdminDashboardProps) {
                                 )}
 
                                 <p className="sm:col-span-2 pt-2 border-t border-zinc-100"><span className="text-zinc-400 font-bold uppercase tracking-wider text-[9px] block">📦 Product Customization</span></p>
-                                <p><span className="text-zinc-400">Format:</span> {selectedOrder.product?.size === 'magnet' ? 'Fridge Magnet (₹99)' : 'Art Keychain (₹49)'}</p>
+                                <p><span className="text-zinc-400">Format:</span> {selectedOrder.product?.size === 'magnet' ? 'Fridge Magnet (₹149)' : 'Art Keychain (₹199)'}</p>
                                 <p><span className="text-zinc-400">Quantity:</span> {selectedOrder.product?.quantity || 1} pc</p>
                                 {selectedOrder.memory_details?.title && (
                                   <p className="sm:col-span-2"><span className="text-zinc-400">Overlay Text on Tile:</span> "{selectedOrder.memory_details.title}"</p>
@@ -887,15 +887,56 @@ export function AdminDashboard({ userEmail }: AdminDashboardProps) {
                                   </p>
                                 )}
 
-                                <p className="sm:col-span-2 pt-2 border-t border-zinc-100"><span className="text-zinc-400 font-bold uppercase tracking-wider text-[9px] block">🔗 Future NFC Profile Details</span></p>
-                                <p><span className="text-zinc-400">Public Name:</span> {selectedOrder.pet_details?.nfc_profile?.public_name || 'N/A'}</p>
-                                <p><span className="text-zinc-400">Owner Contact:</span> {selectedOrder.pet_details?.nfc_profile?.owner_phone || 'N/A'}</p>
-                                <p><span className="text-zinc-400">Emergency Phone:</span> {selectedOrder.pet_details?.nfc_profile?.emergency_contact || 'N/A'}</p>
-                                {selectedOrder.pet_details?.nfc_profile?.medical_info && (
-                                  <p className="sm:col-span-2 font-normal text-zinc-555 leading-relaxed normal-case"><span className="text-zinc-400 font-bold uppercase block text-[9px]">Medical/Important Info:</span> {selectedOrder.pet_details.nfc_profile.medical_info}</p>
-                                )}
-                                {selectedOrder.pet_details?.nfc_profile?.message && (
-                                  <p className="sm:col-span-2 font-normal text-zinc-555 leading-relaxed normal-case"><span className="text-zinc-400 font-bold uppercase block text-[9px]">Public Scan Message:</span> "{selectedOrder.pet_details.nfc_profile.message}"</p>
+                                <p className="sm:col-span-2 pt-2 border-t border-zinc-100"><span className="text-zinc-400 font-bold uppercase tracking-wider text-[9px] block">🔗 NFC Destination & Hosting</span></p>
+                                <p><span className="text-zinc-400">Hosting Type:</span> <span className="font-bold text-zinc-900 uppercase">{selectedOrder.pet_details?.nfc_hosting_type === 'custom_url' ? 'CUSTOMER OWN URL' : 'FEELSNEAT HOSTED'}</span></p>
+                                <p><span className="text-zinc-400">Hosting Fee:</span> <span className="font-bold text-zinc-900">₹{selectedOrder.pet_details?.nfc_hosting_type === 'custom_url' ? '0' : '99 (1 Year)'}</span></p>
+                                
+                                {selectedOrder.pet_details?.nfc_hosting_type === 'custom_url' ? (
+                                  <>
+                                    <p className="sm:col-span-2">
+                                      <span className="text-zinc-400 block mb-0.5">NFC Destination Link (Custom URL):</span>
+                                      <span className="flex items-center gap-2">
+                                        <a href={selectedOrder.pet_details?.nfc_custom_url} target="_blank" rel="noopener noreferrer" className="text-[#E30613] hover:underline block break-all font-mono text-[10px]">{selectedOrder.pet_details?.nfc_custom_url || 'N/A'}</a>
+                                        {selectedOrder.pet_details?.nfc_custom_url && (
+                                          <button
+                                            type="button"
+                                            onClick={() => {
+                                              navigator.clipboard.writeText(selectedOrder.pet_details.nfc_custom_url);
+                                              alert('NFC link copied!');
+                                            }}
+                                            className="text-[9px] bg-zinc-100 hover:bg-zinc-200 text-zinc-650 px-1.5 py-0.5 rounded uppercase font-bold shrink-0"
+                                          >
+                                            Copy Link
+                                          </button>
+                                        )}
+                                      </span>
+                                    </p>
+                                    {selectedOrder.pet_details?.nfc_custom_url_notes && (
+                                      <p className="sm:col-span-2 font-normal text-zinc-555 leading-relaxed normal-case"><span className="text-zinc-400 font-bold uppercase block text-[9px]">Custom Link Notes:</span> "{selectedOrder.pet_details.nfc_custom_url_notes}"</p>
+                                    )}
+                                  </>
+                                ) : (
+                                  <>
+                                    {selectedOrder.pet_details?.nfc_hosting_start_date && (
+                                      <p><span className="text-zinc-400">Start Date:</span> {new Date(selectedOrder.pet_details.nfc_hosting_start_date).toLocaleDateString()}</p>
+                                    )}
+                                    {selectedOrder.pet_details?.nfc_hosting_expiry_date && (
+                                      <p><span className="text-zinc-400">Expiry Date:</span> {new Date(selectedOrder.pet_details.nfc_hosting_expiry_date).toLocaleDateString()}</p>
+                                    )}
+                                    {selectedOrder.pet_details?.nfc_hosting_status && (
+                                      <p><span className="text-zinc-400">Hosting Status:</span> <span className="bg-emerald-50 text-emerald-700 px-1.5 py-0.5 rounded font-black text-[9px]">{selectedOrder.pet_details.nfc_hosting_status}</span></p>
+                                    )}
+                                    <p className="sm:col-span-2 pt-2 border-t border-zinc-100"><span className="text-zinc-400 font-bold uppercase tracking-wider text-[9px] block">Public Pet Profile Preview Details</span></p>
+                                    <p><span className="text-zinc-400">Public Name:</span> {selectedOrder.pet_details?.nfc_profile?.public_name || 'N/A'}</p>
+                                    <p><span className="text-zinc-400">Owner Contact:</span> {selectedOrder.pet_details?.nfc_profile?.owner_phone || 'N/A'}</p>
+                                    <p><span className="text-zinc-400">Emergency Phone:</span> {selectedOrder.pet_details?.nfc_profile?.emergency_contact || 'N/A'}</p>
+                                    {selectedOrder.pet_details?.nfc_profile?.medical_info && (
+                                      <p className="sm:col-span-2 font-normal text-zinc-555 leading-relaxed normal-case"><span className="text-zinc-400 font-bold uppercase block text-[9px]">Medical/Important Info:</span> {selectedOrder.pet_details.nfc_profile.medical_info}</p>
+                                    )}
+                                    {selectedOrder.pet_details?.nfc_profile?.message && (
+                                      <p className="sm:col-span-2 font-normal text-zinc-555 leading-relaxed normal-case"><span className="text-zinc-400 font-bold uppercase block text-[9px]">Public Scan Message:</span> "{selectedOrder.pet_details.nfc_profile.message}"</p>
+                                    )}
+                                  </>
                                 )}
                               </div>
                             </>
@@ -950,170 +991,174 @@ export function AdminDashboard({ userEmail }: AdminDashboardProps) {
                           {/* PET NFC PROFILE MANAGEMENT SECTION */}
                           {selectedOrder.product_id === 'pets' && (() => {
                             const linkedProfile = profiles.find((p) => p.order_id === selectedOrder.order_id || p.profile_id === selectedOrder.nfc_profile_id);
+                            const isCustomUrl = selectedOrder.pet_details?.nfc_hosting_type === 'custom_url';
                             
                             return (
                               <div className="border-t border-zinc-200 pt-4 space-y-3">
-                                <div className="flex items-center justify-between">
-                                  <span className="block text-[10px] font-black text-zinc-400 uppercase tracking-widest text-left">NFC Pet Profile</span>
-                                  {linkedProfile ? (
-                                    <span className={`text-[8px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-sm border ${
-                                      linkedProfile.status === 'ACTIVE' 
-                                        ? 'bg-emerald-50 text-emerald-755 border-emerald-250' 
-                                        : 'bg-zinc-50 text-zinc-500 border-zinc-200'
-                                    }`}>
-                                      {linkedProfile.status}
-                                    </span>
-                                  ) : (
-                                    <span className="text-[8px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-sm border bg-red-50 text-red-750 border-red-200">
-                                      NOT CREATED
-                                    </span>
-                                  )}
-                                </div>
+                                {!isCustomUrl && (
+                                  <>
+                                    <div className="flex items-center justify-between">
+                                      <span className="block text-[10px] font-black text-zinc-400 uppercase tracking-widest text-left">NFC Pet Profile</span>
+                                      {linkedProfile ? (
+                                        <span className={`text-[8px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-sm border ${
+                                          linkedProfile.status === 'ACTIVE' 
+                                            ? 'bg-emerald-50 text-emerald-755 border-emerald-250' 
+                                            : 'bg-zinc-50 text-zinc-500 border-zinc-200'
+                                        }`}>
+                                          {linkedProfile.status}
+                                        </span>
+                                      ) : (
+                                        <span className="text-[8px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-sm border bg-red-50 text-red-750 border-red-200">
+                                          NOT CREATED
+                                        </span>
+                                      )}
+                                    </div>
 
-                                {linkedProfile ? (
-                                  <div className="bg-white border border-zinc-155 p-4 rounded-lg space-y-4 text-left">
-                                    <div className="grid sm:grid-cols-2 gap-3 text-xs font-semibold text-zinc-700">
-                                      <p><span className="text-zinc-400 font-bold">Profile ID:</span> <span className="font-mono text-[#E30613]">{linkedProfile.profile_id}</span></p>
-                                      <p><span className="text-zinc-400 font-bold">Public Name:</span> {linkedProfile.pet_name}</p>
-                                      <div className="sm:col-span-2 space-y-1">
-                                        <span className="text-zinc-400 block text-[10px]">NFC Permanent Tap URL:</span>
-                                        <div className="flex gap-2 items-center">
-                                          <code className="bg-zinc-50 border border-zinc-200 rounded px-2 py-1 flex-1 break-all text-[10px] font-mono text-zinc-700">
-                                            https://feelsneat.com/t/{linkedProfile.profile_id}
-                                          </code>
+                                    {linkedProfile ? (
+                                      <div className="bg-white border border-zinc-155 p-4 rounded-lg space-y-4 text-left">
+                                        <div className="grid sm:grid-cols-2 gap-3 text-xs font-semibold text-zinc-700">
+                                          <p><span className="text-zinc-400 font-bold">Profile ID:</span> <span className="font-mono text-[#E30613]">{linkedProfile.profile_id}</span></p>
+                                          <p><span className="text-zinc-400 font-bold">Public Name:</span> {linkedProfile.pet_name}</p>
+                                          <div className="sm:col-span-2 space-y-1">
+                                            <span className="text-zinc-400 block text-[10px]">NFC Permanent Tap URL:</span>
+                                            <div className="flex gap-2 items-center">
+                                              <code className="bg-zinc-50 border border-zinc-200 rounded px-2 py-1 flex-1 break-all text-[10px] font-mono text-zinc-700">
+                                                https://feelsneat.com/t/{linkedProfile.profile_id}
+                                              </code>
+                                              <button
+                                                type="button"
+                                                onClick={() => {
+                                                  navigator.clipboard.writeText(`https://feelsneat.com/t/${linkedProfile.profile_id}`);
+                                                  alert('Copied NFC Tap URL to clipboard!');
+                                                }}
+                                                className="px-2 py-1 border border-zinc-200 rounded text-[10px] font-bold hover:bg-zinc-50 active:bg-zinc-100 cursor-pointer"
+                                              >
+                                                Copy
+                                              </button>
+                                            </div>
+                                          </div>
+                                          <div className="sm:col-span-2 space-y-1">
+                                            <span className="text-zinc-400 block text-[10px]">Public Profile URL:</span>
+                                            <div className="flex gap-2 items-center">
+                                              <code className="bg-zinc-50 border border-zinc-200 rounded px-2 py-1 flex-1 break-all text-[10px] font-mono text-zinc-700">
+                                                https://feelsneat.com/p/{linkedProfile.profile_id}
+                                              </code>
+                                              <button
+                                                type="button"
+                                                onClick={() => {
+                                                  navigator.clipboard.writeText(`https://feelsneat.com/p/${linkedProfile.profile_id}`);
+                                                  alert('Copied Public Profile URL to clipboard!');
+                                                }}
+                                                className="px-2 py-1 border border-zinc-200 rounded text-[10px] font-bold hover:bg-zinc-50 active:bg-zinc-100 cursor-pointer"
+                                              >
+                                                Copy
+                                              </button>
+                                            </div>
+                                          </div>
+                                        </div>
+
+                                        {/* Action Buttons */}
+                                        <div className="flex flex-wrap gap-2 pt-2 border-t border-zinc-100">
                                           <button
                                             type="button"
                                             onClick={() => {
-                                              navigator.clipboard.writeText(`https://feelsneat.com/t/${linkedProfile.profile_id}`);
-                                              alert('Copied NFC Tap URL to clipboard!');
+                                              setModalFormData({ ...linkedProfile });
                                             }}
-                                            className="px-2 py-1 border border-zinc-200 rounded text-[10px] font-bold hover:bg-zinc-50 active:bg-zinc-100 cursor-pointer"
+                                            className="inline-flex h-8 items-center justify-center rounded-lg border border-zinc-200 bg-white px-3 text-[10px] font-bold text-zinc-800 hover:bg-zinc-50 cursor-pointer"
                                           >
-                                            Copy
+                                            <LucideIcon name="Edit" className="h-3.5 w-3.5 mr-1" /> Edit Profile
                                           </button>
-                                        </div>
-                                      </div>
-                                      <div className="sm:col-span-2 space-y-1">
-                                        <span className="text-zinc-400 block text-[10px]">Public Profile URL:</span>
-                                        <div className="flex gap-2 items-center">
-                                          <code className="bg-zinc-50 border border-zinc-200 rounded px-2 py-1 flex-1 break-all text-[10px] font-mono text-zinc-700">
-                                            https://feelsneat.com/p/{linkedProfile.profile_id}
-                                          </code>
                                           <button
                                             type="button"
-                                            onClick={() => {
-                                              navigator.clipboard.writeText(`https://feelsneat.com/p/${linkedProfile.profile_id}`);
-                                              alert('Copied Public Profile URL to clipboard!');
-                                            }}
-                                            className="px-2 py-1 border border-zinc-200 rounded text-[10px] font-bold hover:bg-zinc-50 active:bg-zinc-100 cursor-pointer"
+                                            onClick={() => handleToggleProfileStatus(linkedProfile.profile_id, linkedProfile.status)}
+                                            className={`inline-flex h-8 items-center justify-center rounded-lg border px-3 text-[10px] font-bold cursor-pointer ${
+                                              linkedProfile.status === 'ACTIVE'
+                                                ? 'border-amber-200 bg-amber-50 text-amber-750 hover:bg-amber-100/50'
+                                                : 'border-emerald-250 bg-emerald-50 text-emerald-755 hover:bg-emerald-100/50'
+                                            }`}
                                           >
-                                            Copy
+                                            <LucideIcon name={linkedProfile.status === 'ACTIVE' ? 'EyeOff' : 'Eye'} className="h-3.5 w-3.5 mr-1" />
+                                            {linkedProfile.status === 'ACTIVE' ? 'Deactivate' : 'Activate'}
                                           </button>
+                                          <a
+                                            href={`/p/${linkedProfile.profile_id}`}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="inline-flex h-8 items-center justify-center rounded-lg border border-zinc-200 bg-zinc-900 px-3 text-[10px] font-bold text-white hover:bg-zinc-800 cursor-pointer gap-1"
+                                          >
+                                            <LucideIcon name="ExternalLink" className="h-3.5 w-3.5" /> Preview Profile
+                                          </a>
                                         </div>
                                       </div>
-                                    </div>
+                                    ) : (
+                                      <div className="bg-white border border-zinc-155 p-4 rounded-lg text-center space-y-3">
+                                        <p className="text-xs text-zinc-500 font-medium">No public pet profile has been created for this order yet.</p>
+                                        <button
+                                          type="button"
+                                          onClick={() => {
+                                            const generateRandomProfileId = () => {
+                                              const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+                                              let result = '';
+                                              for (let i = 0; i < 8; i++) {
+                                                result += chars.charAt(Math.floor(Math.random() * chars.length));
+                                              }
+                                              return result;
+                                            };
 
-                                    {/* Action Buttons */}
-                                    <div className="flex flex-wrap gap-2 pt-2 border-t border-zinc-100">
-                                      <button
-                                        type="button"
-                                        onClick={() => {
-                                          setModalFormData({ ...linkedProfile });
-                                        }}
-                                        className="inline-flex h-8 items-center justify-center rounded-lg border border-zinc-200 bg-white px-3 text-[10px] font-bold text-zinc-800 hover:bg-zinc-50 cursor-pointer"
-                                      >
-                                        <LucideIcon name="Edit" className="h-3.5 w-3.5 mr-1" /> Edit Profile
-                                      </button>
-                                      <button
-                                        type="button"
-                                        onClick={() => handleToggleProfileStatus(linkedProfile.profile_id, linkedProfile.status)}
-                                        className={`inline-flex h-8 items-center justify-center rounded-lg border px-3 text-[10px] font-bold cursor-pointer ${
-                                          linkedProfile.status === 'ACTIVE'
-                                            ? 'border-amber-200 bg-amber-50 text-amber-750 hover:bg-amber-100/50'
-                                            : 'border-emerald-250 bg-emerald-50 text-emerald-755 hover:bg-emerald-100/50'
-                                        }`}
-                                      >
-                                        <LucideIcon name={linkedProfile.status === 'ACTIVE' ? 'EyeOff' : 'Eye'} className="h-3.5 w-3.5 mr-1" />
-                                        {linkedProfile.status === 'ACTIVE' ? 'Deactivate' : 'Activate'}
-                                      </button>
-                                      <a
-                                        href={`/p/${linkedProfile.profile_id}`}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="inline-flex h-8 items-center justify-center rounded-lg border border-zinc-200 bg-zinc-900 px-3 text-[10px] font-bold text-white hover:bg-zinc-800 cursor-pointer gap-1"
-                                      >
-                                        <LucideIcon name="ExternalLink" className="h-3.5 w-3.5" /> Preview Profile
-                                      </a>
-                                    </div>
-                                  </div>
-                                ) : (
-                                  <div className="bg-white border border-zinc-155 p-4 rounded-lg text-center space-y-3">
-                                    <p className="text-xs text-zinc-500 font-medium">No public pet profile has been created for this order yet.</p>
-                                    <button
-                                      type="button"
-                                      onClick={() => {
-                                        // Generate 8-character random profile ID
-                                        const generateRandomProfileId = () => {
-                                          const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-                                          let result = '';
-                                          for (let i = 0; i < 8; i++) {
-                                            result += chars.charAt(Math.floor(Math.random() * chars.length));
-                                          }
-                                          return result;
-                                        };
-
-                                        setModalFormData({
-                                          profile_id: generateRandomProfileId(),
-                                          order_id: selectedOrder.order_id,
-                                          status: 'ACTIVE',
-                                          pet_name: selectedOrder.pet_details?.pet_name || '',
-                                          pet_type: selectedOrder.pet_details?.pet_type || 'dog',
-                                          pet_breed: selectedOrder.pet_details?.pet_breed || '',
-                                          pet_age: selectedOrder.pet_details?.pet_age || '',
-                                          pet_photo: selectedOrder.photos?.main_photo || '',
-                                          public_message: selectedOrder.pet_details?.nfc_profile?.message || 'If you found me, please contact my family.',
-                                          contact_method: 'both',
-                                          owner_phone: selectedOrder.pet_details?.nfc_profile?.owner_phone || selectedOrder.customer?.phone || '',
-                                          alt_phone: selectedOrder.pet_details?.alt_phone || '',
-                                          emergency_enabled: !!(selectedOrder.pet_details?.nfc_profile?.emergency_contact),
-                                          emergency_name: '',
-                                          emergency_phone: selectedOrder.pet_details?.nfc_profile?.emergency_contact || '',
-                                          medical_info: selectedOrder.pet_details?.nfc_profile?.medical_info || '',
-                                          message: selectedOrder.pet_details?.nfc_profile?.message || ''
-                                        });
-                                      }}
-                                      className="inline-flex h-9 items-center justify-center rounded-lg bg-[#E30613] hover:bg-zinc-900 text-xs font-black uppercase tracking-wider text-white transition-colors cursor-pointer px-4"
-                                    >
-                                      Create Pet Profile
-                                    </button>
-                                  </div>
+                                            setModalFormData({
+                                              profile_id: generateRandomProfileId(),
+                                              order_id: selectedOrder.order_id,
+                                              status: 'ACTIVE',
+                                              pet_name: selectedOrder.pet_details?.pet_name || '',
+                                              pet_type: selectedOrder.pet_details?.pet_type || 'dog',
+                                              pet_breed: selectedOrder.pet_details?.pet_breed || '',
+                                              pet_age: selectedOrder.pet_details?.pet_age || '',
+                                              pet_photo: selectedOrder.photos?.main_photo || '',
+                                              public_message: selectedOrder.pet_details?.nfc_profile?.message || 'If you found me, please contact my family.',
+                                              contact_method: 'both',
+                                              owner_phone: selectedOrder.pet_details?.nfc_profile?.owner_phone || selectedOrder.customer?.phone || '',
+                                              alt_phone: selectedOrder.pet_details?.alt_phone || '',
+                                              emergency_enabled: !!(selectedOrder.pet_details?.nfc_profile?.emergency_contact),
+                                              emergency_name: '',
+                                              emergency_phone: selectedOrder.pet_details?.nfc_profile?.emergency_contact || '',
+                                              medical_info: selectedOrder.pet_details?.nfc_profile?.medical_info || '',
+                                              message: selectedOrder.pet_details?.nfc_profile?.message || ''
+                                            });
+                                          }}
+                                          className="inline-flex h-9 items-center justify-center rounded-lg bg-[#E30613] hover:bg-zinc-900 text-xs font-black uppercase tracking-wider text-white transition-colors cursor-pointer px-4"
+                                        >
+                                          Create Pet Profile
+                                        </button>
+                                      </div>
+                                    )}
+                                  </>
                                 )}
 
                                 {/* Production Checklist */}
                                 <div className="bg-zinc-50 border border-zinc-200 rounded-lg p-4 space-y-3 text-left">
-                                  <span className="block text-[10px] font-black text-zinc-550 uppercase tracking-widest">Pet Tag Production Checklist</span>
+                                  <span className="block text-[10px] font-black text-zinc-555 uppercase tracking-widest">Pet Tag Production Checklist</span>
                                   <div className="space-y-2 text-xs font-semibold text-zinc-700">
                                     <label className="flex items-center gap-2.5 cursor-pointer">
                                       <input
                                         type="checkbox"
-                                        checked={!!linkedProfile}
+                                        checked={isCustomUrl || !!linkedProfile}
                                         readOnly
                                         className="h-4 w-4 rounded border-zinc-300 text-[#E30613] focus:ring-[#E30613]"
                                       />
-                                      <span className={linkedProfile ? 'text-emerald-700 font-bold' : 'text-zinc-400'}>
-                                        Pet Profile Created {linkedProfile ? '✓' : ''}
+                                      <span className={(isCustomUrl || linkedProfile) ? 'text-emerald-700 font-bold' : 'text-zinc-400'}>
+                                        {isCustomUrl ? 'NFC Custom Destination URL Provided ✓' : `Pet Profile Created ${linkedProfile ? '✓' : ''}`}
                                       </span>
                                     </label>
 
                                     <label className="flex items-center gap-2.5 cursor-pointer">
                                       <input
                                         type="checkbox"
-                                        checked={!!linkedProfile}
+                                        checked={isCustomUrl || !!linkedProfile}
                                         readOnly
                                         className="h-4 w-4 rounded border-zinc-300 text-[#E30613] focus:ring-[#E30613]"
                                       />
-                                      <span className={linkedProfile ? 'text-emerald-700 font-bold' : 'text-zinc-400'}>
-                                        NFC URL Generated {linkedProfile ? '✓' : ''}
+                                      <span className={(isCustomUrl || linkedProfile) ? 'text-emerald-700 font-bold' : 'text-zinc-400'}>
+                                        {isCustomUrl ? 'NFC Custom Link Ready ✓' : `NFC URL Generated ${linkedProfile ? '✓' : ''}`}
                                       </span>
                                     </label>
 

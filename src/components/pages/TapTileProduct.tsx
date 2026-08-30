@@ -131,7 +131,9 @@ export default function TapTileProductPage({ categorySlug }: TapTileProductProps
                       <span className="block text-[8px] font-black text-[#E30613] uppercase tracking-wider mb-1">Attach to Fridge</span>
                       <h4 className="text-xs font-black uppercase text-[#F4F4F5]">Magnet Version</h4>
                     </div>
-                    <span className="text-xs font-black text-[#F4F4F5] bg-white/5 border border-white/10 px-2.5 py-0.5 rounded tracking-wider">₹99</span>
+                    <span className="text-xs font-black text-[#F4F4F5] bg-white/5 border border-white/10 px-2.5 py-0.5 rounded tracking-wider">
+                      {categorySlug === 'pets' ? '₹149' : '₹99'}
+                    </span>
                   </div>
                   <span className="text-xs font-bold text-[#F4F4F5]/60 mt-4">UPI/Manual Checkout</span>
                 </button>
@@ -150,12 +152,36 @@ export default function TapTileProductPage({ categorySlug }: TapTileProductProps
                       <span className="block text-[8px] font-black text-[#E30613] uppercase tracking-wider mb-1">Carry with You</span>
                       <h4 className="text-xs font-black uppercase text-[#F4F4F5]">Keychain Version</h4>
                     </div>
-                    <span className="text-xs font-black text-[#F4F4F5] bg-white/5 border border-white/10 px-2.5 py-0.5 rounded tracking-wider">₹49</span>
+                    <span className="text-xs font-black text-[#F4F4F5] bg-white/5 border border-white/10 px-2.5 py-0.5 rounded tracking-wider">
+                      {categorySlug === 'pets' ? '₹199' : '₹49'}
+                    </span>
                   </div>
                   <span className="text-xs font-bold text-[#F4F4F5]/60 mt-4">UPI/Manual Checkout</span>
                 </button>
               </div>
             </div>
+
+            {categorySlug === 'pets' && (
+              <div className="space-y-4 pt-4 border-t border-white/5 text-left">
+                <h3 className="text-xs font-bold tracking-wider uppercase text-[#F4F4F5]">Choose How Your Tap Tile Opens</h3>
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <div className="p-4 rounded-xl border border-white/5 bg-[#0E0E12] space-y-2">
+                    <span className="text-[8px] font-black text-[#E30613] uppercase tracking-wider block">Option A</span>
+                    <h4 className="text-xs font-black uppercase text-[#F4F4F5]">FeelsNeat Pet Profile</h4>
+                    <p className="text-[11px] text-[#F4F4F5]/70 leading-relaxed font-medium">
+                      We'll create and host a personalized secure online profile for your pet (₹99 for 1 year). Perfect for quick contact info and rescue details.
+                    </p>
+                  </div>
+                  <div className="p-4 rounded-xl border border-white/5 bg-[#0E0E12] space-y-2">
+                    <span className="text-[8px] font-black text-zinc-400 uppercase tracking-wider block">Option B</span>
+                    <h4 className="text-xs font-black uppercase text-[#F4F4F5]">Your Own Link</h4>
+                    <p className="text-[11px] text-[#F4F4F5]/70 leading-relaxed font-medium">
+                      Already have a pet website, online document, or custom link? We'll program it directly into your tag (No hosting charge).
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* CTAs */}
             <div className="pt-6 flex flex-col sm:flex-row gap-4">
