@@ -18,6 +18,7 @@ import OrderConfirmationPage from '@/components/pages/Confirmation';
 import TapTilesPage from '@/components/pages/TapTiles';
 import CreateTapTilePage from '@/components/pages/CreateTapTile';
 import TapTileProductPage from '@/components/pages/TapTileProduct';
+import PetProfilePage from '@/components/pages/PetProfile';
 
 export const runtime = 'edge';
 
@@ -215,6 +216,14 @@ export default async function CatchAllPage({ params, searchParams }: PageProps) 
   // 4.66. Create Tap Tile Customizer Route (e.g. /create-tap-tile)
   if (route === 'create-tap-tile' && slug.length === 1) {
     return <CreateTapTilePage />;
+  }
+
+  // 4.68. Pet NFC Profile Routes (e.g. /p/[profileId] and /t/[profileId] redirect)
+  if (route === 'p' && slug.length === 2) {
+    return <PetProfilePage profileId={slug[1]} />;
+  }
+  if (route === 't' && slug.length === 2) {
+    redirect(`/p/${slug[1]}`);
   }
 
   // 4.7. Confirmation Route (e.g. /confirmation)

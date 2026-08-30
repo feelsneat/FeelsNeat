@@ -19,11 +19,128 @@ async function authenticateAdmin(req: NextRequest): Promise<boolean> {
   return decoded !== null;
 }
 
-// GET: List all orders/inquiries (Admin only)
+async function fetchProfileById(profileId: string, reqUrl: string): Promise<any> {
+  // 1. Fetch from KV
+  try {
+    const { getRequestContext } = await import('@cloudflare/next-on-pages');
+    const context = getRequestContext();
+    const env = context?.env;
+    if (env && env.FEELSNEAT_CMS_KV) {
+      const val = await env.FEELSNEAT_CMS_KV.get(`profile:${profileId}`);
+      if (val) return JSON.parse(val);
+    }
+  } catch (e) {
+    console.warn('KV profile fetch error:', e);
+  }
+
+  // 2. Fetch from local JSON db in development
+  if (process.env.NODE_ENV === 'development') {
+    try {
+      const devDbUrl = new URL(`/api/dev-db?type=profiles`, reqUrl).toString();
+      const res = await fetch(devDbUrl);
+      if (res.ok) {
+        const profiles = await res.json();
+        if (Array.isArray(profiles)) {
+          return profiles.find((p: any) => p.profile_id === profileId) || null;
+        }
+      }
+    } catch (err) {
+      console.error('Failed to read dev profiles database:', err);
+    }
+  }
+  return null;
+}
+
+// GET: List all orders/inquiries (Admin only) OR Public Pet Profile Lookups
 export async function GET(req: NextRequest) {
+  const url = new URL(req.url);
+  const profileId = url.searchParams.get('profileId');
+
+  // PUBLIC ACCESS to pet profile
+  if (profileId) {
+    const profile = await fetchProfileById(profileId, req.url);
+    if (!profile) {
+      return NextResponse.json({ error: 'Profile not found' }, { status: 404 });
+    }
+    if (profile.status !== 'ACTIVE') {
+      return NextResponse.json({ status: 'INACTIVE' }, { status: 200 }); // Return status only, do not expose details!
+    }
+    // Return ONLY public fields!
+    const publicProfile = {
+      profile_id: profile.profile_id,
+      order_id: profile.order_id,
+      status: profile.status,
+      pet_name: profile.pet_name,
+      pet_type: profile.pet_type,
+      pet_breed: profile.pet_breed,
+      pet_age: profile.pet_age,
+      pet_photo: profile.pet_photo,
+      public_message: profile.public_message,
+      contact_method: profile.contact_method,
+      owner_phone: profile.owner_phone,
+      alt_phone: profile.alt_phone,
+      emergency_enabled: profile.emergency_enabled,
+      emergency_name: profile.emergency_name,
+      emergency_phone: profile.emergency_phone,
+      medical_info: profile.medical_info,
+      message: profile.message
+    };
+    return NextResponse.json(publicProfile);
+  }
+
+  // From here on, admin authentication is required!
   const isAuthed = await authenticateAdmin(req);
   if (!isAuthed) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
+  const type = url.searchParams.get('type');
+  if (type === 'profiles') {
+    let profiles: any[] = [];
+    
+    // 1. Fetch from Cloudflare KV if bound
+    try {
+      const { getRequestContext } = await import('@cloudflare/next-on-pages');
+      const context = getRequestContext();
+      const env = context?.env;
+      if (env && env.FEELSNEAT_CMS_KV) {
+        const list = await env.FEELSNEAT_CMS_KV.list({ prefix: 'profile:' });
+        const fetchPromises = list.keys.map(async (keyObj: any) => {
+          const val = await env.FEELSNEAT_CMS_KV.get(keyObj.name);
+          return val ? JSON.parse(val) : null;
+        });
+        const resolved = await Promise.all(fetchPromises);
+        profiles = resolved.filter(Boolean);
+      }
+    } catch (e) {
+      console.warn('KV context list error in GET admin/profiles:', e);
+    }
+
+    // 2. Fetch from local JSON file dev-db API in development mode
+    if (process.env.NODE_ENV === 'development') {
+      try {
+        const devDbUrl = new URL('/api/dev-db?type=profiles', req.url).toString();
+        const res = await fetch(devDbUrl);
+        if (res.ok) {
+          const fileProfiles = await res.json();
+          if (Array.isArray(fileProfiles)) {
+            const merged = [...profiles];
+            fileProfiles.forEach((fp: any) => {
+              if (!merged.some((p) => p.profile_id === fp.profile_id)) {
+                merged.push(fp);
+              }
+            });
+            profiles = merged;
+          }
+        }
+      } catch (err) {
+        console.error('Failed to read dev profiles database via GET /api/dev-db:', err);
+      }
+    }
+
+    // Sort by created_at descending
+    profiles.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+    return NextResponse.json(profiles);
   }
 
   let orders: any[] = [];
@@ -88,7 +205,155 @@ function generatePetRequestId() {
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { action, order_id, statusUpdates } = body;
+    const { action, order_id, statusUpdates, profile_id, profileData, status } = body;
+
+    // ─── ADMIN PROFILE ACTIONS ROUTING ─────────────────────────────────────────
+    if (action === 'save_profile' || action === 'delete_profile' || action === 'update_profile_status') {
+      const isAuthed = await authenticateAdmin(req);
+      if (!isAuthed) {
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      }
+
+      if (action === 'save_profile') {
+        if (!profileData || !profileData.profile_id || !profileData.order_id) {
+          return NextResponse.json({ error: 'Invalid profile data payload' }, { status: 400 });
+        }
+
+        // 1. Save profile to Cloudflare KV
+        try {
+          const { getRequestContext } = await import('@cloudflare/next-on-pages');
+          const context = getRequestContext();
+          const env = context?.env;
+          if (env && env.FEELSNEAT_CMS_KV) {
+            // Save profile
+            await env.FEELSNEAT_CMS_KV.put(`profile:${profileData.profile_id}`, JSON.stringify(profileData));
+            
+            // Link profile ID back to the order
+            const orderKey = `order:${profileData.order_id}`;
+            const orderVal = await env.FEELSNEAT_CMS_KV.get(orderKey);
+            if (orderVal) {
+              const orderObj = JSON.parse(orderVal);
+              orderObj.nfc_profile_id = profileData.profile_id;
+              
+              if (!orderObj.production) orderObj.production = {};
+              orderObj.production.design_status = 'PROFILE SETUP';
+              
+              await env.FEELSNEAT_CMS_KV.put(orderKey, JSON.stringify(orderObj));
+            }
+          }
+        } catch (kvError) {
+          console.warn('KV save_profile failed:', kvError);
+        }
+
+        // 2. Save profile to dev JSON file in development mode
+        if (process.env.NODE_ENV === 'development') {
+          try {
+            const devDbUrl = new URL('/api/dev-db', req.url).toString();
+            // Save profile
+            await fetch(devDbUrl, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ action: 'save_profile', profileData })
+            });
+
+            // Link profile ID back to the order in dev db
+            await fetch(devDbUrl, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                action: 'update',
+                order_id: profileData.order_id,
+                statusUpdates: {
+                  nfc_profile_id: profileData.profile_id,
+                  production: {
+                    design_status: 'PROFILE SETUP'
+                  }
+                }
+              })
+            });
+          } catch (err) {
+            console.error('Failed to save profile to dev-db:', err);
+          }
+        }
+
+        return NextResponse.json({ success: true, profile_id: profileData.profile_id });
+      }
+
+      if (action === 'delete_profile') {
+        if (!profile_id) {
+          return NextResponse.json({ error: 'Profile ID is required' }, { status: 400 });
+        }
+
+        // 1. Delete from KV
+        try {
+          const { getRequestContext } = await import('@cloudflare/next-on-pages');
+          const context = getRequestContext();
+          const env = context?.env;
+          if (env && env.FEELSNEAT_CMS_KV) {
+            await env.FEELSNEAT_CMS_KV.delete(`profile:${profile_id}`);
+          }
+        } catch (e) {
+          console.warn('KV delete profile error:', e);
+        }
+
+        // 2. Delete in dev db
+        if (process.env.NODE_ENV === 'development') {
+          try {
+            const devDbUrl = new URL('/api/dev-db', req.url).toString();
+            await fetch(devDbUrl, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ action: 'delete_profile', profile_id })
+            });
+          } catch (err) {
+            console.error('Failed to delete dev profile:', err);
+          }
+        }
+
+        return NextResponse.json({ success: true });
+      }
+
+      if (action === 'update_profile_status') {
+        if (!profile_id || !status) {
+          return NextResponse.json({ error: 'Profile ID and status are required' }, { status: 400 });
+        }
+
+        // 1. Update in KV
+        try {
+          const { getRequestContext } = await import('@cloudflare/next-on-pages');
+          const context = getRequestContext();
+          const env = context?.env;
+          if (env && env.FEELSNEAT_CMS_KV) {
+            const key = `profile:${profile_id}`;
+            const val = await env.FEELSNEAT_CMS_KV.get(key);
+            if (val) {
+              const parsed = JSON.parse(val);
+              parsed.status = status;
+              parsed.updated_at = new Date().toISOString();
+              await env.FEELSNEAT_CMS_KV.put(key, JSON.stringify(parsed));
+            }
+          }
+        } catch (kvError) {
+          console.warn('KV update profile status failed:', kvError);
+        }
+
+        // 2. Update in dev db
+        if (process.env.NODE_ENV === 'development') {
+          try {
+            const devDbUrl = new URL('/api/dev-db', req.url).toString();
+            await fetch(devDbUrl, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ action: 'update_profile_status', profile_id, status })
+            });
+          } catch (err) {
+            console.error('Failed to update dev profile status:', err);
+          }
+        }
+
+        return NextResponse.json({ success: true });
+      }
+    }
 
     // ─── ADMIN ACTIONS ROUTING ───────────────────────────────────────────────
     if (action === 'update' || action === 'delete') {
