@@ -21,7 +21,13 @@ export default function OrderConfirmationPage({ whatsappNumber }: OrderConfirmat
   
   let whatsappMessage = `Hi FeelsNeat! I have submitted a new memories custom order with ID: ${orderId}. Please send payment instructions.`;
 
-  if (orderId.startsWith('FN-SRV-') || type === 'service') {
+  if (orderId.startsWith('FN-PET-')) {
+    orderType = 'pet_tap_tile';
+    headerTitle = "🐾 We've received your request!";
+    typeLabel = 'Pet Tap Tile Confirmation';
+    bodyInstruction = "Thank you for sharing the details with us. 😊\n\nWe've successfully received your Pet Tap Tile customization request. We'll review your details and reach out to you shortly to confirm your order and discuss the next steps.\n\nYou don't need to do anything else right now. ✨";
+    whatsappMessage = `Hi FeelsNeat! 👋🐾\n\nI've submitted a Pet Tap Tile request through your website.\n\nMy Request ID is: ${orderId}\n\nI'd like to discuss my request. 😊`;
+  } else if (orderId.startsWith('FN-SRV-') || type === 'service') {
     orderType = 'service';
     headerTitle = 'Your service request has been received.';
     typeLabel = 'Project Coordination';
@@ -96,33 +102,88 @@ export default function OrderConfirmationPage({ whatsappNumber }: OrderConfirmat
           Order ID: <span className="text-[#E30613]">{orderId}</span>
         </p>
 
-        {/* Manual Payment WhatsApp Instructions Callout */}
-        <div className="bg-[#E30613]/5 border border-[#E30613]/20 rounded-xl p-5 mb-8 text-left space-y-4">
-          <div className="flex items-center gap-2 text-[#E30613]">
-            <LucideIcon name="MessageSquare" className="h-4.5 w-4.5 shrink-0" />
-            <h3 className="text-sm font-black uppercase tracking-wider">{typeLabel}</h3>
+        {/* Manual Payment WhatsApp Instructions Callout OR Pet Confirmation Alert Box */}
+        {orderType === 'pet_tap_tile' ? (
+          <div className="bg-zinc-50 border border-zinc-200 rounded-xl p-5 mb-8 text-left space-y-3">
+            <div className="flex items-center gap-2 text-zinc-800">
+              <LucideIcon name="ShieldCheck" className="h-4.5 w-4.5 shrink-0 text-emerald-600" />
+              <h3 className="text-sm font-black uppercase tracking-wider">{typeLabel}</h3>
+            </div>
+            
+            <p className="text-sm text-zinc-650 leading-relaxed font-semibold whitespace-pre-line">
+              {bodyInstruction}
+            </p>
           </div>
-          
-          <p className="text-sm text-zinc-700 leading-relaxed font-semibold">
-            {bodyInstruction}
-          </p>
+        ) : (
+          <div className="bg-[#E30613]/5 border border-[#E30613]/20 rounded-xl p-5 mb-8 text-left space-y-4">
+            <div className="flex items-center gap-2 text-[#E30613]">
+              <LucideIcon name="MessageSquare" className="h-4.5 w-4.5 shrink-0" />
+              <h3 className="text-sm font-black uppercase tracking-wider">{typeLabel}</h3>
+            </div>
+            
+            <p className="text-sm text-zinc-700 leading-relaxed font-semibold">
+              {bodyInstruction}
+            </p>
 
-          <a
-            href={whatsappUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="w-full inline-flex h-10 items-center justify-center gap-2 rounded-lg bg-[#E30613] hover:bg-zinc-900 text-sm font-black uppercase tracking-wider text-white transition-colors duration-300 shadow-md cursor-pointer select-none"
-          >
-            Confirm on WhatsApp <LucideIcon name="ArrowRight" className="h-4 w-4" />
-          </a>
-        </div>
+            <a
+              href={whatsappUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="w-full inline-flex h-10 items-center justify-center gap-2 rounded-lg bg-[#E30613] hover:bg-zinc-900 text-sm font-black uppercase tracking-wider text-white transition-colors duration-300 shadow-md cursor-pointer select-none"
+            >
+              Confirm on WhatsApp <LucideIcon name="ArrowRight" className="h-4 w-4" />
+            </a>
+          </div>
+        )}
 
         {/* NEXT STEPS PROCESS WORKFLOW CARDS */}
         <div className="space-y-4 text-left border-t border-zinc-100 pt-6">
           <h3 className="text-sm font-bold uppercase tracking-widest text-black mb-3">What happens next?</h3>
           
           <div className="space-y-4">
-            {orderType === 'memories' ? (
+            {orderType === 'pet_tap_tile' ? (
+              <>
+                <div className="flex gap-4">
+                  <div className="flex h-5 w-5 items-center justify-center rounded-full bg-zinc-100 border border-zinc-200 text-zinc-600 text-xs font-black shrink-0">1</div>
+                  <div>
+                    <h4 className="text-sm font-black uppercase text-black leading-none">We review your customization request</h4>
+                    <p className="text-xs text-zinc-500 mt-1.5 font-semibold leading-normal">We review your customization choices, photos, and NFC details.</p>
+                  </div>
+                </div>
+
+                <div className="flex gap-4">
+                  <div className="flex h-5 w-5 items-center justify-center rounded-full bg-zinc-100 border border-zinc-200 text-zinc-600 text-xs font-black shrink-0">2</div>
+                  <div>
+                    <h4 className="text-sm font-black uppercase text-black leading-none">We'll contact you to confirm final details</h4>
+                    <p className="text-xs text-zinc-500 mt-1.5 font-semibold leading-normal">We reach out to you directly to verify layout options and answer questions.</p>
+                  </div>
+                </div>
+
+                <div className="flex gap-4">
+                  <div className="flex h-5 w-5 items-center justify-center rounded-full bg-zinc-100 border border-zinc-200 text-zinc-600 text-xs font-black shrink-0">3</div>
+                  <div>
+                    <h4 className="text-sm font-black uppercase text-black leading-none">Once everything is confirmed, we'll share payment details</h4>
+                    <p className="text-xs text-zinc-500 mt-1.5 font-semibold leading-normal">Once everything looks perfect, we share UPI payment details to begin production.</p>
+                  </div>
+                </div>
+
+                <div className="flex gap-4">
+                  <div className="flex h-5 w-5 items-center justify-center rounded-full bg-zinc-100 border border-zinc-200 text-zinc-600 text-xs font-black shrink-0">4</div>
+                  <div>
+                    <h4 className="text-sm font-black uppercase text-black leading-none">We create and prepare your personalized Pet Tap Tile</h4>
+                    <p className="text-xs text-zinc-500 mt-1.5 font-semibold leading-normal">We prepare your pet's public page and write the target link to the embedded chip.</p>
+                  </div>
+                </div>
+
+                <div className="flex gap-4">
+                  <div className="flex h-5 w-5 items-center justify-center rounded-full bg-zinc-100 border border-zinc-200 text-zinc-600 text-xs font-black shrink-0">5</div>
+                  <div>
+                    <h4 className="text-sm font-black uppercase text-black leading-none">Your order is packed and delivered to you</h4>
+                    <p className="text-xs text-zinc-500 mt-1.5 font-semibold leading-normal">We hand-craft your personalized Pet Tap Tile, package it, and ship it to you.</p>
+                  </div>
+                </div>
+              </>
+            ) : orderType === 'memories' ? (
               <>
                 <div className="flex gap-4">
                   <div className="flex h-5 w-5 items-center justify-center rounded-full bg-zinc-100 border border-zinc-200 text-zinc-600 text-xs font-black shrink-0">1</div>
@@ -219,6 +280,22 @@ export default function OrderConfirmationPage({ whatsappNumber }: OrderConfirmat
             )}
           </div>
         </div>
+
+        {/* Optional WhatsApp Contact box for Pet Tap Tile requests */}
+        {orderType === 'pet_tap_tile' && (
+          <div className="mt-8 pt-6 border-t border-zinc-100 text-left space-y-3">
+            <h4 className="text-xs font-black uppercase text-black tracking-widest">Want to contact us directly?</h4>
+            <p className="text-xs text-zinc-500 font-semibold leading-normal">If you'd like to discuss your request with us right away, you can also message us on WhatsApp.</p>
+            <a
+              href={whatsappUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex h-9 items-center justify-center rounded-lg border border-zinc-200 hover:border-[#25D366] bg-white px-4 text-xs font-black uppercase tracking-wider text-zinc-800 transition-colors shadow-3xs cursor-pointer select-none gap-2 hover:bg-[#25D366]/5"
+            >
+              <LucideIcon name="MessageSquare" className="h-4 w-4 text-[#25D366]" /> Chat with us on WhatsApp
+            </a>
+          </div>
+        )}
 
         {/* Return Button */}
         <div className="mt-8 pt-6 border-t border-zinc-100 flex justify-center">

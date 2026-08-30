@@ -501,24 +501,66 @@ export function AdminDashboard({ userEmail }: AdminDashboardProps) {
                       {selectedOrder.order_type === 'tap_tiles' && (
                         <div className="border-t border-zinc-200 pt-4 space-y-3">
                           <span className="block text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-1">Tap Tile Details</span>
-                          <div className="grid sm:grid-cols-2 gap-3 text-xs bg-white border border-zinc-150 p-3 rounded-lg font-semibold text-zinc-700">
-                            <p><span className="text-zinc-400">Niche Category:</span> {selectedOrder.product_id || 'None'}</p>
-                            <p><span className="text-zinc-400">Format:</span> {selectedOrder.product?.size === 'magnet' ? 'Fridge Magnet' : 'Art Keychain'}</p>
-                            <p><span className="text-zinc-400">Design Style:</span> {selectedOrder.product?.memory_type || 'None'}</p>
-                            <p><span className="text-zinc-400">Quantity:</span> {selectedOrder.product?.quantity || 1} pc</p>
-                            <p className="sm:col-span-2">
-                              <span className="text-zinc-400 block mb-0.5">NFC Destination Link:</span>
-                              <a href={selectedOrder.digital_memory?.google_photos_url} target="_blank" rel="noopener noreferrer" className="text-[#E30613] hover:underline block break-all font-mono text-[10px]">{selectedOrder.digital_memory?.google_photos_url}</a>
-                            </p>
-                            {selectedOrder.memory_details?.title && (
-                              <p className="sm:col-span-2"><span className="text-zinc-400">Overlay Text:</span> "{selectedOrder.memory_details.title}"</p>
-                            )}
-                            {selectedOrder.memory_details?.design_notes && (
-                              <p className="sm:col-span-2 bg-yellow-50/50 p-2 border border-yellow-100 rounded text-[#1E1E1E] italic text-[11px] font-medium leading-normal">
-                                &ldquo;{selectedOrder.memory_details.design_notes}&rdquo;
+
+                          {selectedOrder.product_id === 'pets' ? (
+                            <>
+                              <div className="grid sm:grid-cols-2 gap-3 text-xs bg-white border border-zinc-150 p-3 rounded-lg font-semibold text-zinc-700">
+                                <p className="sm:col-span-2"><span className="text-zinc-400 font-bold uppercase tracking-wider text-[9px] block">🐾 Pet Info</span></p>
+                                <p><span className="text-zinc-400">Pet Name:</span> {selectedOrder.pet_details?.pet_name || 'N/A'}</p>
+                                <p><span className="text-zinc-400">Pet Type:</span> <span className="uppercase">{selectedOrder.pet_details?.pet_type || 'N/A'}</span></p>
+                                <p><span className="text-zinc-400">Breed:</span> {selectedOrder.pet_details?.pet_breed || 'N/A'}</p>
+                                <p><span className="text-zinc-400">Age:</span> {selectedOrder.pet_details?.pet_age || 'N/A'}</p>
+                                {selectedOrder.pet_details?.pet_description && (
+                                  <p className="sm:col-span-2 font-normal text-zinc-550 leading-relaxed normal-case"><span className="text-zinc-400 font-bold uppercase block text-[9px]">Description:</span> "{selectedOrder.pet_details.pet_description}"</p>
+                                )}
+
+                                <p className="sm:col-span-2 pt-2 border-t border-zinc-100"><span className="text-zinc-400 font-bold uppercase tracking-wider text-[9px] block">📦 Product Customization</span></p>
+                                <p><span className="text-zinc-400">Format:</span> {selectedOrder.product?.size === 'magnet' ? 'Fridge Magnet (₹99)' : 'Art Keychain (₹49)'}</p>
+                                <p><span className="text-zinc-400">Quantity:</span> {selectedOrder.product?.quantity || 1} pc</p>
+                                {selectedOrder.memory_details?.title && (
+                                  <p className="sm:col-span-2"><span className="text-zinc-400">Overlay Text on Tile:</span> "{selectedOrder.memory_details.title}"</p>
+                                )}
+                                {selectedOrder.pet_details?.alt_phone && (
+                                  <p><span className="text-zinc-400">Alternative Phone:</span> {selectedOrder.pet_details.alt_phone}</p>
+                                )}
+                                {selectedOrder.memory_details?.design_notes && (
+                                  <p className="sm:col-span-2 bg-yellow-50/50 p-2 border border-yellow-100 rounded text-[#1E1E1E] italic text-[11px] font-medium leading-normal normal-case">
+                                    &ldquo;{selectedOrder.memory_details.design_notes}&rdquo;
+                                  </p>
+                                )}
+
+                                <p className="sm:col-span-2 pt-2 border-t border-zinc-100"><span className="text-zinc-400 font-bold uppercase tracking-wider text-[9px] block">🔗 Future NFC Profile Details</span></p>
+                                <p><span className="text-zinc-400">Public Name:</span> {selectedOrder.pet_details?.nfc_profile?.public_name || 'N/A'}</p>
+                                <p><span className="text-zinc-400">Owner Contact:</span> {selectedOrder.pet_details?.nfc_profile?.owner_phone || 'N/A'}</p>
+                                <p><span className="text-zinc-400">Emergency Phone:</span> {selectedOrder.pet_details?.nfc_profile?.emergency_contact || 'N/A'}</p>
+                                {selectedOrder.pet_details?.nfc_profile?.medical_info && (
+                                  <p className="sm:col-span-2 font-normal text-zinc-555 leading-relaxed normal-case"><span className="text-zinc-400 font-bold uppercase block text-[9px]">Medical/Important Info:</span> {selectedOrder.pet_details.nfc_profile.medical_info}</p>
+                                )}
+                                {selectedOrder.pet_details?.nfc_profile?.message && (
+                                  <p className="sm:col-span-2 font-normal text-zinc-555 leading-relaxed normal-case"><span className="text-zinc-400 font-bold uppercase block text-[9px]">Public Scan Message:</span> "{selectedOrder.pet_details.nfc_profile.message}"</p>
+                                )}
+                              </div>
+                            </>
+                          ) : (
+                            <div className="grid sm:grid-cols-2 gap-3 text-xs bg-white border border-zinc-150 p-3 rounded-lg font-semibold text-zinc-700">
+                              <p><span className="text-zinc-400">Niche Category:</span> {selectedOrder.product_id || 'None'}</p>
+                              <p><span className="text-zinc-400">Format:</span> {selectedOrder.product?.size === 'magnet' ? 'Fridge Magnet' : 'Art Keychain'}</p>
+                              <p><span className="text-zinc-400">Design Style:</span> {selectedOrder.product?.memory_type || 'None'}</p>
+                              <p><span className="text-zinc-400">Quantity:</span> {selectedOrder.product?.quantity || 1} pc</p>
+                              <p className="sm:col-span-2">
+                                <span className="text-zinc-400 block mb-0.5">NFC Destination Link:</span>
+                                <a href={selectedOrder.digital_memory?.google_photos_url} target="_blank" rel="noopener noreferrer" className="text-[#E30613] hover:underline block break-all font-mono text-[10px]">{selectedOrder.digital_memory?.google_photos_url}</a>
                               </p>
-                            )}
-                          </div>
+                              {selectedOrder.memory_details?.title && (
+                                <p className="sm:col-span-2"><span className="text-zinc-400">Overlay Text:</span> "{selectedOrder.memory_details.title}"</p>
+                              )}
+                              {selectedOrder.memory_details?.design_notes && (
+                                <p className="sm:col-span-2 bg-yellow-50/50 p-2 border border-yellow-100 rounded text-[#1E1E1E] italic text-[11px] font-medium leading-normal">
+                                  &ldquo;{selectedOrder.memory_details.design_notes}&rdquo;
+                                </p>
+                              )}
+                            </div>
+                          )}
 
                           {/* Canvas Photo Preview */}
                           {selectedOrder.photos?.main_photo && (
@@ -664,7 +706,30 @@ export function AdminDashboard({ userEmail }: AdminDashboardProps) {
                             />
                           </div>
 
-                          {selectedOrder.order_type === 'memories' ? (
+                          {selectedOrder.product_id === 'pets' ? (
+                            <div className="sm:col-span-2">
+                              <label className="block text-[10px] font-bold text-foreground/60 mb-1">Order / Inquiry Status</label>
+                              <select
+                                  value={selectedOrder.production?.design_status || 'NEW REQUEST'}
+                                  onChange={(e) => handleUpdateOrderStatus(selectedOrder.order_id, { production: { design_status: e.target.value } })}
+                                  className="w-full rounded-lg border border-border-custom bg-white px-3 py-2 text-xs focus:border-foreground focus:outline-none text-[#1E1E1E]"
+                                >
+                                <option value="NEW REQUEST">NEW REQUEST</option>
+                                <option value="REVIEWING">REVIEWING</option>
+                                <option value="CONTACTED">CONTACTED</option>
+                                <option value="DETAILS CONFIRMED">DETAILS CONFIRMED</option>
+                                <option value="PAYMENT PENDING">PAYMENT PENDING</option>
+                                <option value="PAID">PAID</option>
+                                <option value="PROFILE SETUP">PROFILE SETUP</option>
+                                <option value="IN PRODUCTION">IN PRODUCTION</option>
+                                <option value="QUALITY CHECK">QUALITY CHECK</option>
+                                <option value="SHIPPED">SHIPPED</option>
+                                <option value="DELIVERED">DELIVERED</option>
+                                <option value="COMPLETED">COMPLETED</option>
+                                <option value="CANCELLED">CANCELLED</option>
+                              </select>
+                            </div>
+                          ) : selectedOrder.order_type === 'memories' ? (
                             <>
                               <div>
                                 <label className="block text-[10px] font-bold text-foreground/60 mb-1">Design Status</label>
@@ -697,7 +762,7 @@ export function AdminDashboard({ userEmail }: AdminDashboardProps) {
                               <select
                                   value={selectedOrder.production?.design_status || 'NEW'}
                                   onChange={(e) => handleUpdateOrderStatus(selectedOrder.order_id, { production: { design_status: e.target.value } })}
-                                  className="w-full rounded-lg border border-border-custom bg-white px-3 py-2 text-xs focus:border-foreground focus:outline-none text-[#1E1E1E]"
+                                  className="w-full rounded-lg border border-[#E4E4E7] bg-white px-3 py-2 text-xs focus:border-foreground focus:outline-none text-[#1E1E1E]"
                                 >
                                 <option value="NEW">New Submission</option>
                                 <option value="CONTACTED">Client Contacted</option>

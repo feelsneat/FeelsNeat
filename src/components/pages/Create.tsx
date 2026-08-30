@@ -73,7 +73,15 @@ export default function CreateMemoryPage() {
   }
 
   // Set steps list dynamically based on mode
-  const STEPS = order_type === 'memories'
+  const STEPS = (order_type === 'tap_tiles' && productId === 'pets')
+    ? [
+        { id: 1, label: 'Pet Details' },
+        { id: 2, label: 'Product & Customization' },
+        { id: 3, label: 'NFC Profile' },
+        { id: 4, label: 'Contact & Delivery' },
+        { id: 5, label: 'Review' },
+      ]
+    : order_type === 'memories'
     ? [
         { id: 1, label: 'Memory' },
         { id: 2, label: 'Product' },
@@ -117,6 +125,21 @@ export default function CreateMemoryPage() {
     state: '',
     pincode: '',
     country: 'India',
+
+    // Pet details
+    pet_name: '',
+    pet_type: 'dog', // dog, cat, other
+    pet_breed: '',
+    pet_age: '',
+    pet_description: '',
+    alt_phone: '',
+
+    // Future NFC profile details
+    nfc_public_name: '',
+    nfc_owner_phone: '',
+    nfc_emergency_contact: '',
+    nfc_medical_info: '',
+    nfc_message: '',
 
     // Website Development fields
     instagram_page: '',
@@ -306,46 +329,108 @@ export default function CreateMemoryPage() {
         }
       }
     } else if (order_type === 'tap_tiles') {
-      if (step === 1) {
-        if (!formData.size) {
-          setValidationError('Please select a format type.');
-          return false;
+      if (productId === 'pets') {
+        if (step === 1) {
+          if (!formData.pet_name) {
+            setValidationError('Please enter your pet\'s name.');
+            return false;
+          }
+          if (!formData.pet_type) {
+            setValidationError('Please select a pet type.');
+            return false;
+          }
+          if (!mainPhoto) {
+            setValidationError('Please upload a photo of your pet.');
+            return false;
+          }
         }
-        if (!formData.memory_type) {
-          setValidationError('Please select a visual style.');
-          return false;
+        if (step === 2) {
+          if (!formData.size) {
+            setValidationError('Please select a format.');
+            return false;
+          }
         }
-      }
-      if (step === 2) {
-        if (!formData.google_photos_url) {
-          setValidationError('Please enter a target link destination.');
-          return false;
+        if (step === 3) {
+          if (!formData.nfc_public_name) {
+            setValidationError('Please enter a public pet name for the NFC profile.');
+            return false;
+          }
+          if (!formData.nfc_owner_phone) {
+            setValidationError('Please enter an owner contact phone number.');
+            return false;
+          }
+          const phoneRegex = /^[6-9]\d{9}$|^[+]\d{1,4}\d{9,10}$/;
+          if (!phoneRegex.test(formData.nfc_owner_phone.replace(/[\s-]/g, ''))) {
+            setValidationError('Invalid owner phone number format.');
+            return false;
+          }
         }
-      }
-      if (step === 3) {
-        if (!mainPhoto) {
-          setValidationError('Please upload your print photo or artwork file.');
-          return false;
+        if (step === 4) {
+          if (!formData.customer_name || !formData.customer_email || !formData.customer_phone) {
+            setValidationError('Please fill in your contact details.');
+            return false;
+          }
+          if (!formData.address_line || !formData.city || !formData.state || !formData.pincode) {
+            setValidationError('Please fill in your complete delivery address details.');
+            return false;
+          }
+          const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+          if (!emailRegex.test(formData.customer_email)) {
+            setValidationError('Invalid email address format.');
+            return false;
+          }
+          const phoneRegex = /^[6-9]\d{9}$|^[+]\d{1,4}\d{9,10}$/;
+          if (!phoneRegex.test(formData.customer_phone.replace(/[\s-]/g, ''))) {
+            setValidationError('Invalid WhatsApp number format.');
+            return false;
+          }
+          if (formData.alt_phone && !phoneRegex.test(formData.alt_phone.replace(/[\s-]/g, ''))) {
+            setValidationError('Invalid alternative phone number format.');
+            return false;
+          }
         }
-      }
-      if (step === 4) {
-        if (!formData.customer_name || !formData.customer_email || !formData.customer_phone) {
-          setValidationError('Please fill in your contact details.');
-          return false;
+      } else {
+        if (step === 1) {
+          if (!formData.size) {
+            setValidationError('Please select a format type.');
+            return false;
+          }
+          if (!formData.memory_type) {
+            setValidationError('Please select a visual style.');
+            return false;
+          }
         }
-        if (!formData.address_line || !formData.city || !formData.state || !formData.pincode) {
-          setValidationError('Please fill in your complete delivery address details.');
-          return false;
+        if (step === 2) {
+          if (!formData.google_photos_url) {
+            setValidationError('Please enter a target link destination.');
+            return false;
+          }
         }
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!emailRegex.test(formData.customer_email)) {
-          setValidationError('Invalid email address format.');
-          return false;
+        if (step === 3) {
+          if (!mainPhoto) {
+            setValidationError('Please upload your print photo or artwork file.');
+            return false;
+          }
         }
-        const phoneRegex = /^[6-9]\d{9}$|^[+]\d{1,4}\d{9,10}$/;
-        if (!phoneRegex.test(formData.customer_phone.replace(/[\s-]/g, ''))) {
-          setValidationError('Invalid phone number format.');
-          return false;
+        if (step === 4) {
+          if (!formData.customer_name || !formData.customer_email || !formData.customer_phone) {
+            setValidationError('Please fill in your contact details.');
+            return false;
+          }
+          if (!formData.address_line || !formData.city || !formData.state || !formData.pincode) {
+            setValidationError('Please fill in your complete delivery address details.');
+            return false;
+          }
+          const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+          if (!emailRegex.test(formData.customer_email)) {
+            setValidationError('Invalid email address format.');
+            return false;
+          }
+          const phoneRegex = /^[6-9]\d{9}$|^[+]\d{1,4}\d{9,10}$/;
+          if (!phoneRegex.test(formData.customer_phone.replace(/[\s-]/g, ''))) {
+            setValidationError('Invalid phone number format.');
+            return false;
+          }
         }
       }
     }
@@ -964,400 +1049,965 @@ export default function CreateMemoryPage() {
               ========================================================================= */}
           {order_type === 'tap_tiles' && (
             <>
-              {/* STEP 1: STYLE & FORMAT */}
-              {currentStep === 1 && (
-                <div className="space-y-6 animate-fade-in text-left">
-                  <div>
-                    <h2 className="text-base font-black uppercase text-black mb-1">Customize your Tap Tile</h2>
-                    <p className="text-xs text-zinc-500 font-bold tracking-wider">Select your preferred format, style, and optional text</p>
-                  </div>
+              {productId === 'pets' ? (
+                <>
+                  {/* =========================================================================
+                      PET TAP TILE WIZARD FLOW (5 STEPS)
+                      ========================================================================= */}
+                  {/* STEP 1: PET DETAILS */}
+                  {currentStep === 1 && (
+                    <div className="space-y-6 animate-fade-in text-left">
+                      <div>
+                        <h2 className="text-base font-black uppercase text-black mb-1">🐾 Tell us about your Pet</h2>
+                        <p className="text-xs text-zinc-500 font-bold tracking-wider">Provide details and upload a photo for your custom Pet Tap Tile</p>
+                      </div>
 
-                  {/* Format selection */}
-                  <div className="space-y-2">
-                    <label className="block text-xs font-black text-black uppercase tracking-widest">Select Format</label>
-                    <div className="grid grid-cols-2 gap-3">
-                      {[
-                        { id: 'magnet', label: 'Magnet', subtitle: 'Fridge Magnet', price: '₹99', original: '₹299' },
-                        { id: 'keychain', label: 'Keychain', subtitle: 'Art Keychain', price: '₹49', original: '₹149' }
-                      ].map((format) => (
-                        <button
-                          key={format.id}
-                          type="button"
-                          onClick={() => setFormData((prev) => ({ ...prev, size: format.id }))}
-                          className={`p-4 rounded-xl border text-left cursor-pointer transition-all duration-200 select-none ${
-                            formData.size === format.id
-                              ? 'border-[#E30613] bg-[#E30613]/5'
-                              : 'border-zinc-200 bg-white hover:bg-zinc-50'
-                          }`}
-                        >
-                          <div className="flex justify-between items-start w-full">
-                            <div>
-                              <span className="block text-[8px] font-black text-zinc-400 uppercase tracking-widest mb-1">{format.subtitle}</span>
-                              <h4 className="text-xs font-bold uppercase text-black">{format.label}</h4>
+                      <div className="space-y-4">
+                        <div>
+                          <label htmlFor="pet_name" className="block text-xs font-black text-black mb-2 uppercase tracking-widest">
+                            Pet Name <span className="text-[#E30613]">*</span>
+                          </label>
+                          <input
+                            type="text"
+                            id="pet_name"
+                            name="pet_name"
+                            required
+                            value={formData.pet_name}
+                            onChange={handleTextChange}
+                            className="w-full rounded-lg border border-zinc-200 bg-white px-4 py-2.5 text-xs text-black placeholder-zinc-400 focus:border-[#E30613] focus:outline-none"
+                            placeholder="e.g. Bella, Max"
+                          />
+                        </div>
+
+                        <div className="space-y-2">
+                          <label className="block text-xs font-black text-black uppercase tracking-widest">
+                            Pet Type <span className="text-[#E30613]">*</span>
+                          </label>
+                          <div className="grid grid-cols-3 gap-2">
+                            {['dog', 'cat', 'other'].map((type) => (
+                              <button
+                                key={type}
+                                type="button"
+                                onClick={() => setFormData((prev) => ({ ...prev, pet_type: type }))}
+                                className={`py-2.5 rounded-lg border text-center text-xs font-black uppercase tracking-wider transition-all cursor-pointer select-none ${
+                                  formData.pet_type === type
+                                    ? 'border-[#E30613] bg-[#E30613] text-white shadow-sm'
+                                    : 'border-zinc-200 bg-white text-zinc-700 hover:bg-zinc-50'
+                                }`}
+                              >
+                                {type}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+
+                        <div className="grid sm:grid-cols-2 gap-4">
+                          <div>
+                            <label htmlFor="pet_breed" className="block text-xs font-black text-black mb-2 uppercase tracking-widest">
+                              Breed <span className="text-zinc-400">(Optional)</span>
+                            </label>
+                            <input
+                              type="text"
+                              id="pet_breed"
+                              name="pet_breed"
+                              value={formData.pet_breed}
+                              onChange={handleTextChange}
+                              className="w-full rounded-lg border border-zinc-200 bg-white px-4 py-2.5 text-xs text-black placeholder-zinc-400 focus:border-[#E30613] focus:outline-none"
+                              placeholder="e.g. Golden Retriever"
+                            />
+                          </div>
+                          <div>
+                            <label htmlFor="pet_age" className="block text-xs font-black text-black mb-2 uppercase tracking-widest">
+                              Age <span className="text-zinc-400">(Optional)</span>
+                            </label>
+                            <input
+                              type="text"
+                              id="pet_age"
+                              name="pet_age"
+                              value={formData.pet_age}
+                              onChange={handleTextChange}
+                              className="w-full rounded-lg border border-zinc-200 bg-white px-4 py-2.5 text-xs text-black placeholder-zinc-400 focus:border-[#E30613] focus:outline-none"
+                              placeholder="e.g. 3 years, 6 months"
+                            />
+                          </div>
+                        </div>
+
+                        <div>
+                          <label htmlFor="pet_description" className="block text-xs font-black text-black mb-2 uppercase tracking-widest">
+                            Short Description / Story <span className="text-zinc-400">(Optional)</span>
+                          </label>
+                          <textarea
+                            id="pet_description"
+                            name="pet_description"
+                            rows={3}
+                            value={formData.pet_description}
+                            onChange={handleTextChange}
+                            className="w-full rounded-lg border border-zinc-200 bg-white px-4 py-2.5 text-xs text-black placeholder-zinc-400 focus:border-[#E30613] focus:outline-none resize-none"
+                            placeholder="Tell us a little bit about Bella's personality, favorite toys, etc."
+                          />
+                        </div>
+
+                        <div className="space-y-2">
+                          <label className="block text-xs font-black text-black uppercase tracking-widest">
+                            Pet Photo <span className="text-[#E30613]">*</span>
+                          </label>
+                          
+                          {!mainPhoto ? (
+                            <label className="flex flex-col items-center justify-center border-2 border-dashed border-zinc-200 rounded-xl p-8 hover:border-zinc-300 transition-colors cursor-pointer bg-zinc-50/50">
+                              <LucideIcon name="Camera" className="h-8 w-8 text-zinc-400 mb-2" />
+                              <span className="text-xs font-bold text-zinc-600 uppercase">Select Pet Photo</span>
+                              <span className="text-[10px] text-zinc-400 mt-1.5 font-semibold">JPG, PNG, or WEBP (Max 12MB)</span>
+                              <input
+                                type="file"
+                                accept="image/*"
+                                onChange={(e) => handlePhotoUpload(e, true)}
+                                className="hidden"
+                              />
+                            </label>
+                          ) : (
+                            <div className="relative rounded-xl overflow-hidden border border-zinc-200 aspect-square max-w-[240px] mx-auto bg-zinc-50">
+                              <img src={mainPhoto} alt="Pet artwork preview" className="w-full h-full object-cover" />
+                              <button
+                                type="button"
+                                onClick={() => { setMainPhoto(null); setMainPhotoName(''); }}
+                                className="absolute top-2 right-2 bg-black/70 hover:bg-black text-white rounded-full p-1.5 transition-colors cursor-pointer"
+                              >
+                                <LucideIcon name="X" className="h-3.5 w-3.5" />
+                              </button>
+                              <div className="absolute bottom-0 inset-x-0 bg-black/60 px-3 py-1.5 text-[9px] font-bold text-white truncate text-center select-none">
+                                {mainPhotoName || 'pet_photo.png'}
+                              </div>
                             </div>
-                            <div className="text-right flex flex-col items-end">
-                              {format.original && (
-                                <span className="text-[10px] text-zinc-400 line-through font-semibold font-mono">{format.original}</span>
-                              )}
-                              <span className="text-xs font-bold text-zinc-700">{format.price}</span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* STEP 2: PRODUCT FORMAT & CUSTOMIZATION */}
+                  {currentStep === 2 && (
+                    <div className="space-y-6 animate-fade-in text-left">
+                      <div>
+                        <h2 className="text-base font-black uppercase text-black mb-1">Format & Customization</h2>
+                        <p className="text-xs text-zinc-500 font-bold tracking-wider">Choose formats, custom overlay texts, and quantity options</p>
+                      </div>
+
+                      {/* Format selection */}
+                      <div className="space-y-2">
+                        <label className="block text-xs font-black text-black uppercase tracking-widest">Select Format</label>
+                        <div className="grid grid-cols-2 gap-3">
+                          {[
+                            { id: 'magnet', label: 'Magnet', subtitle: 'Fridge Magnet', price: '₹99', original: '₹299' },
+                            { id: 'keychain', label: 'Keychain', subtitle: 'Art Keychain', price: '₹49', original: '₹149' }
+                          ].map((format) => (
+                            <button
+                              key={format.id}
+                              type="button"
+                              onClick={() => setFormData((prev) => ({ ...prev, size: format.id }))}
+                              className={`p-4 rounded-xl border text-left cursor-pointer transition-all duration-200 select-none ${
+                                formData.size === format.id
+                                  ? 'border-[#E30613] bg-[#E30613]/5'
+                                  : 'border-zinc-200 bg-white hover:bg-zinc-50'
+                              }`}
+                            >
+                              <div className="flex justify-between items-start w-full">
+                                <div>
+                                  <span className="block text-[8px] font-black text-zinc-400 uppercase tracking-widest mb-1">{format.subtitle}</span>
+                                  <h4 className="text-xs font-bold uppercase text-black">{format.label}</h4>
+                                </div>
+                                <div className="text-right flex flex-col items-end">
+                                  {format.original && (
+                                    <span className="text-[10px] text-zinc-400 line-through font-semibold font-mono">{format.original}</span>
+                                  )}
+                                  <span className="text-xs font-bold text-zinc-700">{format.price}</span>
+                                </div>
+                              </div>
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Quantity */}
+                      <div className="pt-4 border-t border-zinc-100 flex items-center justify-between">
+                        <div>
+                          <label className="block text-xs font-black text-black uppercase tracking-widest">Quantity</label>
+                          <p className="text-[10px] text-zinc-400 font-bold uppercase mt-0.5">Order multiple identical pieces</p>
+                        </div>
+                        <div className="flex items-center border border-zinc-200 rounded-lg overflow-hidden h-9 bg-white">
+                          <button
+                            type="button"
+                            onClick={() => setFormData((prev) => ({ ...prev, quantity: Math.max(1, prev.quantity - 1) }))}
+                            className="px-3 text-zinc-500 hover:bg-zinc-50 h-full font-bold transition-colors cursor-pointer select-none"
+                          >
+                            -
+                          </button>
+                          <span className="px-4 text-xs font-black text-black">{formData.quantity}</span>
+                          <button
+                            type="button"
+                            onClick={() => setFormData((prev) => ({ ...prev, quantity: prev.quantity + 1 }))}
+                            className="px-3 text-zinc-500 hover:bg-zinc-50 h-full font-bold transition-colors cursor-pointer select-none"
+                          >
+                            +
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Customization Details */}
+                      <div className="space-y-4 pt-4 border-t border-zinc-100">
+                        <div>
+                          <label htmlFor="title" className="block text-xs font-black text-black mb-2 uppercase tracking-widest">
+                            Preferred Text / Pet Name on Tile <span className="text-zinc-400">(Optional)</span>
+                          </label>
+                          <input
+                            type="text"
+                            id="title"
+                            name="title"
+                            value={formData.title}
+                            onChange={handleTextChange}
+                            className="w-full rounded-lg border border-zinc-200 bg-white px-4 py-2.5 text-xs text-black placeholder-zinc-400 focus:border-[#E30613] focus:outline-none"
+                            placeholder="e.g. Bella / 'My Best Friend'"
+                          />
+                        </div>
+
+                        <div>
+                          <label htmlFor="caption" className="block text-xs font-black text-black mb-2 uppercase tracking-widest">
+                            Design Preferences <span className="text-zinc-400">(Optional)</span>
+                          </label>
+                          <textarea
+                            id="caption"
+                            name="caption"
+                            rows={2}
+                            value={formData.caption}
+                            onChange={handleTextChange}
+                            className="w-full rounded-lg border border-zinc-200 bg-white px-4 py-2.5 text-xs text-black placeholder-zinc-400 focus:border-[#E30613] focus:outline-none resize-none"
+                            placeholder="e.g. Light background, retro filter, minimal borders..."
+                          />
+                        </div>
+
+                        <div>
+                          <label htmlFor="design_notes" className="block text-xs font-black text-black mb-2 uppercase tracking-widest">
+                            Additional Notes <span className="text-zinc-400">(Optional)</span>
+                          </label>
+                          <textarea
+                            id="design_notes"
+                            name="design_notes"
+                            rows={2}
+                            value={formData.design_notes}
+                            onChange={handleTextChange}
+                            className="w-full rounded-lg border border-zinc-200 bg-white px-4 py-2.5 text-xs text-black placeholder-zinc-400 focus:border-[#E30613] focus:outline-none resize-none"
+                            placeholder="e.g. Any specific request, delivery deadlines, or instructions..."
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* STEP 3: FUTURE PET NFC PROFILE DETAILS */}
+                  {currentStep === 3 && (
+                    <div className="space-y-6 animate-fade-in text-left">
+                      <div>
+                        <h2 className="text-base font-black uppercase text-black mb-1">🔗 Future Pet NFC Profile</h2>
+                        <p className="text-xs text-zinc-500 font-bold tracking-wider">Provide details to show on public pet tag profile when scanned</p>
+                      </div>
+
+                      <div className="bg-zinc-50 rounded-xl p-4 border border-zinc-150 text-xs text-zinc-650 leading-relaxed font-semibold space-y-1">
+                        <span className="text-black font-black uppercase tracking-wider block">🔒 Privacy & Security First</span>
+                        <p>This profile will only be activated after your confirmation. Home addresses are kept private and never exposed. Public scans show only owner-approved emergency/contact information.</p>
+                      </div>
+
+                      <div className="space-y-4">
+                        <div>
+                          <label htmlFor="nfc_public_name" className="block text-xs font-black text-black mb-2 uppercase tracking-widest">
+                            Public Pet Name <span className="text-[#E30613]">*</span>
+                          </label>
+                          <input
+                            type="text"
+                            id="nfc_public_name"
+                            name="nfc_public_name"
+                            required
+                            value={formData.nfc_public_name}
+                            onChange={handleTextChange}
+                            className="w-full rounded-lg border border-zinc-200 bg-white px-4 py-2.5 text-xs text-black placeholder-zinc-400 focus:border-[#E30613] focus:outline-none"
+                            placeholder="Name displayed on public profile scan (e.g. Bella)"
+                          />
+                        </div>
+
+                        <div>
+                          <label htmlFor="nfc_owner_phone" className="block text-xs font-black text-black mb-2 uppercase tracking-widest">
+                            Owner Contact Number <span className="text-[#E30613]">*</span>
+                          </label>
+                          <input
+                            type="tel"
+                            id="nfc_owner_phone"
+                            name="nfc_owner_phone"
+                            required
+                            value={formData.nfc_owner_phone}
+                            onChange={handleTextChange}
+                            className="w-full rounded-lg border border-zinc-200 bg-white px-4 py-2.5 text-xs text-black placeholder-zinc-400 focus:border-[#E30613] focus:outline-none"
+                            placeholder="Primary phone number to contact owner"
+                          />
+                        </div>
+
+                        <div>
+                          <label htmlFor="nfc_emergency_contact" className="block text-xs font-black text-black mb-2 uppercase tracking-widest">
+                            Emergency Contact Phone <span className="text-zinc-400">(Optional)</span>
+                          </label>
+                          <input
+                            type="tel"
+                            id="nfc_emergency_contact"
+                            name="nfc_emergency_contact"
+                            value={formData.nfc_emergency_contact}
+                            onChange={handleTextChange}
+                            className="w-full rounded-lg border border-zinc-200 bg-white px-4 py-2.5 text-xs text-black placeholder-zinc-400 focus:border-[#E30613] focus:outline-none"
+                            placeholder="Alternative phone number for emergencies"
+                          />
+                        </div>
+
+                        <div>
+                          <label htmlFor="nfc_medical_info" className="block text-xs font-black text-black mb-2 uppercase tracking-widest">
+                            Important / Medical Information <span className="text-zinc-400">(Optional)</span>
+                          </label>
+                          <textarea
+                            id="nfc_medical_info"
+                            name="nfc_medical_info"
+                            rows={3}
+                            value={formData.nfc_medical_info}
+                            onChange={handleTextChange}
+                            className="w-full rounded-lg border border-zinc-200 bg-white px-4 py-2.5 text-xs text-black placeholder-zinc-400 focus:border-[#E30613] focus:outline-none resize-none"
+                            placeholder="e.g. Allergic to penicillin, requires daily insulin, friendly but nervous, microchipped..."
+                          />
+                        </div>
+
+                        <div>
+                          <label htmlFor="nfc_message" className="block text-xs font-black text-black mb-2 uppercase tracking-widest">
+                            Public Emergency Message <span className="text-zinc-400">(Optional)</span>
+                          </label>
+                          <textarea
+                            id="nfc_message"
+                            name="nfc_message"
+                            rows={2}
+                            value={formData.nfc_message}
+                            onChange={handleTextChange}
+                            className="w-full rounded-lg border border-zinc-200 bg-white px-4 py-2.5 text-xs text-black placeholder-zinc-400 focus:border-[#E30613] focus:outline-none resize-none"
+                            placeholder="e.g. 'If you find me, please call my human immediately! Thank you!'"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* STEP 4: CONTACT & SHIPPING DETAILS */}
+                  {currentStep === 4 && (
+                    <div className="space-y-6 animate-fade-in text-left">
+                      <div>
+                        <h2 className="text-base font-black uppercase text-black mb-1">Delivery details</h2>
+                        <p className="text-xs text-zinc-500 font-bold tracking-wider">Provide details for shipping and payment confirmation</p>
+                      </div>
+
+                      <div className="space-y-4">
+                        <div className="grid sm:grid-cols-2 gap-4">
+                          <div>
+                            <label htmlFor="customer_name" className="block text-xs font-black text-black mb-2 uppercase tracking-widest">
+                              Full Name <span className="text-[#E30613]">*</span>
+                            </label>
+                            <input
+                              type="text"
+                              id="customer_name"
+                              name="customer_name"
+                              required
+                              value={formData.customer_name}
+                              onChange={handleTextChange}
+                              className="w-full rounded-lg border border-zinc-200 bg-white px-4 py-2.5 text-xs text-black placeholder-zinc-400 focus:border-[#E30613] focus:outline-none"
+                              placeholder="Your full name"
+                            />
+                          </div>
+                          <div>
+                            <label htmlFor="customer_phone" className="block text-xs font-black text-black mb-2 uppercase tracking-widest">
+                              WhatsApp Number <span className="text-[#E30613]">*</span>
+                            </label>
+                            <input
+                              type="tel"
+                              id="customer_phone"
+                              name="customer_phone"
+                              required
+                              value={formData.customer_phone}
+                              onChange={handleTextChange}
+                              className="w-full rounded-lg border border-zinc-200 bg-white px-4 py-2.5 text-xs text-black placeholder-zinc-400 focus:border-[#E30613] focus:outline-none"
+                              placeholder="e.g. 9876543210"
+                            />
+                          </div>
+                        </div>
+
+                        <div className="grid sm:grid-cols-2 gap-4">
+                          <div>
+                            <label htmlFor="customer_email" className="block text-xs font-black text-black mb-2 uppercase tracking-widest">
+                              Email Address <span className="text-[#E30613]">*</span>
+                            </label>
+                            <input
+                              type="email"
+                              id="customer_email"
+                              name="customer_email"
+                              required
+                              value={formData.customer_email}
+                              onChange={handleTextChange}
+                              className="w-full rounded-lg border border-zinc-200 bg-white px-4 py-2.5 text-xs text-black placeholder-zinc-400 focus:border-[#E30613] focus:outline-none"
+                              placeholder="email@example.com"
+                            />
+                          </div>
+                          <div>
+                            <label htmlFor="alt_phone" className="block text-xs font-black text-black mb-2 uppercase tracking-widest">
+                              Alternative Contact <span className="text-zinc-400">(Optional)</span>
+                            </label>
+                            <input
+                              type="tel"
+                              id="alt_phone"
+                              name="alt_phone"
+                              value={formData.alt_phone}
+                              onChange={handleTextChange}
+                              className="w-full rounded-lg border border-zinc-200 bg-white px-4 py-2.5 text-xs text-black placeholder-zinc-400 focus:border-[#E30613] focus:outline-none"
+                              placeholder="Alternative phone number"
+                            />
+                          </div>
+                        </div>
+
+                        <div className="border-t border-zinc-100 pt-4 space-y-4">
+                          <div>
+                            <label htmlFor="address_line" className="block text-xs font-black text-black mb-2 uppercase tracking-widest">
+                              Shipping Address <span className="text-[#E30613]">*</span>
+                            </label>
+                            <input
+                              type="text"
+                              id="address_line"
+                              name="address_line"
+                              required
+                              value={formData.address_line}
+                              onChange={handleTextChange}
+                              className="w-full rounded-lg border border-zinc-200 bg-white px-4 py-2.5 text-xs text-black placeholder-zinc-400 focus:border-[#E30613] focus:outline-none"
+                              placeholder="Flat/House No, Building, Street"
+                            />
+                          </div>
+
+                          <div className="grid grid-cols-2 gap-4">
+                            <div>
+                              <label htmlFor="city" className="block text-xs font-black text-black mb-2 uppercase tracking-widest">
+                                City <span className="text-[#E30613]">*</span>
+                              </label>
+                              <input
+                                type="text"
+                                id="city"
+                                name="city"
+                                required
+                                value={formData.city}
+                                onChange={handleTextChange}
+                                className="w-full rounded-lg border border-zinc-200 bg-white px-4 py-2.5 text-xs text-black focus:border-[#E30613] focus:outline-none"
+                              />
+                            </div>
+                            <div>
+                              <label htmlFor="state" className="block text-xs font-black text-black mb-2 uppercase tracking-widest">
+                                State <span className="text-[#E30613]">*</span>
+                              </label>
+                              <input
+                                type="text"
+                                id="state"
+                                name="state"
+                                required
+                                value={formData.state}
+                                onChange={handleTextChange}
+                                className="w-full rounded-lg border border-zinc-200 bg-white px-4 py-2.5 text-xs text-black focus:border-[#E30613] focus:outline-none"
+                              />
                             </div>
                           </div>
-                        </button>
-                      ))}
-                    </div>
-                  </div>
 
-                  {/* Style selection */}
-                  <div className="space-y-2">
-                    <label className="block text-xs font-black text-black uppercase tracking-widest">Visual Direction Style</label>
-                    <div className="grid grid-cols-5 gap-2">
-                      {['minimal', 'retro', 'modern', 'vintage', 'funny'].map((style) => (
-                        <button
-                          key={style}
-                          type="button"
-                          onClick={() => setFormData((prev) => ({ ...prev, memory_type: style }))}
-                          className={`py-2 rounded-lg border text-center text-[10px] font-black uppercase tracking-wider transition-all cursor-pointer ${
-                            formData.memory_type === style
-                              ? 'border-[#E30613] bg-[#E30613] text-white shadow-sm'
-                              : 'border-zinc-200 bg-white text-zinc-700 hover:bg-zinc-50'
-                          }`}
-                        >
-                          {style}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Custom overlay text */}
-                  <div>
-                    <label htmlFor="title" className="block text-xs font-black text-black mb-2 uppercase tracking-widest">
-                      Custom Overlay Text / Caption (Optional)
-                    </label>
-                    <input
-                      type="text"
-                      id="title"
-                      name="title"
-                      maxLength={40}
-                      value={formData.title}
-                      onChange={handleTextChange}
-                      className="w-full rounded-lg border border-zinc-200 bg-white px-4 py-2.5 text-xs text-black placeholder-zinc-400 focus:border-[#E30613] focus:outline-none"
-                      placeholder="e.g. 2008 was a personality."
-                    />
-                    <div className="text-[9px] text-zinc-400 font-bold text-right mt-1.5 uppercase">
-                      {formData.title.length}/40 characters
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* STEP 2: NFC LINK */}
-              {currentStep === 2 && (
-                <div className="space-y-6 animate-fade-in text-left">
-                  <div>
-                    <h2 className="text-base font-black uppercase text-black mb-1">Connect your NFC link</h2>
-                    <p className="text-xs text-zinc-500 font-bold tracking-wider">Provide the URL destination programmed into the tile</p>
-                  </div>
-
-                  <div>
-                    <label htmlFor="google_photos_url" className="block text-xs font-black text-black mb-2 uppercase tracking-widest">
-                      Destination Link URL <span className="text-[#E30613]">*</span>
-                    </label>
-                    <input
-                      type="url"
-                      id="google_photos_url"
-                      name="google_photos_url"
-                      required
-                      value={formData.google_photos_url}
-                      onChange={handleTextChange}
-                      className="w-full rounded-lg border border-zinc-200 bg-white px-4 py-3 text-sm text-black placeholder-zinc-400 focus:border-[#E30613] focus:outline-none transition-colors"
-                      placeholder="Paste Spotify song, YouTube link, or website..."
-                    />
-                  </div>
-
-                  <div className="rounded-lg bg-zinc-50 p-4 border border-zinc-150 text-left">
-                    <p className="text-xs text-zinc-600 leading-relaxed font-semibold">
-                      Provide a Spotify track/playlist link, YouTube video URL, Google Photos shared album, or custom webpage. FeelsNeat will program this link onto the NFC chip before shipping.
-                    </p>
-                  </div>
-                </div>
-              )}
-
-              {/* STEP 3: PHOTO UPLOAD */}
-              {currentStep === 3 && (
-                <div className="space-y-6 animate-fade-in text-left">
-                  <div>
-                    <h2 className="text-base font-black uppercase text-black mb-1">Upload your photo</h2>
-                    <p className="text-xs text-zinc-500 font-bold tracking-wider">Choose the main artwork image for your tile</p>
-                  </div>
-
-                  <div className="space-y-2">
-                    <label className="block text-xs font-black text-black uppercase tracking-widest">
-                      Tile Artwork Photo <span className="text-[#E30613]">*</span>
-                    </label>
-                    
-                    {!mainPhoto ? (
-                      <label className="flex flex-col items-center justify-center border-2 border-dashed border-zinc-200 rounded-xl p-8 hover:border-zinc-300 transition-colors cursor-pointer bg-zinc-50/50">
-                        <LucideIcon name="Feather" className="h-8 w-8 text-zinc-400 mb-2 animate-pulse" />
-                        <span className="text-xs font-bold text-zinc-600 uppercase">Select Tile Artwork</span>
-                        <span className="text-[10px] text-zinc-400 mt-1.5 font-semibold">JPG, PNG, or WEBP (Max 12MB)</span>
-                        <input
-                          type="file"
-                          accept="image/*"
-                          onChange={(e) => handlePhotoUpload(e, true)}
-                          className="hidden"
-                        />
-                      </label>
-                    ) : (
-                      <div className="relative rounded-xl overflow-hidden border border-zinc-200 aspect-square max-w-[240px] mx-auto bg-zinc-50">
-                        <img src={mainPhoto} alt="Tile preview" className="w-full h-full object-cover" />
-                        <button
-                          type="button"
-                          onClick={() => { setMainPhoto(null); setMainPhotoName(''); }}
-                          className="absolute top-2 right-2 bg-black/70 hover:bg-black text-white rounded-full p-1.5 transition-colors cursor-pointer"
-                        >
-                          <LucideIcon name="X" className="h-3.5 w-3.5" />
-                        </button>
-                        <div className="absolute bottom-0 inset-x-0 bg-black/60 px-3 py-1.5 text-[9px] font-bold text-white truncate text-center select-none">
-                          {mainPhotoName || 'uploaded_image.png'}
+                          <div className="grid grid-cols-2 gap-4">
+                            <div>
+                              <label htmlFor="pincode" className="block text-xs font-black text-black mb-2 uppercase tracking-widest">
+                                Pincode <span className="text-[#E30613]">*</span>
+                              </label>
+                              <input
+                                type="text"
+                                id="pincode"
+                                name="pincode"
+                                required
+                                value={formData.pincode}
+                                onChange={handleTextChange}
+                                className="w-full rounded-lg border border-zinc-200 bg-white px-4 py-2.5 text-xs text-black focus:border-[#E30613] focus:outline-none"
+                                placeholder="6-digit PIN code"
+                              />
+                            </div>
+                            <div>
+                              <label htmlFor="country" className="block text-xs font-black text-black mb-2 uppercase tracking-widest">
+                                Country
+                              </label>
+                              <input
+                                type="text"
+                                id="country"
+                                name="country"
+                                value={formData.country}
+                                onChange={handleTextChange}
+                                className="w-full rounded-lg border border-zinc-200 bg-zinc-50 px-4 py-2.5 text-xs text-zinc-500 focus:outline-none"
+                                disabled
+                              />
+                            </div>
+                          </div>
                         </div>
                       </div>
-                    )}
-                  </div>
-                </div>
-              )}
+                    </div>
+                  )}
 
-              {/* STEP 4: CONTACT & SHIPPING */}
-              {currentStep === 4 && (
-                <div className="space-y-6 animate-fade-in text-left">
-                  <div>
-                    <h2 className="text-base font-black uppercase text-black mb-1">Delivery details</h2>
-                    <p className="text-xs text-zinc-500 font-bold tracking-wider">Provide details for shipping and manual payments coordinate</p>
-                  </div>
-
-                  <div className="space-y-4">
-                    <div className="grid sm:grid-cols-2 gap-4">
+                  {/* STEP 5: REVIEW */}
+                  {currentStep === 5 && (
+                    <div className="space-y-6 animate-fade-in text-left">
                       <div>
-                        <label htmlFor="customer_name" className="block text-xs font-black text-black mb-2 uppercase tracking-widest">
-                          Full Name <span className="text-[#E30613]">*</span>
+                        <h2 className="text-base font-black uppercase text-black mb-1">Review Details</h2>
+                        <p className="text-xs text-zinc-500 font-bold tracking-wider">Confirm pet details and delivery details before submitting request</p>
+                      </div>
+
+                      <div className="rounded-xl border border-zinc-200 bg-zinc-50 p-5 space-y-4 text-black text-xs font-semibold uppercase">
+                        <div className="border-b border-zinc-200 pb-3 flex gap-4 items-center">
+                          {mainPhoto && (
+                            <div className="h-12 w-12 rounded-lg overflow-hidden border border-zinc-200 bg-white shrink-0">
+                              <img src={mainPhoto} alt="Pet photo" className="h-full w-full object-cover" />
+                            </div>
+                          )}
+                          <div>
+                            <span className="text-[9px] font-black text-[#E30613] uppercase tracking-widest block mb-0.5">Pet Details</span>
+                            <span className="text-xs font-bold uppercase">{formData.pet_name} ({formData.pet_type})</span>
+                            {formData.pet_breed && <span className="block text-[10px] text-zinc-500 lowercase first-letter:uppercase">{formData.pet_breed} &bull; {formData.pet_age || 'unknown age'}</span>}
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-4 border-b border-zinc-200 pb-3">
+                          <div>
+                            <span className="text-[9px] font-black text-zinc-400 uppercase tracking-widest block">Format</span>
+                            <span className="font-bold text-black">{formData.size === 'magnet' ? 'Fridge Magnet' : 'Art Keychain'}</span>
+                          </div>
+                          <div>
+                            <span className="text-[9px] font-black text-zinc-400 uppercase tracking-widest block">Quantity</span>
+                            <span className="font-bold text-black">{formData.quantity} pc</span>
+                          </div>
+                          <div>
+                            <span className="text-[9px] font-black text-zinc-400 uppercase tracking-widest block">Pricing Option</span>
+                            <span className="font-bold text-[#E30613]">{formData.size === 'magnet' ? '₹99' : '₹49'}</span>
+                          </div>
+                        </div>
+
+                        <div className="border-b border-zinc-200 pb-3 space-y-1 text-zinc-750">
+                          <span className="text-[9px] font-black text-zinc-400 uppercase tracking-widest block">Public NFC Profile Data</span>
+                          <p><span className="text-zinc-400 font-bold">Public Name:</span> {formData.nfc_public_name}</p>
+                          <p><span className="text-zinc-400 font-bold">Owner Contact:</span> {formData.nfc_owner_phone}</p>
+                          {formData.nfc_emergency_contact && <p><span className="text-zinc-400 font-bold">Emergency Phone:</span> {formData.nfc_emergency_contact}</p>}
+                          {formData.nfc_medical_info && <p className="normal-case text-zinc-500 font-semibold"><span className="text-zinc-400 uppercase font-black">Medical:</span> {formData.nfc_medical_info}</p>}
+                        </div>
+
+                        <div className="border-b border-zinc-200 pb-3 space-y-1">
+                          <span className="text-[9px] font-black text-zinc-400 uppercase tracking-widest block">Delivery To</span>
+                          <p className="font-bold text-black">{formData.customer_name}</p>
+                          <p className="text-zinc-500 leading-relaxed font-sans font-medium text-[11px] normal-case">
+                            {formData.address_line}, {formData.city}, {formData.state} - {formData.pincode}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </>
+              ) : (
+                <>
+                  {/* STEP 1: STYLE & FORMAT */}
+                  {currentStep === 1 && (
+                    <div className="space-y-6 animate-fade-in text-left">
+                      <div>
+                        <h2 className="text-base font-black uppercase text-black mb-1">Customize your Tap Tile</h2>
+                        <p className="text-xs text-zinc-500 font-bold tracking-wider">Select your preferred format, style, and optional text</p>
+                      </div>
+
+                      {/* Format selection */}
+                      <div className="space-y-2">
+                        <label className="block text-xs font-black text-black uppercase tracking-widest">Select Format</label>
+                        <div className="grid grid-cols-2 gap-3">
+                          {[
+                            { id: 'magnet', label: 'Magnet', subtitle: 'Fridge Magnet', price: '₹99', original: '₹299' },
+                            { id: 'keychain', label: 'Keychain', subtitle: 'Art Keychain', price: '₹49', original: '₹149' }
+                          ].map((format) => (
+                            <button
+                              key={format.id}
+                              type="button"
+                              onClick={() => setFormData((prev) => ({ ...prev, size: format.id }))}
+                              className={`p-4 rounded-xl border text-left cursor-pointer transition-all duration-200 select-none ${
+                                formData.size === format.id
+                                  ? 'border-[#E30613] bg-[#E30613]/5'
+                                  : 'border-zinc-200 bg-white hover:bg-zinc-50'
+                              }`}
+                            >
+                              <div className="flex justify-between items-start w-full">
+                                <div>
+                                  <span className="block text-[8px] font-black text-zinc-400 uppercase tracking-widest mb-1">{format.subtitle}</span>
+                                  <h4 className="text-xs font-bold uppercase text-black">{format.label}</h4>
+                                </div>
+                                <div className="text-right flex flex-col items-end">
+                                  {format.original && (
+                                    <span className="text-[10px] text-zinc-400 line-through font-semibold font-mono">{format.original}</span>
+                                  )}
+                                  <span className="text-xs font-bold text-zinc-700">{format.price}</span>
+                                </div>
+                              </div>
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Style selection */}
+                      <div className="space-y-2">
+                        <label className="block text-xs font-black text-black uppercase tracking-widest">Visual Direction Style</label>
+                        <div className="grid grid-cols-5 gap-2">
+                          {['minimal', 'retro', 'modern', 'vintage', 'funny'].map((style) => (
+                            <button
+                              key={style}
+                              type="button"
+                              onClick={() => setFormData((prev) => ({ ...prev, memory_type: style }))}
+                              className={`py-2 rounded-lg border text-center text-[10px] font-black uppercase tracking-wider transition-all cursor-pointer ${
+                                formData.memory_type === style
+                                  ? 'border-[#E30613] bg-[#E30613] text-white shadow-sm'
+                                  : 'border-zinc-200 bg-white text-zinc-700 hover:bg-zinc-50'
+                              }`}
+                            >
+                              {style}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Custom overlay text */}
+                      <div>
+                        <label htmlFor="title" className="block text-xs font-black text-black mb-2 uppercase tracking-widest">
+                          Custom Overlay Text / Caption (Optional)
                         </label>
                         <input
                           type="text"
-                          id="customer_name"
-                          name="customer_name"
-                          required
-                          value={formData.customer_name}
+                          id="title"
+                          name="title"
+                          maxLength={40}
+                          value={formData.title}
                           onChange={handleTextChange}
                           className="w-full rounded-lg border border-zinc-200 bg-white px-4 py-2.5 text-xs text-black placeholder-zinc-400 focus:border-[#E30613] focus:outline-none"
-                          placeholder="Your name"
+                          placeholder="e.g. 2008 was a personality."
                         />
+                        <div className="text-[9px] text-zinc-400 font-bold text-right mt-1.5 uppercase">
+                          {formData.title.length}/40 characters
+                        </div>
                       </div>
+                    </div>
+                  )}
+
+                  {/* STEP 2: NFC LINK */}
+                  {currentStep === 2 && (
+                    <div className="space-y-6 animate-fade-in text-left">
                       <div>
-                        <label htmlFor="customer_phone" className="block text-xs font-black text-black mb-2 uppercase tracking-widest">
-                          WhatsApp Number <span className="text-[#E30613]">*</span>
+                        <h2 className="text-base font-black uppercase text-black mb-1">Connect your NFC link</h2>
+                        <p className="text-xs text-zinc-500 font-bold tracking-wider">Provide the URL destination programmed into the tile</p>
+                      </div>
+
+                      <div>
+                        <label htmlFor="google_photos_url" className="block text-xs font-black text-black mb-2 uppercase tracking-widest">
+                          Destination Link URL <span className="text-[#E30613]">*</span>
                         </label>
                         <input
-                          type="tel"
-                          id="customer_phone"
-                          name="customer_phone"
+                          type="url"
+                          id="google_photos_url"
+                          name="google_photos_url"
                           required
-                          value={formData.customer_phone}
+                          value={formData.google_photos_url}
                           onChange={handleTextChange}
-                          className="w-full rounded-lg border border-zinc-200 bg-white px-4 py-2.5 text-xs text-black placeholder-zinc-400 focus:border-[#E30613] focus:outline-none"
-                          placeholder="e.g. 9876543210"
+                          className="w-full rounded-lg border border-zinc-200 bg-white px-4 py-3 text-sm text-black placeholder-zinc-400 focus:border-[#E30613] focus:outline-none transition-colors"
+                          placeholder="Paste Spotify song, YouTube link, or website..."
                         />
                       </div>
-                    </div>
 
-                    <div>
-                      <label htmlFor="customer_email" className="block text-xs font-black text-black mb-2 uppercase tracking-widest">
-                        Email Address <span className="text-[#E30613]">*</span>
-                      </label>
-                      <input
-                        type="email"
-                        id="customer_email"
-                        name="customer_email"
-                        required
-                        value={formData.customer_email}
-                        onChange={handleTextChange}
-                        className="w-full rounded-lg border border-zinc-200 bg-white px-4 py-2.5 text-xs text-black placeholder-zinc-400 focus:border-[#E30613] focus:outline-none"
-                        placeholder="email@example.com"
-                      />
+                      <div className="rounded-lg bg-zinc-50 p-4 border border-zinc-150 text-left">
+                        <p className="text-xs text-zinc-600 leading-relaxed font-semibold">
+                          Provide a Spotify track/playlist link, YouTube video URL, Google Photos shared album, or custom webpage. FeelsNeat will program this link onto the NFC chip before shipping.
+                        </p>
+                      </div>
                     </div>
+                  )}
 
-                    <div className="border-t border-zinc-100 pt-4 space-y-4">
+                  {/* STEP 3: PHOTO UPLOAD */}
+                  {currentStep === 3 && (
+                    <div className="space-y-6 animate-fade-in text-left">
                       <div>
-                        <label htmlFor="address_line" className="block text-xs font-black text-black mb-2 uppercase tracking-widest">
-                          Shipping Address <span className="text-[#E30613]">*</span>
+                        <h2 className="text-base font-black uppercase text-black mb-1">Upload your photo</h2>
+                        <p className="text-xs text-zinc-500 font-bold tracking-wider">Choose the main artwork image for your tile</p>
+                      </div>
+
+                      <div className="space-y-2">
+                        <label className="block text-xs font-black text-black uppercase tracking-widest">
+                          Tile Artwork Photo <span className="text-[#E30613]">*</span>
                         </label>
-                        <input
-                          type="text"
-                          id="address_line"
-                          name="address_line"
-                          required
-                          value={formData.address_line}
-                          onChange={handleTextChange}
-                          className="w-full rounded-lg border border-zinc-200 bg-white px-4 py-2.5 text-xs text-black placeholder-zinc-400 focus:border-[#E30613] focus:outline-none"
-                          placeholder="Flat/House No, Building, Street"
-                        />
+                        
+                        {!mainPhoto ? (
+                          <label className="flex flex-col items-center justify-center border-2 border-dashed border-zinc-200 rounded-xl p-8 hover:border-zinc-300 transition-colors cursor-pointer bg-zinc-50/50">
+                            <LucideIcon name="Feather" className="h-8 w-8 text-zinc-400 mb-2 animate-pulse" />
+                            <span className="text-xs font-bold text-zinc-600 uppercase">Select Tile Artwork</span>
+                            <span className="text-[10px] text-zinc-400 mt-1.5 font-semibold">JPG, PNG, or WEBP (Max 12MB)</span>
+                            <input
+                              type="file"
+                              accept="image/*"
+                              onChange={(e) => handlePhotoUpload(e, true)}
+                              className="hidden"
+                            />
+                          </label>
+                        ) : (
+                          <div className="relative rounded-xl overflow-hidden border border-zinc-200 aspect-square max-w-[240px] mx-auto bg-zinc-50">
+                            <img src={mainPhoto} alt="Tile preview" className="w-full h-full object-cover" />
+                            <button
+                              type="button"
+                              onClick={() => { setMainPhoto(null); setMainPhotoName(''); }}
+                              className="absolute top-2 right-2 bg-black/70 hover:bg-black text-white rounded-full p-1.5 transition-colors cursor-pointer"
+                            >
+                              <LucideIcon name="X" className="h-3.5 w-3.5" />
+                            </button>
+                            <div className="absolute bottom-0 inset-x-0 bg-black/60 px-3 py-1.5 text-[9px] font-bold text-white truncate text-center select-none">
+                              {mainPhotoName || 'uploaded_image.png'}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* STEP 4: CONTACT & SHIPPING */}
+                  {currentStep === 4 && (
+                    <div className="space-y-6 animate-fade-in text-left">
+                      <div>
+                        <h2 className="text-base font-black uppercase text-black mb-1">Delivery details</h2>
+                        <p className="text-xs text-zinc-500 font-bold tracking-wider">Provide details for shipping and manual payments coordinate</p>
                       </div>
 
-                      <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-4">
+                        <div className="grid sm:grid-cols-2 gap-4">
+                          <div>
+                            <label htmlFor="customer_name" className="block text-xs font-black text-black mb-2 uppercase tracking-widest">
+                              Full Name <span className="text-[#E30613]">*</span>
+                            </label>
+                            <input
+                              type="text"
+                              id="customer_name"
+                              name="customer_name"
+                              required
+                              value={formData.customer_name}
+                              onChange={handleTextChange}
+                              className="w-full rounded-lg border border-zinc-200 bg-white px-4 py-2.5 text-xs text-black placeholder-zinc-400 focus:border-[#E30613] focus:outline-none"
+                              placeholder="Your name"
+                            />
+                          </div>
+                          <div>
+                            <label htmlFor="customer_phone" className="block text-xs font-black text-black mb-2 uppercase tracking-widest">
+                              WhatsApp Number <span className="text-[#E30613]">*</span>
+                            </label>
+                            <input
+                              type="tel"
+                              id="customer_phone"
+                              name="customer_phone"
+                              required
+                              value={formData.customer_phone}
+                              onChange={handleTextChange}
+                              className="w-full rounded-lg border border-zinc-200 bg-white px-4 py-2.5 text-xs text-black placeholder-zinc-400 focus:border-[#E30613] focus:outline-none"
+                              placeholder="e.g. 9876543210"
+                            />
+                          </div>
+                        </div>
+
                         <div>
-                          <label htmlFor="city" className="block text-xs font-black text-black mb-2 uppercase tracking-widest">
-                            City <span className="text-[#E30613]">*</span>
+                          <label htmlFor="customer_email" className="block text-xs font-black text-black mb-2 uppercase tracking-widest">
+                            Email Address <span className="text-[#E30613]">*</span>
                           </label>
                           <input
-                            type="text"
-                            id="city"
-                            name="city"
+                            type="email"
+                            id="customer_email"
+                            name="customer_email"
                             required
-                            value={formData.city}
+                            value={formData.customer_email}
                             onChange={handleTextChange}
-                            className="w-full rounded-lg border border-zinc-200 bg-white px-4 py-2.5 text-xs text-black focus:border-[#E30613] focus:outline-none"
+                            className="w-full rounded-lg border border-zinc-200 bg-white px-4 py-2.5 text-xs text-black placeholder-zinc-400 focus:border-[#E30613] focus:outline-none"
+                            placeholder="email@example.com"
                           />
                         </div>
-                        <div>
-                          <label htmlFor="state" className="block text-xs font-black text-black mb-2 uppercase tracking-widest">
-                            State <span className="text-[#E30613]">*</span>
-                          </label>
-                          <input
-                            type="text"
-                            id="state"
-                            name="state"
-                            required
-                            value={formData.state}
-                            onChange={handleTextChange}
-                            className="w-full rounded-lg border border-zinc-200 bg-white px-4 py-2.5 text-xs text-black focus:border-[#E30613] focus:outline-none"
-                          />
+
+                        <div className="border-t border-zinc-100 pt-4 space-y-4">
+                          <div>
+                            <label htmlFor="address_line" className="block text-xs font-black text-black mb-2 uppercase tracking-widest">
+                              Shipping Address <span className="text-[#E30613]">*</span>
+                            </label>
+                            <input
+                              type="text"
+                              id="address_line"
+                              name="address_line"
+                              required
+                              value={formData.address_line}
+                              onChange={handleTextChange}
+                              className="w-full rounded-lg border border-zinc-200 bg-white px-4 py-2.5 text-xs text-black placeholder-zinc-400 focus:border-[#E30613] focus:outline-none"
+                              placeholder="Flat/House No, Building, Street"
+                            />
+                          </div>
+
+                          <div className="grid grid-cols-2 gap-4">
+                            <div>
+                              <label htmlFor="city" className="block text-xs font-black text-black mb-2 uppercase tracking-widest">
+                                City <span className="text-[#E30613]">*</span>
+                              </label>
+                              <input
+                                type="text"
+                                id="city"
+                                name="city"
+                                required
+                                value={formData.city}
+                                onChange={handleTextChange}
+                                className="w-full rounded-lg border border-zinc-200 bg-white px-4 py-2.5 text-xs text-black focus:border-[#E30613] focus:outline-none"
+                              />
+                            </div>
+                            <div>
+                              <label htmlFor="state" className="block text-xs font-black text-black mb-2 uppercase tracking-widest">
+                                State <span className="text-[#E30613]">*</span>
+                              </label>
+                              <input
+                                type="text"
+                                id="state"
+                                name="state"
+                                required
+                                value={formData.state}
+                                onChange={handleTextChange}
+                                className="w-full rounded-lg border border-zinc-200 bg-white px-4 py-2.5 text-xs text-black focus:border-[#E30613] focus:outline-none"
+                              />
+                            </div>
+                          </div>
+
+                          <div className="grid grid-cols-2 gap-4">
+                            <div>
+                              <label htmlFor="pincode" className="block text-xs font-black text-black mb-2 uppercase tracking-widest">
+                                Pincode <span className="text-[#E30613]">*</span>
+                              </label>
+                              <input
+                                type="text"
+                                id="pincode"
+                                name="pincode"
+                                required
+                                value={formData.pincode}
+                                onChange={handleTextChange}
+                                className="w-full rounded-lg border border-zinc-200 bg-white px-4 py-2.5 text-xs text-black focus:border-[#E30613] focus:outline-none"
+                                placeholder="6-digit PIN code"
+                              />
+                            </div>
+                            <div>
+                              <label htmlFor="country" className="block text-xs font-black text-black mb-2 uppercase tracking-widest">
+                                Country
+                              </label>
+                              <input
+                                type="text"
+                                id="country"
+                                name="country"
+                                value={formData.country}
+                                onChange={handleTextChange}
+                                className="w-full rounded-lg border border-zinc-200 bg-zinc-50 px-4 py-2.5 text-xs text-zinc-500 focus:outline-none"
+                                disabled
+                              />
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="pt-4 border-t border-zinc-100 flex items-center justify-between">
+                          <div>
+                            <label className="block text-xs font-black text-black uppercase tracking-widest">Quantity</label>
+                            <p className="text-[10px] text-zinc-450 font-bold uppercase mt-0.5">Order multiple identical pieces</p>
+                          </div>
+                          
+                          <div className="flex items-center border border-zinc-200 rounded-lg overflow-hidden h-9 bg-white">
+                            <button
+                              type="button"
+                              onClick={() => setFormData((prev) => ({ ...prev, quantity: Math.max(1, prev.quantity - 1) }))}
+                              className="px-3 text-zinc-500 hover:bg-zinc-50 h-full font-bold transition-colors cursor-pointer select-none"
+                            >
+                              -
+                            </button>
+                            <span className="px-4 text-xs font-black text-black">{formData.quantity}</span>
+                            <button
+                              type="button"
+                              onClick={() => setFormData((prev) => ({ ...prev, quantity: prev.quantity + 1 }))}
+                              className="px-3 text-zinc-500 hover:bg-zinc-50 h-full font-bold transition-colors cursor-pointer select-none"
+                            >
+                              +
+                            </button>
+                          </div>
                         </div>
                       </div>
+                    </div>
+                  )}
 
-                      <div className="grid grid-cols-2 gap-4">
-                        <div>
-                          <label htmlFor="pincode" className="block text-xs font-black text-black mb-2 uppercase tracking-widest">
-                            Pincode <span className="text-[#E30613]">*</span>
-                          </label>
-                          <input
-                            type="text"
-                            id="pincode"
-                            name="pincode"
-                            required
-                            value={formData.pincode}
-                            onChange={handleTextChange}
-                            className="w-full rounded-lg border border-zinc-200 bg-white px-4 py-2.5 text-xs text-black focus:border-[#E30613] focus:outline-none"
-                            placeholder="6-digit PIN code"
-                          />
+                  {/* STEP 5: REVIEW */}
+                  {currentStep === 5 && (
+                    <div className="space-y-6 animate-fade-in text-left">
+                      <div>
+                        <h2 className="text-base font-black uppercase text-black mb-1">Review your Tap Tile</h2>
+                        <p className="text-xs text-zinc-500 font-bold tracking-wider">Confirm customization details before registering design</p>
+                      </div>
+
+                      <div className="rounded-xl border border-zinc-200 bg-zinc-50 p-5 space-y-4 text-black text-xs font-semibold uppercase">
+                        <div className="border-b border-zinc-200 pb-3">
+                          <span className="text-[9px] font-black text-[#E30613] uppercase tracking-widest block mb-0.5">
+                            Selected Niche
+                          </span>
+                          <span className="text-xs font-bold uppercase">
+                            {productId || 'General'} Tap Tile
+                          </span>
                         </div>
-                        <div>
-                          <label htmlFor="country" className="block text-xs font-black text-black mb-2 uppercase tracking-widest">
-                            Country
-                          </label>
-                          <input
-                            type="text"
-                            id="country"
-                            name="country"
-                            value={formData.country}
-                            onChange={handleTextChange}
-                            className="w-full rounded-lg border border-zinc-200 bg-zinc-50 px-4 py-2.5 text-xs text-zinc-500 focus:outline-none"
-                            disabled
-                          />
+
+                        <div className="grid grid-cols-2 gap-4 border-b border-zinc-200 pb-3">
+                          <div>
+                            <span className="text-[9px] font-black text-zinc-400 uppercase tracking-widest block">Format</span>
+                            <span className="font-bold text-black">{formData.size === 'magnet' ? 'Fridge Magnet' : 'Art Keychain'}</span>
+                          </div>
+                          <div>
+                            <span className="text-[9px] font-black text-zinc-400 uppercase tracking-widest block">Design Style</span>
+                            <span className="font-bold text-black">{formData.memory_type}</span>
+                          </div>
+                          <div>
+                            <span className="text-[9px] font-black text-zinc-400 uppercase tracking-widest block">Quantity</span>
+                            <span className="font-bold text-black">{formData.quantity} pc</span>
+                          </div>
+                          <div>
+                            <span className="text-[9px] font-black text-zinc-400 uppercase tracking-widest block">Price</span>
+                            <span className="font-bold text-[#E30613]">{formData.size === 'magnet' ? '₹99' : '₹49'}</span>
+                          </div>
                         </div>
+
+                        <div className="border-b border-zinc-200 pb-3">
+                          <span className="text-[9px] font-black text-zinc-400 uppercase tracking-widest block">NFC Destination Link</span>
+                          <code className="text-[10px] font-mono break-all font-bold text-[#E30613]">{formData.google_photos_url}</code>
+                        </div>
+
+                        {formData.title && (
+                          <div className="border-b border-zinc-200 pb-3">
+                            <span className="text-[9px] font-black text-zinc-400 uppercase tracking-widest block">Overlay Text</span>
+                            <p className="font-semibold text-xs text-black">"{formData.title}"</p>
+                          </div>
+                        )}
+
+                        <div className="border-b border-zinc-200 pb-3 space-y-1">
+                          <span className="text-[9px] font-black text-zinc-400 uppercase tracking-widest block">Delivery To</span>
+                          <p className="font-bold text-black">{formData.customer_name}</p>
+                          <p className="text-zinc-500 leading-relaxed font-sans font-medium text-[11px] normal-case">
+                            {formData.address_line}, {formData.city}, {formData.state} - {formData.pincode}
+                          </p>
+                        </div>
+
+                        {formData.design_notes && (
+                          <div>
+                            <span className="text-[9px] font-black text-zinc-400 uppercase tracking-widest block">Special Instructions</span>
+                            <p className="text-xs text-zinc-500 italic lowercase first-letter:uppercase">"{formData.design_notes}"</p>
+                          </div>
+                        )}
                       </div>
                     </div>
-
-                    <div className="pt-4 border-t border-zinc-100 flex items-center justify-between">
-                      <div>
-                        <label className="block text-xs font-black text-black uppercase tracking-widest">Quantity</label>
-                        <p className="text-[10px] text-zinc-450 font-bold uppercase mt-0.5">Order multiple identical pieces</p>
-                      </div>
-                      
-                      <div className="flex items-center border border-zinc-200 rounded-lg overflow-hidden h-9 bg-white">
-                        <button
-                          type="button"
-                          onClick={() => setFormData((prev) => ({ ...prev, quantity: Math.max(1, prev.quantity - 1) }))}
-                          className="px-3 text-zinc-500 hover:bg-zinc-50 h-full font-bold transition-colors cursor-pointer select-none"
-                        >
-                          -
-                        </button>
-                        <span className="px-4 text-xs font-black text-black">{formData.quantity}</span>
-                        <button
-                          type="button"
-                          onClick={() => setFormData((prev) => ({ ...prev, quantity: prev.quantity + 1 }))}
-                          className="px-3 text-zinc-500 hover:bg-zinc-50 h-full font-bold transition-colors cursor-pointer select-none"
-                        >
-                          +
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* STEP 5: REVIEW */}
-              {currentStep === 5 && (
-                <div className="space-y-6 animate-fade-in text-left">
-                  <div>
-                    <h2 className="text-base font-black uppercase text-black mb-1">Review your Tap Tile</h2>
-                    <p className="text-xs text-zinc-500 font-bold tracking-wider">Confirm customization details before registering design</p>
-                  </div>
-
-                  <div className="rounded-xl border border-zinc-200 bg-zinc-50 p-5 space-y-4 text-black text-xs font-semibold uppercase">
-                    <div className="border-b border-zinc-200 pb-3">
-                      <span className="text-[9px] font-black text-[#E30613] uppercase tracking-widest block mb-0.5">
-                        Selected Niche
-                      </span>
-                      <span className="text-xs font-bold uppercase">
-                        {productId || 'General'} Tap Tile
-                      </span>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-4 border-b border-zinc-200 pb-3">
-                      <div>
-                        <span className="text-[9px] font-black text-zinc-400 uppercase tracking-widest block">Format</span>
-                        <span className="font-bold text-black">{formData.size === 'magnet' ? 'Fridge Magnet' : 'Art Keychain'}</span>
-                      </div>
-                      <div>
-                        <span className="text-[9px] font-black text-zinc-400 uppercase tracking-widest block">Design Style</span>
-                        <span className="font-bold text-black">{formData.memory_type}</span>
-                      </div>
-                      <div>
-                        <span className="text-[9px] font-black text-zinc-400 uppercase tracking-widest block">Quantity</span>
-                        <span className="font-bold text-black">{formData.quantity} pc</span>
-                      </div>
-                      <div>
-                        <span className="text-[9px] font-black text-zinc-400 uppercase tracking-widest block">Price</span>
-                        <span className="font-bold text-[#E30613]">{formData.size === 'magnet' ? '₹99' : '₹49'}</span>
-                      </div>
-                    </div>
-
-                    <div className="border-b border-zinc-200 pb-3">
-                      <span className="text-[9px] font-black text-zinc-400 uppercase tracking-widest block">NFC Destination Link</span>
-                      <code className="text-[10px] font-mono break-all font-bold text-[#E30613]">{formData.google_photos_url}</code>
-                    </div>
-
-                    {formData.title && (
-                      <div className="border-b border-zinc-200 pb-3">
-                        <span className="text-[9px] font-black text-zinc-400 uppercase tracking-widest block">Overlay Text</span>
-                        <p className="font-semibold text-xs text-black">"{formData.title}"</p>
-                      </div>
-                    )}
-
-                    <div className="border-b border-zinc-200 pb-3 space-y-1">
-                      <span className="text-[9px] font-black text-zinc-400 uppercase tracking-widest block">Delivery To</span>
-                      <p className="font-bold text-black">{formData.customer_name}</p>
-                      <p className="text-zinc-500 leading-relaxed font-sans font-medium text-[11px] normal-case">
-                        {formData.address_line}, {formData.city}, {formData.state} - {formData.pincode}
-                      </p>
-                    </div>
-
-                    {formData.design_notes && (
-                      <div>
-                        <span className="text-[9px] font-black text-zinc-400 uppercase tracking-widest block">Special Instructions</span>
-                        <p className="text-xs text-zinc-500 italic lowercase first-letter:uppercase">"{formData.design_notes}"</p>
-                      </div>
-                    )}
-                  </div>
-                </div>
+                  )}
+                </>
               )}
             </>
           )}

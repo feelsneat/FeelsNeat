@@ -75,6 +75,15 @@ export async function GET(req: NextRequest) {
   return NextResponse.json(orders);
 }
 
+function generatePetRequestId() {
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  let result = '';
+  for (let i = 0; i < 4; i++) {
+    result += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return `FN-PET-${result}`;
+}
+
 // POST: Handles Admin Actions (Update/Delete) OR Customer Order Submissions & Contact Inquiries
 export async function POST(req: NextRequest) {
   try {
@@ -179,7 +188,22 @@ export async function POST(req: NextRequest) {
       // General Contact Inquiry specific fields
       message,
       company,
-      phone
+      phone,
+
+      // Pet details
+      pet_name,
+      pet_type,
+      pet_breed,
+      pet_age,
+      pet_description,
+      alt_phone,
+
+      // NFC profile fields
+      nfc_public_name,
+      nfc_owner_phone,
+      nfc_emergency_contact,
+      nfc_medical_info,
+      nfc_message
     } = body;
 
     // A. Format General Inquiry as an Order schema entry
@@ -283,11 +307,20 @@ export async function POST(req: NextRequest) {
         );
       }
     } else if (order_type === 'tap_tiles') {
-      if (!memory_type || !size || !quantity || !google_photos_url || !main_photo) {
-        return NextResponse.json(
-          { error: 'Missing required configuration selections (Style, format format, quantity, NFC link destination, and artwork photo are required).' },
-          { status: 400 }
-        );
+      if (product_id === 'pets') {
+        if (!pet_name || !pet_type || !main_photo) {
+          return NextResponse.json(
+            { error: 'Pet name, pet type (Dog/Cat/Other), and pet photo are required.' },
+            { status: 400 }
+          );
+        }
+      } else {
+        if (!memory_type || !size || !quantity || !google_photos_url || !main_photo) {
+          return NextResponse.json(
+            { error: 'Missing required configuration selections (Style, format format, quantity, NFC link destination, and artwork photo are required).' },
+            { status: 400 }
+          );
+        }
       }
 
       if (!address_line || !city || !state || !pincode) {
@@ -346,9 +379,13 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const orderNum = Math.floor(1000 + Math.random() * 9000);
-    const prefix = order_type === 'memories' ? 'FN-MEM' : order_type === 'tap_tiles' ? 'FN-TAP' : order_type === 'service' ? 'FN-SRV' : 'FN-DIG';
-    const orderId = `${prefix}-${orderNum}`;
+    const orderId = product_id === 'pets'
+      ? generatePetRequestId()
+      : (() => {
+          const orderNum = Math.floor(1000 + Math.random() * 9000);
+          const prefix = order_type === 'memories' ? 'FN-MEM' : order_type === 'tap_tiles' ? 'FN-TAP' : order_type === 'service' ? 'FN-SRV' : 'FN-DIG';
+          return `${prefix}-${orderNum}`;
+        })();
 
     const orderData = {
       order_id: orderId,
@@ -368,7 +405,7 @@ export async function POST(req: NextRequest) {
         } : null,
       },
       product: (order_type === 'memories' || order_type === 'tap_tiles') ? {
-        memory_type,
+        memory_type: product_id === 'pets' ? pet_type : memory_type,
         size,
         quantity: Number(quantity),
       } : {
@@ -386,7 +423,22 @@ export async function POST(req: NextRequest) {
         design_notes: design_notes || '',
       },
       digital_memory: (order_type === 'memories' || order_type === 'tap_tiles') ? {
-        google_photos_url,
+        google_photos_url: google_photos_url || null,
+      } : null,
+      pet_details: product_id === 'pets' ? {
+        pet_name: pet_name || '',
+        pet_type: pet_type || '',
+        pet_breed: pet_breed || '',
+        pet_age: pet_age || '',
+        pet_description: pet_description || '',
+        alt_phone: alt_phone || '',
+        nfc_profile: {
+          public_name: nfc_public_name || '',
+          owner_phone: nfc_owner_phone || '',
+          emergency_contact: nfc_emergency_contact || '',
+          medical_info: nfc_medical_info || '',
+          message: nfc_message || '',
+        }
       } : null,
       service_details: order_type === 'service' ? {
         instagram_page: instagram_page || null,
