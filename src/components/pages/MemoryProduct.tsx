@@ -7,9 +7,10 @@ import { MEMORY_CATEGORIES, PRODUCT_PRICES } from './Memories';
 
 interface MemoryProductProps {
   categorySlug: string;
+  whatsappNumber?: string;
 }
 
-export default function MemoryProductPage({ categorySlug }: MemoryProductProps) {
+export default function MemoryProductPage({ categorySlug, whatsappNumber }: MemoryProductProps) {
   // Safe category lookup
   const category = (MEMORY_CATEGORIES as any)[categorySlug] || MEMORY_CATEGORIES.travel;
 
@@ -155,12 +156,22 @@ export default function MemoryProductPage({ categorySlug }: MemoryProductProps) 
 
             {/* CTAs */}
             <div className="pt-6 flex flex-col sm:flex-row gap-4">
-              <Link
-                href={`/create?type=${category.slug}`}
+              <a
+                href={`https://wa.me/${whatsappNumber || '919999999999'}?text=${encodeURIComponent(
+                  categorySlug === 'travel'
+                    ? "Hi FeelsNeat! ✈️\n\nI'd love to create a personalized Travel Memory Canvas.\n\nI'd like to use photographs and memories from a trip and turn them into a personalized physical artwork. 😊"
+                    : categorySlug === 'events'
+                    ? "Hi FeelsNeat! 🎉\n\nI'd love to create a personalized Memory Canvas for a special event or celebration.\n\nI'd like to preserve some photographs and memories from the occasion in a personalized artwork. 😊"
+                    : categorySlug === 'couples'
+                    ? "Hi FeelsNeat! ❤️\n\nI'd love to create a personalized Couple Memory Canvas.\n\nI'd like to turn some special shared memories and photographs into something personal and meaningful. 😊"
+                    : "Hi FeelsNeat! 👋🐾\n\nI'd love to create a personalized Family, Life or Pet Memory Canvas.\n\nI'd like to turn some meaningful photographs and memories into a personalized artwork. 😊"
+                )}`}
+                target="_blank"
+                rel="noopener noreferrer"
                 className="inline-flex h-11 items-center justify-center rounded-lg bg-[#E30613] hover:bg-white hover:text-black px-8 text-xs font-black uppercase tracking-widest text-white transition-colors duration-300 shadow-md cursor-pointer text-center"
               >
                 {category.cta}
-              </Link>
+              </a>
             </div>
           </div>
         </div>

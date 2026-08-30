@@ -80,7 +80,7 @@ function FaqAccordionItem({ question, answer }: { question: string; answer: stri
   );
 }
 
-export default function TapTilesPage() {
+export default function TapTilesPage({ whatsappNumber }: { whatsappNumber?: string }) {
   const faqItems = [
     {
       question: "WHAT DOES THE NFC TAP DO?",
@@ -506,18 +506,26 @@ export default function TapTilesPage() {
             Tell us what you want to create. Share your photo, your idea, and the link you want connected. We will handle the rest.
           </p>
           <div className="flex justify-center gap-4 pt-4">
-            <Link
-              href="/create-tap-tile"
+            <a
+              href={`https://wa.me/${whatsappNumber || '919999999999'}?text=${encodeURIComponent(
+                "Hi FeelsNeat! ✨\n\nI have an idea for a fully customized Tap Tile.\n\nI'd like to discuss the artwork, whether it should be a magnet or keychain, and what I want the NFC tap to open. 😊"
+              )}`}
+              target="_blank"
+              rel="noopener noreferrer"
               className="inline-flex h-11 items-center justify-center rounded-lg bg-[#E30613] hover:bg-white hover:text-black px-8 text-xs font-black uppercase tracking-widest text-white transition-colors duration-300 shadow-md cursor-pointer"
             >
               Start Customizing
-            </Link>
-            <Link
-              href="/contact"
+            </a>
+            <a
+              href={`https://wa.me/${whatsappNumber || '919999999999'}?text=${encodeURIComponent(
+                "Hi FeelsNeat! ✨\n\nI have an idea for a fully customized Tap Tile.\n\nI'd like to discuss the artwork, whether it should be a magnet or keychain, and what I want the NFC tap to open. 😊"
+              )}`}
+              target="_blank"
+              rel="noopener noreferrer"
               className="inline-flex h-11 items-center justify-center rounded-lg border border-white/10 bg-white/5 hover:bg-white/10 px-8 text-xs font-black uppercase tracking-widest text-[#F4F4F5] transition-colors duration-300 cursor-pointer"
             >
               Contact Us
-            </Link>
+            </a>
           </div>
         </div>
       </section>

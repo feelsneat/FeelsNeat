@@ -9,6 +9,7 @@ export interface SiteSettings {
     icon: string;
   };
   contactEmail: string;
+  whatsappNumber?: string;
   socials: Array<{ platform: string; url: string }>;
 }
 

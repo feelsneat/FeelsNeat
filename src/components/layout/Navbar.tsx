@@ -118,12 +118,16 @@ export function Navbar({ settings, navigation }: NavbarProps) {
         {/* Contact button */}
         {hasContactLink && (
           <div className={`hidden md:flex items-center h-full border-l ${isAtTop ? 'border-white/10' : 'border-white/20'} pl-6 ml-6`}>
-            <Link
-              href="/contact"
+            <a
+              href={`https://wa.me/${settings.whatsappNumber || '919999999999'}?text=${encodeURIComponent(
+                "Hi FeelsNeat! 👋\n\nI'd like to get in touch and learn more about what you offer.\n\nI found your website and would love to discuss an idea with you. 😊"
+              )}`}
+              target="_blank"
+              rel="noopener noreferrer"
               className={`inline-flex h-9 items-center justify-center px-5 text-[10px] font-black uppercase tracking-widest ${contactButtonTheme}`}
             >
               Contact
-            </Link>
+            </a>
           </div>
         )}
 
@@ -143,6 +147,21 @@ export function Navbar({ settings, navigation }: NavbarProps) {
           <nav className="flex flex-col gap-4 px-6 py-6 sm:px-10">
             {navigation.headerLinks.map((link) => {
               const isActive = pathname === link.path || (link.path !== '/' && pathname.startsWith(link.path));
+              if (link.path === '/contact') {
+                return (
+                  <a
+                    key={link.path}
+                    href={`https://wa.me/${settings.whatsappNumber || '919999999999'}?text=${encodeURIComponent(
+                      "Hi FeelsNeat! 👋\n\nI'd like to get in touch and learn more about what you offer.\n\nI found your website and would love to discuss an idea with you. 😊"
+                    )}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-xs font-black uppercase tracking-widest transition-colors text-[#F4F4F5]/70 hover:text-[#F4F4F5]"
+                  >
+                    {link.label}
+                  </a>
+                );
+              }
               return (
                 <Link
                   key={link.path}
