@@ -11,31 +11,65 @@ interface OrderConfirmationPageProps {
 export default function OrderConfirmationPage({ whatsappNumber }: OrderConfirmationPageProps) {
   const searchParams = useSearchParams();
   const orderId = searchParams.get('orderId') || 'FN-MEM-XXXX';
+  const type = searchParams.get('type') || '';
+  const subType = searchParams.get('subType') || '';
 
   let orderType = 'memories';
   let headerTitle = 'Your memory is on its way.';
   let typeLabel = 'Manual Order Confirmation';
   let bodyInstruction = 'To activate and finalize your custom print design, please tap below to connect with us on WhatsApp Business. We will verify your photo layout and send you payment instructions.';
+  
   let whatsappMessage = `Hi FeelsNeat! I have submitted a new memories custom order with ID: ${orderId}. Please send payment instructions.`;
 
-  if (orderId.startsWith('FN-DIG-')) {
+  if (orderId.startsWith('FN-SRV-') || type === 'service') {
+    orderType = 'service';
+    headerTitle = 'Your service request has been received.';
+    typeLabel = 'Project Coordination';
+    bodyInstruction = 'To align on specifications and start coordination for your service requirement, please tap below to connect with us on WhatsApp. Our engineer will sync with you directly.';
+    
+    if (subType === 'website-development') {
+      whatsappMessage = `Hi FeelsNeat! 👋\n\nI've submitted a Social Media-to-Store Development service request with ID: ${orderId}.\n\nI'd like to learn more about building a custom shopping website and connecting it with social media, WhatsApp, payments, and other business tools.\n\nI'd love to discuss my business and idea with you. 😊`;
+    } else if (subType === 'security-review') {
+      whatsappMessage = `Hi FeelsNeat! 👋\n\nI've submitted a Security Review service request with ID: ${orderId}.\n\nI'd like to discuss my current setup and understand how FeelsNeat could help review and improve its security. 😊`;
+    } else {
+      whatsappMessage = `Hi FeelsNeat! 👋\n\nI've submitted an AI Agentic Integration service request with ID: ${orderId}.\n\nI'd like to discuss my workflow and explore what tasks could potentially be automated using AI. 😊`;
+    }
+  } else if (orderId.startsWith('FN-DIG-') || type === 'digital_product') {
     orderType = 'digital_product';
     headerTitle = 'Your order request has been received.';
     typeLabel = 'Digital Download Confirmation';
     bodyInstruction = 'To finalize and receive your instant digital download file/template link, please tap below to connect with us on WhatsApp. We will send you payment and download instructions.';
     whatsappMessage = `Hi FeelsNeat! I have submitted a new digital product order with ID: ${orderId}. Please send payment and download instructions.`;
-  } else if (orderId.startsWith('FN-SRV-')) {
-    orderType = 'service';
-    headerTitle = 'Your service request has been received.';
-    typeLabel = 'Project Coordination';
-    bodyInstruction = 'To align on specifications and start coordination for your service requirement, please tap below to connect with us on WhatsApp. Our engineer will sync with you directly.';
-    whatsappMessage = `Hi FeelsNeat! I have submitted a new service project order with ID: ${orderId}. Please connect to align on next steps.`;
-  } else if (orderId.startsWith('FN-TAP-')) {
+  } else if (orderId.startsWith('FN-TAP-') || type === 'tap_tiles') {
     orderType = 'tap_tiles';
     headerTitle = 'Your Tap Tile order has been received.';
     typeLabel = 'Tap Tile Confirmation';
     bodyInstruction = 'To finalize and program your custom NFC mini artwork tile, please tap below to connect with us on WhatsApp. We will verify your photo crop and target link.';
-    whatsappMessage = `Hi FeelsNeat! I have submitted a new Tap Tile order with ID: ${orderId}. Please send payment instructions.`;
+    
+    if (subType === 'pets') {
+      whatsappMessage = `Hi FeelsNeat! 🐶🐱\n\nI've submitted a Pet Tap Tile order with ID: ${orderId}.\n\nI'd like to use a photograph of my pet and connect the NFC tap to something meaningful or useful. 😊`;
+    } else if (subType === 'nostalgia') {
+      whatsappMessage = `Hi FeelsNeat! 🕹️✨\n\nI've submitted a Nostalgia & Childhood Tap Tile order with ID: ${orderId}.\n\nI have an old memory, childhood photograph, retro reference, or special song that I'd like to turn into a personalized NFC Tap Tile. 😊`;
+    } else if (subType === 'friends') {
+      whatsappMessage = `Hi FeelsNeat! 😄\n\nI've submitted a Funny & Personal Tap Tile order with ID: ${orderId}.\n\nI have a funny photo, friendship memory, inside joke, or personal idea that I'd like to turn into a custom NFC Tap Tile. 🎵`;
+    } else {
+      whatsappMessage = `Hi FeelsNeat! 👋🎵\n\nI've submitted a Tap Tile order with ID: ${orderId}.\n\nI'd like to create a small custom artwork with an NFC tap that can open a song, playlist, video, photo album, or another link. 😊`;
+    }
+  } else {
+    orderType = 'memories';
+    headerTitle = 'Your memory is on its way.';
+    typeLabel = 'Manual Order Confirmation';
+    bodyInstruction = 'To activate and finalize your custom print design, please tap below to connect with us on WhatsApp Business. We will verify your photo layout and send you payment instructions.';
+    
+    if (subType === 'travel') {
+      whatsappMessage = `Hi FeelsNeat! ✈️\n\nI've submitted a Travel Memory Canvas order with ID: ${orderId}.\n\nI'd like to use photographs and memories from a trip and turn them into a personalized physical artwork. 😊`;
+    } else if (subType === 'events') {
+      whatsappMessage = `Hi FeelsNeat! 🎉\n\nI've submitted a Memory Canvas order for a special event or celebration with ID: ${orderId}.\n\nI'd like to preserve some photographs and memories from the occasion in a personalized artwork. 😊`;
+    } else if (subType === 'couples') {
+      whatsappMessage = `Hi FeelsNeat! ❤️\n\nI've submitted a Couple Memory Canvas order with ID: ${orderId}.\n\nI'd like to turn some special shared memories and photographs into something personal and meaningful. 😊`;
+    } else {
+      whatsappMessage = `Hi FeelsNeat! 👋🐾\n\nI've submitted a Family, Life or Pet Memory Canvas order with ID: ${orderId}.\n\nI'd like to turn some meaningful photographs and memories into a personalized artwork. 😊`;
+    }
   }
 
   const targetPhone = whatsappNumber || '919999999999';

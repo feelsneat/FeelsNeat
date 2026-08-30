@@ -92,7 +92,7 @@ export default async function ContactPage() {
 
           {/* Form UI */}
           <div className="lg:col-span-7 scroll-reveal">
-            <ContactForm />
+            <ContactForm whatsappNumber={settings.whatsappNumber} />
           </div>
         </div>
       </div>

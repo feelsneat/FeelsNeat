@@ -3,7 +3,11 @@
 import { useState } from 'react';
 import { LucideIcon } from '../ui/LucideIcon';
 
-export function ContactForm() {
+interface ContactFormProps {
+  whatsappNumber?: string;
+}
+
+export function ContactForm({ whatsappNumber }: ContactFormProps) {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -13,6 +17,7 @@ export function ContactForm() {
 
   const [status, setStatus] = useState<'idle' | 'submitting' | 'success' | 'error'>('idle');
   const [errorMsg, setErrorMsg] = useState('');
+  const [submittedData, setSubmittedData] = useState<typeof formData | null>(null);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
@@ -40,6 +45,14 @@ export function ContactForm() {
 
       if (response.ok && data.success) {
         setStatus('success');
+        setSubmittedData({ ...formData });
+
+        // Auto-redirect to WhatsApp click-to-chat
+        const waNum = whatsappNumber || '919999999999';
+        const text = `Hi FeelsNeat! 👋\n\nI just submitted a contact form on your website.\n\nName: ${formData.name}\nEmail: ${formData.email}\nPhone: ${formData.phone || 'N/A'}\n\nMessage:\n${formData.message}`;
+        const waUrl = `https://wa.me/${waNum}?text=${encodeURIComponent(text)}`;
+        window.open(waUrl, '_blank');
+
         setFormData({ name: '', email: '', phone: '', message: '' });
       } else {
         setStatus('error');
@@ -54,17 +67,31 @@ export function ContactForm() {
   return (
     <div className="w-full rounded-2xl border border-zinc-200/80 bg-white p-8 shadow-xs relative overflow-hidden transition-all duration-300">
       {status === 'success' ? (
-        <div className="flex flex-col items-center justify-center text-center py-12 animate-fade-in">
+        <div className="flex flex-col items-center justify-center text-center py-8 animate-fade-in">
           <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#E30613]/10 border border-[#E30613]/30 text-[#E30613] mb-5">
             <LucideIcon name="Check" className="h-5 w-5" />
           </div>
           <h3 className="text-base font-black text-[#000000] uppercase tracking-tight mb-2">Message Sent</h3>
-          <p className="text-xs text-[#000000] max-w-xs leading-relaxed font-black uppercase">
-            Thank you for reaching out. We will read your message and reply within one business day.
+          <p className="text-xs text-zinc-500 max-w-xs leading-relaxed font-bold uppercase mb-6">
+            Thank you for reaching out. We have received your message.
           </p>
+
+          {submittedData && (
+            <a
+              href={`https://wa.me/${whatsappNumber || '919999999999'}?text=${encodeURIComponent(
+                `Hi FeelsNeat! 👋\n\nI just submitted a contact form on your website.\n\nName: ${submittedData.name}\nEmail: ${submittedData.email}\nPhone: ${submittedData.phone || 'N/A'}\n\nMessage:\n${submittedData.message}`
+              )}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex h-10 items-center justify-center gap-2 rounded-lg bg-[#E30613] hover:bg-zinc-950 text-xs font-black uppercase tracking-wider text-white px-6 transition-colors duration-300 shadow-md cursor-pointer mb-6"
+            >
+              Continue on WhatsApp <LucideIcon name="ArrowRight" className="h-4 w-4" />
+            </a>
+          )}
+
           <button
             onClick={() => setStatus('idle')}
-            className="mt-6 text-xs font-black uppercase text-[#E30613] hover:underline cursor-pointer"
+            className="text-xs font-black uppercase text-[#E30613] hover:underline cursor-pointer"
           >
             Send another message
           </button>

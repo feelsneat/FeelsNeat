@@ -68,34 +68,16 @@ export function Footer({ settings, navigation }: FooterProps) {
                   {section.title}
                 </h3>
                 <ul className="space-y-3">
-                  {section.items.map((item, itemIdx) => {
-                    if (item.path === '/contact') {
-                      return (
-                        <li key={itemIdx}>
-                          <a
-                            href={`https://wa.me/${settings.whatsappNumber || '919999999999'}?text=${encodeURIComponent(
-                              "Hi FeelsNeat! 👋\n\nI'd like to get in touch and learn more about what you offer.\n\nI found your website and would love to discuss an idea with you. 😊"
-                            )}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-sm text-[#F4F4F5]/80 hover:text-[#E30613] transition-colors font-medium"
-                          >
-                            {item.label}
-                          </a>
-                        </li>
-                      );
-                    }
-                    return (
-                      <li key={itemIdx}>
-                        <Link
-                          href={item.path}
-                          className="text-sm text-[#F4F4F5]/80 hover:text-[#E30613] transition-colors font-medium"
-                        >
-                          {item.label}
-                        </Link>
-                      </li>
-                    );
-                  })}
+                  {section.items.map((item, itemIdx) => (
+                    <li key={itemIdx}>
+                      <Link
+                        href={item.path}
+                        className="text-sm text-[#F4F4F5]/80 hover:text-[#E30613] transition-colors font-medium"
+                      >
+                        {item.label}
+                      </Link>
+                    </li>
+                  ))}
                 </ul>
               </div>
             ))}

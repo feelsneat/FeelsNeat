@@ -60,12 +60,7 @@ export const MEMORY_CATEGORIES = {
   },
 };
 
-export default function MemoriesPage({ whatsappNumber }: { whatsappNumber?: string }) {
-  const number = whatsappNumber || '919999999999';
-  const generalMemoriesMessage = encodeURIComponent(
-    "Hi FeelsNeat! 👋\n\nI'd love to create a personalized FeelsNeat Memory Canvas.\n\nI'd like to turn some of my favourite memories and photographs into a personalized physical artwork with an NFC-connected digital experience. 😊"
-  );
-
+export default function MemoriesPage() {
   return (
     <main className="flex-1 w-full bg-[#0A0A0C] text-[#F4F4F5] relative overflow-hidden">
       {/* Background blobs */}
@@ -90,14 +85,12 @@ export default function MemoriesPage({ whatsappNumber }: { whatsappNumber?: stri
               </p>
               
               <div className="flex flex-wrap gap-4 pt-2">
-                <a
-                  href={`https://wa.me/${number}?text=${generalMemoriesMessage}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
+                <Link
+                  href="/create"
                   className="inline-flex h-10 items-center justify-center rounded-lg bg-[#E30613] hover:bg-white hover:text-black px-6 text-xs font-black uppercase tracking-wider text-white transition-colors duration-300 shadow-md cursor-pointer"
                 >
                   Create Your Memory
-                </a>
+                </Link>
                 <a
                   href="#explore"
                   className="inline-flex h-10 items-center justify-center rounded-lg border border-white/10 bg-white/5 hover:bg-white/10 px-6 text-xs font-black uppercase tracking-wider transition-colors duration-300 cursor-pointer"
@@ -246,22 +239,12 @@ export default function MemoriesPage({ whatsappNumber }: { whatsappNumber?: stri
                     >
                       Explore details <LucideIcon name="ArrowRight" className="h-3 w-3" />
                     </Link>
-                    <a
-                      href={`https://wa.me/${number}?text=${encodeURIComponent(
-                        cat.slug === 'travel'
-                          ? "Hi FeelsNeat! ✈️\n\nI'd love to create a personalized Travel Memory Canvas.\n\nI'd like to use photographs and memories from a trip and turn them into a personalized physical artwork. 😊"
-                          : cat.slug === 'events'
-                          ? "Hi FeelsNeat! 🎉\n\nI'd love to create a personalized Memory Canvas for a special event or celebration.\n\nI'd like to preserve some photographs and memories from the occasion in a personalized artwork. 😊"
-                          : cat.slug === 'couples'
-                          ? "Hi FeelsNeat! ❤️\n\nI'd love to create a personalized Couple Memory Canvas.\n\nI'd like to turn some special shared memories and photographs into something personal and meaningful. 😊"
-                          : "Hi FeelsNeat! 👋🐾\n\nI'd love to create a personalized Family, Life or Pet Memory Canvas.\n\nI'd like to turn some meaningful photographs and memories into a personalized artwork. 😊"
-                      )}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
+                    <Link
+                      href={`/create?type=${cat.slug}`}
                       className="inline-flex h-8 items-center justify-center rounded-md bg-[#E30613] hover:bg-white hover:text-black px-4 text-xs font-black uppercase tracking-wider text-white transition-colors duration-300 cursor-pointer"
                     >
                       {cat.cta}
-                    </a>
+                    </Link>
                   </div>
                 </div>
               </div>

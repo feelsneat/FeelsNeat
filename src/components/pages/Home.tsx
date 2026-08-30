@@ -1,4 +1,4 @@
-import { getPage, getServices, getSettings } from '@/lib/cms';
+import { getPage, getServices } from '@/lib/cms';
 import { fetchSubstackFeed } from '@/lib/substack';
 import { SubstackFeed } from '@/components/interactive/SubstackFeed';
 import { LucideIcon } from '@/components/ui/LucideIcon';
@@ -9,7 +9,6 @@ export const runtime = 'edge';
 export default async function HomePage() {
   const homeData = await getPage('home');
   const services = await getServices();
-  const settings = await getSettings();
   const posts = await fetchSubstackFeed();
   const latestPosts = posts.slice(0, 3);
 
@@ -117,20 +116,12 @@ export default async function HomePage() {
                   </div>
 
                   <div className="pt-4 flex gap-4">
-                    <a 
-                      href={`https://wa.me/${settings.whatsappNumber || '919999999999'}?text=${encodeURIComponent(
-                        service.slug === 'website-development'
-                          ? "Hi FeelsNeat! 👋\n\nI'm interested in your Social Media-to-Store Development service.\n\nI'd like to learn more about building a custom shopping website and connecting it with social media, WhatsApp, payments, and other business tools.\n\nI'd love to discuss my business and idea with you. 😊"
-                          : service.slug === 'security-review'
-                          ? "Hi FeelsNeat! 👋\n\nI'm interested in a Security Review for my website or application.\n\nI'd like to discuss my current setup and understand how FeelsNeat could help review and improve its security. 😊"
-                          : "Hi FeelsNeat! 👋\n\nI'm interested in AI Agentic Integration and business automation.\n\nI'd like to discuss my workflow and explore what tasks could potentially be automated using AI. 😊"
-                      )}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
+                    <Link 
+                      href={`/create?service=${service.slug}`}
                       className="inline-flex h-10 items-center justify-center rounded-lg bg-[#E30613] hover:bg-zinc-900 text-xs font-black uppercase tracking-wider text-white px-6 transition-colors duration-300 shadow-md"
                     >
                       Request Service
-                    </a>
+                    </Link>
                   </div>
                 </div>
               </div>

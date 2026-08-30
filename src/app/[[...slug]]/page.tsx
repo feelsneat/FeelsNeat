@@ -156,7 +156,6 @@ export async function generateMetadata({ params }: { params: Promise<{ slug?: st
 export default async function CatchAllPage({ params, searchParams }: PageProps) {
   const { slug } = await params;
   const { error, email } = await searchParams;
-  const settings = await getSettings();
 
   // 1. Home Page (e.g. /)
   if (!slug || slug.length === 0) {
@@ -183,12 +182,12 @@ export default async function CatchAllPage({ params, searchParams }: PageProps) 
   // 4.5. Memories Routes (e.g. /memories and /memories/[category])
   if (route === 'memories') {
     if (slug.length === 1) {
-      return <MemoriesPage whatsappNumber={settings.whatsappNumber} />;
+      return <MemoriesPage />;
     }
     if (slug.length === 2) {
       const cat = slug[1];
       if (['travel', 'events', 'couples', 'family'].includes(cat)) {
-        return <MemoryProductPage categorySlug={cat} whatsappNumber={settings.whatsappNumber} />;
+        return <MemoryProductPage categorySlug={cat} />;
       }
       notFound();
     }
@@ -202,12 +201,12 @@ export default async function CatchAllPage({ params, searchParams }: PageProps) 
   // 4.65. Tap Tiles Routes (e.g. /tap-tiles and /tap-tiles/[category])
   if (route === 'tap-tiles') {
     if (slug.length === 1) {
-      return <TapTilesPage whatsappNumber={settings.whatsappNumber} />;
+      return <TapTilesPage />;
     }
     if (slug.length === 2) {
       const cat = slug[1];
       if (['nostalgia', 'friends', 'couples', 'pets'].includes(cat)) {
-        return <TapTileProductPage categorySlug={cat} whatsappNumber={settings.whatsappNumber} />;
+        return <TapTileProductPage categorySlug={cat} />;
       }
       notFound();
     }
@@ -220,7 +219,8 @@ export default async function CatchAllPage({ params, searchParams }: PageProps) 
 
   // 4.7. Confirmation Route (e.g. /confirmation)
   if (route === 'confirmation' && slug.length === 1) {
-    const waNum = settings.whatsappNumber || '919999999999';
+    const settings = await getSettings();
+    const waNum = (settings as any).whatsappNumber || '919999999999';
     return <OrderConfirmationPage whatsappNumber={waNum} />;
   }
 

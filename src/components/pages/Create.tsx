@@ -417,7 +417,12 @@ export default function CreateMemoryPage() {
       const result = await response.json();
       if (response.ok && result.success) {
         localStorage.removeItem('feelsneat_memories_draft');
-        router.push(`/confirmation?orderId=${result.orderId}`);
+        const subType = order_type === 'memories' || order_type === 'tap_tiles'
+          ? formData.memory_type
+          : order_type === 'service'
+          ? serviceId
+          : productId;
+        router.push(`/confirmation?orderId=${result.orderId}&type=${order_type}&subType=${subType || ''}`);
       } else {
         setStatus('error');
         setValidationError(result.error || 'Failed to submit order. Please try again.');

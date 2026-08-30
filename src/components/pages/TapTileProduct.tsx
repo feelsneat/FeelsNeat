@@ -7,10 +7,9 @@ import { TAP_TILES_CATEGORIES } from './TapTiles';
 
 interface TapTileProductProps {
   categorySlug: string;
-  whatsappNumber?: string;
 }
 
-export default function TapTileProductPage({ categorySlug, whatsappNumber }: TapTileProductProps) {
+export default function TapTileProductPage({ categorySlug }: TapTileProductProps) {
   // Safe category lookup
   const category = (TAP_TILES_CATEGORIES as any)[categorySlug] || TAP_TILES_CATEGORIES.nostalgia;
 
@@ -160,22 +159,12 @@ export default function TapTileProductPage({ categorySlug, whatsappNumber }: Tap
 
             {/* CTAs */}
             <div className="pt-6 flex flex-col sm:flex-row gap-4">
-              <a
-                href={`https://wa.me/${whatsappNumber || '919999999999'}?text=${encodeURIComponent(
-                  categorySlug === 'pets'
-                    ? "Hi FeelsNeat! 🐶🐱\n\nI'd love to create a personalized Pet Tap Tile.\n\nI'd like to use a photograph of my pet and connect the NFC tap to something meaningful or useful. 😊"
-                    : categorySlug === 'nostalgia'
-                    ? "Hi FeelsNeat! 🕹️✨\n\nI'd love to create a Nostalgia & Childhood Tap Tile.\n\nI have an old memory, childhood photograph, retro reference, or special song that I'd like to turn into a personalized NFC Tap Tile. 😊"
-                    : categorySlug === 'friends'
-                    ? "Hi FeelsNeat! 😄\n\nI'd love to create a Funny & Personal Tap Tile.\n\nI have a funny photo, friendship memory, inside joke, or personal idea that I'd like to turn into a custom NFC Tap Tile. 🎵"
-                    : "Hi FeelsNeat! 👋🎵\n\nI'd love to create a personalized Tap Tile.\n\nI'd like to create a small custom artwork with an NFC tap that can open a song, playlist, video, photo album, or another link. 😊"
-                )}`}
-                target="_blank"
-                rel="noopener noreferrer"
+              <Link
+                href={`/create?type=tap_tiles&product=${categorySlug}&format=${selectedFormat}`}
                 className="inline-flex h-11 items-center justify-center rounded-lg bg-[#E30613] hover:bg-white hover:text-black px-8 text-xs font-black uppercase tracking-widest text-white transition-colors duration-300 shadow-md cursor-pointer text-center"
               >
                 {category.cta}
-              </a>
+              </Link>
             </div>
           </div>
         </div>

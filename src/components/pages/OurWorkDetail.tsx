@@ -1,6 +1,6 @@
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
-import { getWorkBySlug, getSettings } from '@/lib/cms';
+import { getWorkBySlug } from '@/lib/cms';
 import { LucideIcon } from '@/components/ui/LucideIcon';
 
 interface ProjectDetailPageProps {
@@ -9,7 +9,6 @@ interface ProjectDetailPageProps {
 
 export default async function ProjectDetailPage({ projectSlug }: ProjectDetailPageProps) {
   const project = await getWorkBySlug(projectSlug);
-  const settings = await getSettings();
 
   if (!project) {
     notFound();
@@ -138,16 +137,12 @@ export default async function ProjectDetailPage({ projectSlug }: ProjectDetailPa
           </div>
           <div className="sm:text-right">
             <h3 className="text-[9px] font-black text-[#F4F4F5]/60 uppercase tracking-widest mb-3">Discuss</h3>
-            <a 
-              href={`https://wa.me/${settings.whatsappNumber || '919999999999'}?text=${encodeURIComponent(
-                "Hi FeelsNeat! 👋\n\nI'd like to get in touch and learn more about what you offer.\n\nI found your website and would love to discuss an idea with you. 😊"
-              )}`}
-              target="_blank"
-              rel="noopener noreferrer"
+            <Link 
+              href="/contact"
               className="inline-flex items-center gap-1.5 text-xs font-black uppercase text-[#F4F4F5] hover:text-[#E30613] transition-colors"
             >
               Start collaboration <LucideIcon name="ArrowRight" className="h-3.5 w-3.5 text-[#E30613]" />
-            </a>
+            </Link>
           </div>
         </div>
       </div>
