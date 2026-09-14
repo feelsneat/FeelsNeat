@@ -8,6 +8,27 @@ interface DineAssistPageProps {
   whatsappNumber: string;
 }
 
+const dineImages = [
+  {
+    src: '/images/dine-assist/customer-qr-menu.png',
+    alt: 'Customers scanning a restaurant table QR code and viewing a digital menu',
+    title: 'Customer table menu',
+    text: 'Guests scan the table QR, browse the live menu, and add items without installing an app.',
+  },
+  {
+    src: '/images/dine-assist/restaurant-order-tablet.png',
+    alt: 'Restaurant staff managing Dine Assist orders on a tablet',
+    title: 'Restaurant order desk',
+    text: 'Staff receive table orders in the restaurant portal and move them through preparation.',
+  },
+  {
+    src: '/images/dine-assist/live-orders-kitchen.png',
+    alt: 'Kitchen team viewing live Dine Assist order status board',
+    title: 'Live order workflow',
+    text: 'Orders can be confirmed, prepared, marked ready, and completed with a simple status flow.',
+  },
+];
+
 export default function DineAssistPage({ whatsappNumber }: DineAssistPageProps) {
   const [status, setStatus] = useState<'idle' | 'submitting' | 'success' | 'error'>('idle');
   const [message, setMessage] = useState('');
@@ -100,14 +121,17 @@ export default function DineAssistPage({ whatsappNumber }: DineAssistPageProps) 
               <a href={`https://wa.me/${whatsappNumber}?text=${waMessage}`} target="_blank" rel="noopener noreferrer" className="inline-flex h-10 items-center justify-center rounded-lg border border-white/10 bg-white/5 px-6 text-xs font-black uppercase tracking-wider hover:bg-white/10 transition-colors">Talk to FeelsNeat</a>
             </div>
           </div>
-          <div className="lg:col-span-6 rounded-2xl border border-white/10 bg-[#0E0E12] p-6 shadow-2xl">
-            <div className="grid grid-cols-2 gap-3">
-              {['Scan QR', 'View menu', 'Choose items', 'Send order', 'Restaurant confirms', 'Start preparation'].map((step, idx) => (
-                <div key={step} className="rounded-xl border border-white/5 bg-white/[0.03] p-4">
-                  <span className="text-[10px] font-black text-[#E30613] font-mono">0{idx + 1}</span>
-                  <p className="mt-2 text-xs font-black uppercase tracking-wider">{step}</p>
-                </div>
-              ))}
+          <div className="lg:col-span-6">
+            <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-[#0E0E12] shadow-2xl aspect-[4/3]">
+              <img
+                src="/images/dine-assist/customer-qr-menu.png"
+                alt="Restaurant customers using a QR code to open a Dine Assist menu"
+                className="h-full w-full object-cover"
+              />
+              <div className="absolute inset-x-0 bottom-0 bg-linear-to-t from-black/85 to-transparent p-5">
+                <p className="text-[10px] font-black uppercase tracking-widest text-[#E30613]">QR Menu + Table Ordering</p>
+                <p className="mt-2 text-sm font-black uppercase leading-tight">Scan, browse, order, and let the restaurant confirm.</p>
+              </div>
             </div>
           </div>
         </div>
@@ -126,6 +150,30 @@ export default function DineAssistPage({ whatsappNumber }: DineAssistPageProps) 
               <p className="mt-3 text-xs text-[#F4F4F5]/70 leading-relaxed font-semibold">{text}</p>
             </div>
           ))}
+        </div>
+      </section>
+
+      <section className="py-20 px-4 sm:px-6 bg-[#0A0A0C]">
+        <div className="mx-auto max-w-5xl space-y-8">
+          <div className="max-w-2xl">
+            <h2 className="text-2xl sm:text-3xl font-black uppercase">Built for the whole restaurant flow</h2>
+            <p className="mt-3 text-sm text-[#F4F4F5]/70 leading-relaxed font-semibold">
+              Dine Assist covers the customer table experience, the restaurant order dashboard, and the live order status workflow.
+            </p>
+          </div>
+          <div className="grid lg:grid-cols-3 gap-4">
+            {dineImages.map((image) => (
+              <article key={image.src} className="overflow-hidden rounded-2xl border border-white/10 bg-[#0E0E12]">
+                <div className="aspect-[4/3] overflow-hidden bg-black">
+                  <img src={image.src} alt={image.alt} className="h-full w-full object-cover transition-transform duration-500 hover:scale-102" />
+                </div>
+                <div className="p-5">
+                  <h3 className="text-xs font-black uppercase tracking-widest">{image.title}</h3>
+                  <p className="mt-3 text-xs text-[#F4F4F5]/70 leading-relaxed font-semibold">{image.text}</p>
+                </div>
+              </article>
+            ))}
+          </div>
         </div>
       </section>
 

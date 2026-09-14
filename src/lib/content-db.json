@@ -155,7 +155,7 @@
       "icon": "QrCode",
       "order": 4,
       "summary": "A simple digital menu and table ordering system for restaurants. Customers scan a table QR, view today's available menu, and send orders directly to the restaurant dashboard.",
-      "image": "/images/services-stem.jpg",
+      "image": "/images/dine-assist/table-menu-phone.png",
       "price": "₹999 / month",
       "originalPrice": "",
       "externalUrl": "/dine-assist",
