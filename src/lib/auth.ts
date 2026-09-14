@@ -11,11 +11,7 @@ async function getHmacKey(secret: string): Promise<CryptoKey> {
   );
 }
 
-export async function signSession(email: string, secret: string): Promise<string> {
-  const payload = {
-    email,
-    expires: Date.now() + 7 * 24 * 60 * 60 * 1000, // 7 days
-  };
+async function signPayload(payload: Record<string, any>, secret: string): Promise<string> {
   const payloadStr = JSON.stringify(payload);
   const payloadBase64 = btoa(payloadStr)
     .replace(/=/g, '')
@@ -37,7 +33,7 @@ export async function signSession(email: string, secret: string): Promise<string
   return `${payloadBase64}.${signatureBase64}`;
 }
 
-export async function verifySession(token: string, secret: string): Promise<{ email: string } | null> {
+async function verifyPayload(token: string, secret: string): Promise<Record<string, any> | null> {
   if (!token) return null;
   const parts = token.split('.');
   if (parts.length !== 2) return null;
@@ -71,8 +67,57 @@ export async function verifySession(token: string, secret: string): Promise<{ em
       return null; // Expired
     }
     
-    return { email: payload.email };
+    return payload;
   } catch (e) {
     return null;
   }
+}
+
+export async function signSession(email: string, secret: string): Promise<string> {
+  return signPayload({
+    email,
+    expires: Date.now() + 7 * 24 * 60 * 60 * 1000, // 7 days
+  }, secret);
+}
+
+export async function verifySession(token: string, secret: string): Promise<{ email: string } | null> {
+  const payload = await verifyPayload(token, secret);
+  if (!payload?.email) return null;
+  return { email: payload.email };
+}
+
+export interface RestaurantSession {
+  user_id: string;
+  restaurant_id: string;
+  email: string;
+  role: 'RESTAURANT_USER';
+  admin_email?: string;
+  impersonated_by_admin?: boolean;
+}
+
+export async function signRestaurantSession(session: RestaurantSession, secret: string): Promise<string> {
+  return signPayload({
+    ...session,
+    expires: Date.now() + 3 * 24 * 60 * 60 * 1000, // 3 days
+  }, secret);
+}
+
+export async function verifyRestaurantSession(token: string, secret: string): Promise<RestaurantSession | null> {
+  const payload = await verifyPayload(token, secret);
+  if (
+    !payload?.user_id ||
+    !payload?.restaurant_id ||
+    !payload?.email ||
+    payload?.role !== 'RESTAURANT_USER'
+  ) {
+    return null;
+  }
+  return {
+    user_id: payload.user_id,
+    restaurant_id: payload.restaurant_id,
+    email: payload.email,
+    role: 'RESTAURANT_USER',
+    admin_email: typeof payload.admin_email === 'string' ? payload.admin_email : undefined,
+    impersonated_by_admin: payload.impersonated_by_admin === true,
+  };
 }

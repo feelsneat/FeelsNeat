@@ -10,7 +10,7 @@ interface AdminDashboardProps {
 export function AdminDashboard({ userEmail }: AdminDashboardProps) {
   const [orders, setOrders] = useState<any[]>([]);
   const [loadingOrders, setLoadingOrders] = useState(true);
-  const [activeTab, setActiveTab] = useState<'all' | 'memories' | 'service' | 'digital_product' | 'general_inquiry' | 'pet_profiles'>('all');
+  const [activeTab, setActiveTab] = useState<'all' | 'memories' | 'service' | 'digital_product' | 'general_inquiry' | 'pet_profiles' | 'dine_assist'>('all');
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [syncMessage, setSyncMessage] = useState('');
@@ -21,6 +21,13 @@ export function AdminDashboard({ userEmail }: AdminDashboardProps) {
   const [loadingProfiles, setLoadingProfiles] = useState(true);
   const [selectedProfileId, setSelectedProfileId] = useState<string | null>(null);
   const [modalFormData, setModalFormData] = useState<any>(null); // null means modal is closed
+
+  // Dine Assist states
+  const [dineData, setDineData] = useState<any>({ enquiries: [], restaurants: [], users: [], categories: [], items: [], tables: [], orders: [] });
+  const [loadingDine, setLoadingDine] = useState(true);
+  const [selectedDineEnquiryId, setSelectedDineEnquiryId] = useState<string | null>(null);
+  const [selectedDineRestaurantId, setSelectedDineRestaurantId] = useState<string | null>(null);
+  const [provisionResult, setProvisionResult] = useState<any>(null);
 
   // WhatsApp Redirect Config State
   const [contentDb, setContentDb] = useState<any>(null);
@@ -113,11 +120,33 @@ export function AdminDashboard({ userEmail }: AdminDashboardProps) {
     }
   };
 
+  const loadDineData = async () => {
+    setLoadingDine(true);
+    try {
+      const res = await fetch('/api/dine/admin');
+      if (res.ok) {
+        setDineData(await res.json());
+      }
+    } catch (err) {
+      console.error('Failed to load Dine Assist data:', err);
+    } finally {
+      setLoadingDine(false);
+    }
+  };
+
   useEffect(() => {
     loadOrders();
     loadProfiles();
+    loadDineData();
     loadContentSettings();
   }, []);
+
+  useEffect(() => {
+    if (activeTab !== 'dine_assist') return;
+    loadDineData();
+    const timer = window.setInterval(loadDineData, 5000);
+    return () => window.clearInterval(timer);
+  }, [activeTab]);
 
   // Update order fields (payment references, production status, etc.)
   const handleUpdateOrderStatus = async (orderId: string, statusUpdates: any) => {
@@ -278,6 +307,130 @@ export function AdminDashboard({ userEmail }: AdminDashboardProps) {
 
   const selectedOrder = orders.find((o) => o.order_id === selectedOrderId);
   const selectedProfile = profiles.find((p) => p.profile_id === selectedProfileId);
+  const filteredDineEnquiries = dineData.enquiries.filter((enquiry: any) => {
+    if (searchQuery.trim() === '') return true;
+    const query = searchQuery.toLowerCase();
+    return (
+      enquiry.enquiry_id.toLowerCase().includes(query) ||
+      enquiry.restaurant_name.toLowerCase().includes(query) ||
+      enquiry.location.toLowerCase().includes(query) ||
+      enquiry.contact_person.toLowerCase().includes(query) ||
+      enquiry.phone.toLowerCase().includes(query) ||
+      enquiry.whatsapp.toLowerCase().includes(query) ||
+      (enquiry.email || '').toLowerCase().includes(query)
+    );
+  });
+  const filteredDineRestaurants = dineData.restaurants.filter((restaurant: any) => {
+    if (searchQuery.trim() === '') return true;
+    const query = searchQuery.toLowerCase();
+    return (
+      restaurant.name.toLowerCase().includes(query) ||
+      restaurant.slug.toLowerCase().includes(query) ||
+      restaurant.location.toLowerCase().includes(query) ||
+      restaurant.contact_person.toLowerCase().includes(query) ||
+      restaurant.phone.toLowerCase().includes(query) ||
+      restaurant.whatsapp.toLowerCase().includes(query) ||
+      (restaurant.email || '').toLowerCase().includes(query)
+    );
+  });
+  const selectedDineEnquiry = dineData.enquiries.find((enquiry: any) => enquiry.enquiry_id === selectedDineEnquiryId);
+  const selectedDineRestaurant = dineData.restaurants.find((restaurant: any) => restaurant.id === selectedDineRestaurantId);
+
+  const handleUpdateDineEnquiryStatus = async (enquiryId: string, status: string) => {
+    const res = await fetch('/api/dine/admin', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'update_enquiry_status', enquiry_id: enquiryId, status }),
+    });
+    if (res.ok) await loadDineData();
+    else alert('Failed to update Dine Assist enquiry.');
+  };
+
+  const handleCreateDineRestaurant = async (enquiry: any) => {
+    const res = await fetch('/api/dine/admin', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        action: 'create_restaurant',
+        enquiry_id: enquiry.enquiry_id,
+        restaurant_name: enquiry.restaurant_name,
+        location: enquiry.location,
+        contact_person: enquiry.contact_person,
+        phone: enquiry.phone,
+        whatsapp: enquiry.whatsapp,
+        email: enquiry.email,
+        table_count: enquiry.table_count,
+        table_naming: enquiry.table_naming,
+        payment_preference: enquiry.payment_preference,
+        subscription_status: 'PENDING',
+      }),
+    });
+    const result = await res.json();
+    if (res.ok) {
+      setProvisionResult(result);
+      await loadDineData();
+      setSelectedDineRestaurantId(result.restaurant.id);
+    } else {
+      alert(result.error || 'Failed to create restaurant.');
+    }
+  };
+
+  const handleUpdateDineTableStandStatus = async (restaurantId: string, tableId: string, standStatus: string) => {
+    const res = await fetch('/api/dine/admin', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        action: 'update_table_stand_status',
+        restaurant_id: restaurantId,
+        table_id: tableId,
+        stand_status: standStatus,
+      }),
+    });
+    if (res.ok) await loadDineData();
+    else alert('Failed to update table stand status.');
+  };
+
+  const handlePrintDineQrCodes = (restaurant: any) => {
+    const tables = dineData.tables.filter((table: any) => table.restaurant_id === restaurant.id);
+    const cards = tables.map((table: any) => {
+      const url = `${window.location.origin}/dine/${restaurant.slug}/table/${table.token}`;
+      const qr = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(url)}`;
+      return `<section><img src="${qr}" alt="${table.name} QR" /><h2>${table.name}</h2><p>${url}</p><small>${table.stand_status}</small></section>`;
+    }).join('');
+    const win = window.open('', '_blank');
+    if (!win) return;
+    win.document.write(`<!doctype html><html><head><title>${restaurant.name} QR Codes</title><style>body{font-family:Arial,sans-serif;padding:24px;color:#111}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px}section{border:1px solid #ddd;padding:18px;border-radius:8px;page-break-inside:avoid}img{width:180px;height:180px}h2{font-size:18px;margin:10px 0 4px}p{font-size:10px;word-break:break-all;color:#555}small{font-size:10px;text-transform:uppercase;font-weight:700;color:#777}@media print{button{display:none}.grid{grid-template-columns:repeat(2,minmax(0,1fr))}}</style></head><body><button onclick="window.print()">Print / Save PDF</button><h1>${restaurant.name} Table QR Codes</h1><div class="grid">${cards}</div></body></html>`);
+    win.document.close();
+  };
+
+  const handleOpenRestaurantPortal = async (restaurant: any) => {
+    const res = await fetch('/api/dine/admin/impersonate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ restaurant_id: restaurant.id }),
+    });
+    const result = await res.json();
+    if (!res.ok) {
+      alert(result.error || 'Could not open restaurant portal.');
+      return;
+    }
+    window.open(result.redirectTo || '/dine-admin', '_blank', 'noopener,noreferrer');
+  };
+
+  const handleResetRestaurantLogin = async (restaurant: any) => {
+    const res = await fetch('/api/dine/admin', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'reset_restaurant_login', restaurant_id: restaurant.id }),
+    });
+    const result = await res.json();
+    if (!res.ok) {
+      alert(result.error || 'Could not reset login.');
+      return;
+    }
+    setProvisionResult({ user: result.user });
+    await loadDineData();
+  };
 
   return (
     <div className="space-y-6">
@@ -381,6 +534,28 @@ export function AdminDashboard({ userEmail }: AdminDashboardProps) {
             </span>
           </button>
 
+          <span className="text-[10px] font-bold text-foreground/50 uppercase tracking-widest px-3 py-2 mt-4 block border-t border-zinc-150 text-left">Dine Assist</span>
+          <button
+            onClick={() => {
+              setActiveTab('dine_assist');
+              setSelectedOrderId(null);
+              setSelectedProfileId(null);
+            }}
+            className={`flex items-center justify-between px-3 py-2.5 rounded-lg text-xs font-bold transition-colors cursor-pointer ${
+              activeTab === 'dine_assist'
+                ? 'bg-[#E30613] text-white font-black'
+                : 'text-foreground/75 hover:bg-zinc-50'
+            }`}
+          >
+            <div className="flex items-center gap-3">
+              <LucideIcon name="QrCode" className="h-4 w-4 shrink-0" />
+              <span>Dine Assist</span>
+            </div>
+            <span className={`text-[9px] px-1.5 py-0.5 rounded font-black ${activeTab === 'dine_assist' ? 'bg-white text-[#E30613]' : 'bg-zinc-100 text-zinc-500'}`}>
+              {dineData.enquiries.length + dineData.restaurants.length}
+            </span>
+          </button>
+
           {/* WhatsApp Redirect Config Box */}
           <div className="mt-4 pt-4 border-t border-zinc-150 px-3">
             <span className="text-[10px] font-bold text-foreground/50 uppercase tracking-widest block mb-2 text-left">WhatsApp Redirect</span>
@@ -459,9 +634,20 @@ export function AdminDashboard({ userEmail }: AdminDashboardProps) {
                     + Create Profile
                   </button>
                 )}
+                {activeTab === 'dine_assist' && (
+                  <button
+                    type="button"
+                    onClick={loadDineData}
+                    className="inline-flex h-8 items-center justify-center rounded-lg bg-[#E30613] hover:bg-zinc-900 px-3 text-[10px] font-black uppercase tracking-wider text-white transition-colors cursor-pointer shrink-0"
+                  >
+                    Refresh Dine
+                  </button>
+                )}
               </div>
               <span className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">
-                {activeTab === 'pet_profiles' ? (
+                {activeTab === 'dine_assist' ? (
+                  `Showing ${filteredDineEnquiries.length} enquiries and ${filteredDineRestaurants.length} restaurants`
+                ) : activeTab === 'pet_profiles' ? (
                   `Showing ${filteredProfiles.length} of ${profiles.length} Profiles`
                 ) : (
                   `Showing ${filteredOrders.length} of ${orders.length} Records`
@@ -470,7 +656,53 @@ export function AdminDashboard({ userEmail }: AdminDashboardProps) {
             </div>
 
             <div className="grid md:grid-cols-12 gap-6">
-              {activeTab === 'pet_profiles' ? (
+              {activeTab === 'dine_assist' ? (
+                <div className="md:col-span-5 space-y-4 max-h-[560px] overflow-y-auto pr-0 md:pr-4 border-r border-zinc-100">
+                  {loadingDine ? (
+                    <p className="text-xs text-zinc-400 italic text-center py-10">Loading Dine Assist...</p>
+                  ) : (
+                    <>
+                      <div>
+                        <span className="text-[10px] font-black text-zinc-400 uppercase tracking-widest block mb-2">Enquiries</span>
+                        {filteredDineEnquiries.length === 0 ? (
+                          <p className="text-xs text-zinc-400 italic py-4">No Dine Assist enquiries found.</p>
+                        ) : filteredDineEnquiries.map((enquiry: any) => (
+                          <div
+                            key={enquiry.enquiry_id}
+                            onClick={() => { setSelectedDineEnquiryId(enquiry.enquiry_id); setSelectedDineRestaurantId(null); setProvisionResult(null); }}
+                            className={`p-3 rounded-lg border text-left cursor-pointer mb-2 ${selectedDineEnquiryId === enquiry.enquiry_id ? 'border-zinc-800 bg-zinc-50' : 'border-zinc-150 hover:bg-zinc-50/50'}`}
+                          >
+                            <div className="flex justify-between gap-2">
+                              <span className="text-xs font-black text-zinc-900 truncate">{enquiry.restaurant_name}</span>
+                              <span className="text-[8px] font-black uppercase text-[#E30613]">{enquiry.status}</span>
+                            </div>
+                            <p className="text-[10px] text-zinc-450 font-semibold mt-1">{enquiry.enquiry_id}</p>
+                            <p className="text-[10px] text-zinc-450 font-semibold">{enquiry.location} | {enquiry.table_count} tables</p>
+                          </div>
+                        ))}
+                      </div>
+                      <div className="border-t border-zinc-150 pt-4">
+                        <span className="text-[10px] font-black text-zinc-400 uppercase tracking-widest block mb-2">Restaurants</span>
+                        {filteredDineRestaurants.length === 0 ? (
+                          <p className="text-xs text-zinc-400 italic py-4">No restaurants found.</p>
+                        ) : filteredDineRestaurants.map((restaurant: any) => (
+                          <div
+                            key={restaurant.id}
+                            onClick={() => { setSelectedDineRestaurantId(restaurant.id); setSelectedDineEnquiryId(null); setProvisionResult(null); }}
+                            className={`p-3 rounded-lg border text-left cursor-pointer mb-2 ${selectedDineRestaurantId === restaurant.id ? 'border-zinc-800 bg-zinc-50' : 'border-zinc-150 hover:bg-zinc-50/50'}`}
+                          >
+                            <div className="flex justify-between gap-2">
+                              <span className="text-xs font-black text-zinc-900 truncate">{restaurant.name}</span>
+                              <span className="text-[8px] font-black uppercase text-emerald-600">{restaurant.subscription_status}</span>
+                            </div>
+                            <p className="text-[10px] text-zinc-450 font-semibold mt-1">/{restaurant.slug}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </>
+                  )}
+                </div>
+              ) : activeTab === 'pet_profiles' ? (
                 /* Filtered Profiles List Column */
                 <div className="md:col-span-5 space-y-2 max-h-[500px] overflow-y-auto pr-0 md:pr-4 border-r border-zinc-100">
                   {loadingProfiles ? (
@@ -581,7 +813,118 @@ export function AdminDashboard({ userEmail }: AdminDashboardProps) {
 
               {/* Order / Profile Specific Detail Content Column */}
               <div className="md:col-span-7 space-y-6">
-                {activeTab === 'pet_profiles' ? (
+                {activeTab === 'dine_assist' ? (
+                  <div className="space-y-6">
+                    {provisionResult && (
+                      <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-left text-xs font-semibold text-emerald-800">
+                        <p className="font-black uppercase">Restaurant created</p>
+                        {provisionResult.user?.email && <p className="mt-2">Portal email: {provisionResult.user.email}</p>}
+                        {provisionResult.user?.temp_password && <p>Temporary password: <span className="font-mono">{provisionResult.user.temp_password}</span></p>}
+                        <p className="mt-2">This password is shown only now. Store only the hashed password in Dine Assist data.</p>
+                      </div>
+                    )}
+                    {selectedDineEnquiry ? (
+                      <div className="space-y-4 p-4 rounded-xl border border-border-custom bg-zinc-50/30 text-left">
+                        <div className="flex justify-between gap-4 border-b border-zinc-200 pb-3">
+                          <div>
+                            <span className="text-[10px] font-black text-zinc-400 uppercase tracking-widest block">Dine Assist Enquiry</span>
+                            <h3 className="text-lg font-black text-zinc-900">{selectedDineEnquiry.restaurant_name}</h3>
+                            <p className="text-xs text-zinc-500 font-semibold">{selectedDineEnquiry.location}</p>
+                          </div>
+                          <span className="rounded bg-[#E30613]/10 px-2 py-1 text-[10px] font-black uppercase text-[#E30613]">{selectedDineEnquiry.status}</span>
+                        </div>
+                        <div className="grid sm:grid-cols-2 gap-3 text-xs font-semibold text-zinc-700">
+                          <p><span className="text-zinc-400 block">Enquiry ID</span>{selectedDineEnquiry.enquiry_id}</p>
+                          <p><span className="text-zinc-400 block">Contact</span>{selectedDineEnquiry.contact_person}</p>
+                          <p><span className="text-zinc-400 block">Phone</span>{selectedDineEnquiry.phone}</p>
+                          <p><span className="text-zinc-400 block">WhatsApp</span>{selectedDineEnquiry.whatsapp}</p>
+                          <p><span className="text-zinc-400 block">Email</span>{selectedDineEnquiry.email || 'Not provided'}</p>
+                          <p><span className="text-zinc-400 block">Tables</span>{selectedDineEnquiry.table_count}</p>
+                          <p><span className="text-zinc-400 block">QR stands</span>{selectedDineEnquiry.qr_stands_required}</p>
+                          <p><span className="text-zinc-400 block">Table naming</span>{selectedDineEnquiry.table_naming}</p>
+                          <p><span className="text-zinc-400 block">Payment preference</span>{selectedDineEnquiry.payment_preference}</p>
+                          <p><span className="text-zinc-400 block">Created</span>{new Date(selectedDineEnquiry.created_at).toLocaleString()}</p>
+                        </div>
+                        {selectedDineEnquiry.menu_attachment?.name && (
+                          <a href={selectedDineEnquiry.menu_attachment.data} download={selectedDineEnquiry.menu_attachment.name} className="inline-flex h-8 items-center rounded-lg border border-zinc-200 bg-white px-3 text-[10px] font-black uppercase text-zinc-800">
+                            Download menu attachment
+                          </a>
+                        )}
+                        {selectedDineEnquiry.additional_requirements && (
+                          <p className="rounded-lg bg-white border border-zinc-150 p-3 text-xs text-zinc-650 italic">&ldquo;{selectedDineEnquiry.additional_requirements}&rdquo;</p>
+                        )}
+                        <div className="flex flex-wrap gap-2 pt-2">
+                          {selectedDineEnquiry.status === 'NEW' && <button onClick={() => handleUpdateDineEnquiryStatus(selectedDineEnquiry.enquiry_id, 'REVIEWING')} className="rounded-lg bg-[#E30613] px-3 py-2 text-[10px] font-black uppercase text-white">Review</button>}
+                          {['REVIEWING', 'CONTACTED', 'DISCUSSION'].includes(selectedDineEnquiry.status) && <a href={`https://wa.me/${selectedDineEnquiry.whatsapp.replace(/[+\s-]/g, '')}`} target="_blank" rel="noopener noreferrer" className="rounded-lg bg-emerald-600 px-3 py-2 text-[10px] font-black uppercase text-white">Contact WhatsApp</a>}
+                          {selectedDineEnquiry.status === 'REVIEWING' && <button onClick={() => handleUpdateDineEnquiryStatus(selectedDineEnquiry.enquiry_id, 'CONTACTED')} className="rounded-lg border border-zinc-200 bg-white px-3 py-2 text-[10px] font-black uppercase text-zinc-700">Mark Contacted</button>}
+                          {['CONTACTED', 'DISCUSSION'].includes(selectedDineEnquiry.status) && <button onClick={() => handleUpdateDineEnquiryStatus(selectedDineEnquiry.enquiry_id, 'APPROVED')} className="rounded-lg bg-[#E30613] px-3 py-2 text-[10px] font-black uppercase text-white">Approve</button>}
+                          {selectedDineEnquiry.status === 'APPROVED' && <button onClick={() => handleCreateDineRestaurant(selectedDineEnquiry)} className="rounded-lg bg-[#E30613] px-3 py-2 text-[10px] font-black uppercase text-white">Create Restaurant</button>}
+                          {['NEW', 'REVIEWING', 'CONTACTED', 'DISCUSSION', 'APPROVED'].includes(selectedDineEnquiry.status) && <button onClick={() => handleUpdateDineEnquiryStatus(selectedDineEnquiry.enquiry_id, 'REJECTED')} className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-[10px] font-black uppercase text-red-700">Reject</button>}
+                          <button onClick={() => handleUpdateDineEnquiryStatus(selectedDineEnquiry.enquiry_id, 'CLOSED')} className="rounded-lg border border-zinc-200 bg-white px-3 py-2 text-[10px] font-black uppercase text-zinc-700">Close</button>
+                        </div>
+                      </div>
+                    ) : selectedDineRestaurant ? (
+                      <div className="space-y-4 p-4 rounded-xl border border-border-custom bg-zinc-50/30 text-left">
+                        <div className="border-b border-zinc-200 pb-3">
+                          <span className="text-[10px] font-black text-zinc-400 uppercase tracking-widest block">Dine Assist Restaurant</span>
+                          <h3 className="text-lg font-black text-zinc-900">{selectedDineRestaurant.name}</h3>
+                          <p className="text-xs text-zinc-500 font-semibold">{selectedDineRestaurant.location}</p>
+                        </div>
+                        <div className="grid sm:grid-cols-2 gap-3 text-xs font-semibold text-zinc-700">
+                          <p><span className="text-zinc-400 block">Public menu</span>/dine/{selectedDineRestaurant.slug}</p>
+                          <p><span className="text-zinc-400 block">Portal</span>/dine-admin</p>
+                          <p><span className="text-zinc-400 block">Subscription</span>₹999 / month · {selectedDineRestaurant.subscription_status}</p>
+                          <p><span className="text-zinc-400 block">Renewal/expiry</span>{selectedDineRestaurant.subscription_expiry_date ? new Date(selectedDineRestaurant.subscription_expiry_date).toLocaleDateString() : 'Not set'}</p>
+                          <p><span className="text-zinc-400 block">Restaurant username</span>{dineData.users.find((user: any) => user.restaurant_id === selectedDineRestaurant.id)?.email || 'Not created'}</p>
+                          <p><span className="text-zinc-400 block">Tables</span>{dineData.tables.filter((table: any) => table.restaurant_id === selectedDineRestaurant.id).length}</p>
+                        </div>
+                        <div className="flex flex-wrap gap-2">
+                          <button onClick={() => handleOpenRestaurantPortal(selectedDineRestaurant)} className="rounded-lg bg-[#E30613] px-3 py-2 text-[10px] font-black uppercase text-white">Open Restaurant Portal</button>
+                          <a href={`/dine/${selectedDineRestaurant.slug}`} target="_blank" rel="noopener noreferrer" className="rounded-lg border border-zinc-200 bg-white px-3 py-2 text-[10px] font-black uppercase text-zinc-700">Open Menu</a>
+                          <button onClick={() => handleResetRestaurantLogin(selectedDineRestaurant)} className="rounded-lg border border-zinc-200 bg-white px-3 py-2 text-[10px] font-black uppercase text-zinc-700">Create / Reset Login</button>
+                          <button onClick={() => handlePrintDineQrCodes(selectedDineRestaurant)} className="rounded-lg border border-zinc-200 bg-white px-3 py-2 text-[10px] font-black uppercase text-zinc-700">Download All QR</button>
+                        </div>
+                        <div className="space-y-2">
+                          <div className="flex items-center justify-between gap-3">
+                            <span className="text-[10px] font-black text-zinc-400 uppercase tracking-widest block">Table QR URLs</span>
+                            <span className="text-[10px] font-bold text-zinc-400">Physical stand workflow is owned by FeelsNeat.</span>
+                          </div>
+                          {dineData.tables.filter((table: any) => table.restaurant_id === selectedDineRestaurant.id).map((table: any) => {
+                            const url = `/dine/${selectedDineRestaurant.slug}/table/${table.token}`;
+                            const fullUrl = `${window.location.origin}${url}`;
+                            const qr = `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(fullUrl)}`;
+                            return (
+                              <div key={table.id} className="rounded-lg border border-zinc-150 bg-white p-3 text-xs font-semibold">
+                                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                                  <p className="font-black">{table.name}</p>
+                                  <select
+                                    value={table.stand_status}
+                                    onChange={(event) => handleUpdateDineTableStandStatus(selectedDineRestaurant.id, table.id, event.target.value)}
+                                    className="rounded-lg border border-zinc-200 bg-white px-2 py-1 text-[10px] font-black uppercase text-zinc-600"
+                                  >
+                                    <option value="NOT_PREPARED">Stand not prepared</option>
+                                    <option value="PREPARED">Stand prepared</option>
+                                    <option value="DELIVERED">Stand delivered</option>
+                                    <option value="ACTIVE">Live on table</option>
+                                  </select>
+                                </div>
+                                <p className="font-mono text-[10px] text-zinc-500 break-all">{url}</p>
+                                <div className="mt-2 flex gap-2">
+                                  <a href={qr} target="_blank" rel="noopener noreferrer" className="text-[10px] font-black text-[#E30613] uppercase">View QR</a>
+                                  <button onClick={() => navigator.clipboard.writeText(`${window.location.origin}${url}`)} className="text-[10px] font-black uppercase text-zinc-500">Copy URL</button>
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="rounded-xl border border-dashed border-zinc-200 p-10 text-center">
+                        <p className="text-xs text-zinc-400 font-bold">Select a Dine Assist enquiry or restaurant.</p>
+                      </div>
+                    )}
+                  </div>
+                ) : activeTab === 'pet_profiles' ? (
                   selectedProfile ? (
                     <div className="space-y-6 p-4 rounded-xl border border-border-custom bg-zinc-50/30 text-left">
                       <div className="flex justify-between items-start border-b border-zinc-200 pb-3 gap-3">

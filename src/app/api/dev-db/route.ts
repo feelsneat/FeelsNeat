@@ -12,6 +12,22 @@ function getProfilesPath() {
   return path.join(process.cwd(), 'src/lib/profiles-db-dev.json');
 }
 
+function getDinePath() {
+  return path.join(process.cwd(), 'src/lib/dine-db-dev.json');
+}
+
+function getEmptyDineDb() {
+  return {
+    enquiries: [],
+    restaurants: [],
+    users: [],
+    categories: [],
+    items: [],
+    tables: [],
+    orders: [],
+  };
+}
+
 export async function GET(req: NextRequest) {
   if (process.env.NODE_ENV !== 'development') {
     return NextResponse.json({ error: 'Forbidden in production' }, { status: 403 });
@@ -29,6 +45,16 @@ export async function GET(req: NextRequest) {
       const content = fs.readFileSync(pPath, 'utf-8');
       const profiles = JSON.parse(content);
       return NextResponse.json(profiles);
+    }
+
+    if (type === 'dine') {
+      const dPath = getDinePath();
+      if (!fs.existsSync(dPath)) {
+        fs.writeFileSync(dPath, JSON.stringify(getEmptyDineDb(), null, 2), 'utf-8');
+      }
+      const content = fs.readFileSync(dPath, 'utf-8');
+      const dineData = JSON.parse(content);
+      return NextResponse.json(dineData);
     }
 
     const dbPath = getDbPath();
@@ -50,7 +76,7 @@ export async function POST(req: NextRequest) {
 
   try {
     const body = await req.json();
-    const { action, order_id, orderData, statusUpdates, profile_id, profileData, status } = body;
+    const { action, order_id, orderData, statusUpdates, profile_id, profileData, status, dineData } = body;
 
     // Handle Profile actions
     if (action === 'save_profile' && profileData) {
@@ -94,6 +120,13 @@ export async function POST(req: NextRequest) {
         fs.writeFileSync(pPath, JSON.stringify(profiles, null, 2), 'utf-8');
         console.log(`[Dev-DB API] Updated pet profile status: ${profile_id} -> ${status}`);
       }
+      return NextResponse.json({ success: true });
+    }
+
+    if (action === 'save_dine_db' && dineData) {
+      const dPath = getDinePath();
+      fs.writeFileSync(dPath, JSON.stringify({ ...getEmptyDineDb(), ...dineData }, null, 2), 'utf-8');
+      console.log('[Dev-DB API] Saved Dine Assist data');
       return NextResponse.json({ success: true });
     }
 

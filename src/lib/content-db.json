@@ -148,6 +148,18 @@
       "originalPrice": "₹19,999",
       "externalUrl": "",
       "content": "<p>We help you identify and choose the best AI agent models to automate order processing, respond to product queries, and handle routine checkout pipeline steps.</p>\n<p>Our integration solutions:</p>\n<ul>\n<li><strong>Order Automation</strong>: Processing order states and details automatically via intelligent LLM agents.</li>\n<li><strong>Custom Website Integration</strong>: Linking agents directly to your database, CRM, and customer dashboard feeds.</li>\n<li><strong>Tailored Agent Selection</strong>: Identifying the exact model and agent configuration that matches your budget and operational goals.</li>\n</ul>\n"
+    },
+    {
+      "slug": "dine-assist",
+      "title": "FeelsNeat Dine Assist",
+      "icon": "QrCode",
+      "order": 4,
+      "summary": "A simple digital menu and table ordering system for restaurants. Customers scan a table QR, view today's available menu, and send orders directly to the restaurant dashboard.",
+      "image": "/images/services-stem.jpg",
+      "price": "₹999 / month",
+      "originalPrice": "",
+      "externalUrl": "/dine-assist",
+      "content": "<p>Give your customers a simple way to check today&#39;s menu and place orders directly from their table.</p>\n<p>No app required. Customers scan a QR code, view what&#39;s available, choose their items, and send the order directly to your restaurant dashboard.</p>\n"
     }
   ],
   "work": [

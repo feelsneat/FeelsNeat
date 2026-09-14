@@ -117,7 +117,7 @@ export default async function HomePage() {
 
                   <div className="pt-4 flex gap-4">
                     <Link 
-                      href={`/create?service=${service.slug}`}
+                      href={service.externalUrl || `/create?service=${service.slug}`}
                       className="inline-flex h-10 items-center justify-center rounded-lg bg-[#E30613] hover:bg-zinc-900 text-xs font-black uppercase tracking-wider text-white px-6 transition-colors duration-300 shadow-md"
                     >
                       Request Service

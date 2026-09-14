@@ -1,0 +1,330 @@
+{
+  "enquiries": [
+    {
+      "enquiry_id": "FN-DINE-FNL9PJ",
+      "restaurant_name": "Mazali",
+      "location": "Kochi",
+      "contact_person": "Demon",
+      "phone": "6282352791",
+      "whatsapp": "6282352791",
+      "email": "mazali@gmail.com",
+      "table_count": 20,
+      "table_naming": "custom",
+      "qr_stands_required": 20,
+      "payment_preference": "pay_at_restaurant",
+      "menu_attachment": null,
+      "additional_requirements": "",
+      "status": "APPROVED",
+      "created_at": "2026-09-14T10:52:46.691Z",
+      "updated_at": "2026-09-14T11:01:59.861Z"
+    }
+  ],
+  "restaurants": [
+    {
+      "id": "REST-4S9SHCE5",
+      "name": "Mazali",
+      "slug": "mazali",
+      "location": "Kochi",
+      "contact_person": "Demon",
+      "phone": "6282352791",
+      "whatsapp": "6282352791",
+      "email": "mazali@gmail.com",
+      "logo": "",
+      "status": "ACTIVE",
+      "subscription_status": "PENDING",
+      "subscription_start_date": "2026-09-14T10:57:41.525Z",
+      "subscription_expiry_date": "2026-10-14T10:57:41.525Z",
+      "payment_preference": "pay_at_restaurant",
+      "created_at": "2026-09-14T10:57:41.525Z",
+      "source_enquiry_id": "FN-DINE-FNL9PJ"
+    }
+  ],
+  "users": [
+    {
+      "id": "RUSER-8V94KE4T",
+      "restaurant_id": "REST-4S9SHCE5",
+      "name": "Demon",
+      "email": "mazali@gmail.com",
+      "phone": "6282352791",
+      "password_hash": "3e7edf10a3bd4830507876e692511ea356866178afdeb56d50dca6c01ec2b0b8",
+      "role": "RESTAURANT_USER",
+      "status": "ACTIVE",
+      "created_at": "2026-09-14T10:57:41.525Z"
+    }
+  ],
+  "categories": [
+    {
+      "id": "CAT-VGBBZ2",
+      "restaurant_id": "REST-4S9SHCE5",
+      "name": "Starters",
+      "sort_order": 1,
+      "active": true
+    },
+    {
+      "id": "CAT-54AQQV",
+      "restaurant_id": "REST-4S9SHCE5",
+      "name": "Main Course",
+      "sort_order": 2,
+      "active": true
+    }
+  ],
+  "items": [
+    {
+      "id": "ITEM-U2NC7K",
+      "restaurant_id": "REST-4S9SHCE5",
+      "category_id": "CAT-VGBBZ2",
+      "name": "Chicken 65",
+      "description": "",
+      "price": 180,
+      "available": true,
+      "active": true,
+      "sort_order": 1
+    },
+    {
+      "id": "ITEM-GKRDHZ",
+      "restaurant_id": "REST-4S9SHCE5",
+      "category_id": "CAT-VGBBZ2",
+      "name": "Paneer Tikka",
+      "description": "",
+      "price": 160,
+      "available": true,
+      "active": true,
+      "sort_order": 2
+    },
+    {
+      "id": "ITEM-UXNY4R",
+      "restaurant_id": "REST-4S9SHCE5",
+      "category_id": "CAT-54AQQV",
+      "name": "Chicken Biryani",
+      "description": "",
+      "price": 220,
+      "available": true,
+      "active": true,
+      "sort_order": 1
+    },
+    {
+      "id": "ITEM-Y98BL8",
+      "restaurant_id": "REST-4S9SHCE5",
+      "category_id": "CAT-54AQQV",
+      "name": "Veg Biryani",
+      "description": "",
+      "price": 180,
+      "available": true,
+      "active": true,
+      "sort_order": 2
+    }
+  ],
+  "tables": [
+    {
+      "id": "TBL-JEFLAE",
+      "restaurant_id": "REST-4S9SHCE5",
+      "name": "Table 1",
+      "token": "woudqd954n",
+      "active": true,
+      "stand_status": "NOT_PREPARED",
+      "created_at": "2026-09-14T10:57:41.525Z"
+    },
+    {
+      "id": "TBL-YPTZPR",
+      "restaurant_id": "REST-4S9SHCE5",
+      "name": "Table 2",
+      "token": "m2bjtipymh",
+      "active": true,
+      "stand_status": "NOT_PREPARED",
+      "created_at": "2026-09-14T10:57:41.525Z"
+    },
+    {
+      "id": "TBL-CK6XNS",
+      "restaurant_id": "REST-4S9SHCE5",
+      "name": "Table 3",
+      "token": "jtkbo4afuu",
+      "active": true,
+      "stand_status": "NOT_PREPARED",
+      "created_at": "2026-09-14T10:57:41.525Z"
+    },
+    {
+      "id": "TBL-8J4B6R",
+      "restaurant_id": "REST-4S9SHCE5",
+      "name": "Table 4",
+      "token": "8wgnrazbdi",
+      "active": true,
+      "stand_status": "NOT_PREPARED",
+      "created_at": "2026-09-14T10:57:41.525Z"
+    },
+    {
+      "id": "TBL-ZK7GZ5",
+      "restaurant_id": "REST-4S9SHCE5",
+      "name": "Table 5",
+      "token": "ztas4ns5fq",
+      "active": true,
+      "stand_status": "NOT_PREPARED",
+      "created_at": "2026-09-14T10:57:41.525Z"
+    },
+    {
+      "id": "TBL-DWGRQR",
+      "restaurant_id": "REST-4S9SHCE5",
+      "name": "Table 6",
+      "token": "ab85goo78v",
+      "active": true,
+      "stand_status": "NOT_PREPARED",
+      "created_at": "2026-09-14T10:57:41.525Z"
+    },
+    {
+      "id": "TBL-3UEN83",
+      "restaurant_id": "REST-4S9SHCE5",
+      "name": "Table 7",
+      "token": "4ftoqqoj2k",
+      "active": true,
+      "stand_status": "NOT_PREPARED",
+      "created_at": "2026-09-14T10:57:41.525Z"
+    },
+    {
+      "id": "TBL-WSGW3R",
+      "restaurant_id": "REST-4S9SHCE5",
+      "name": "Table 8",
+      "token": "q9f88yjeod",
+      "active": true,
+      "stand_status": "NOT_PREPARED",
+      "created_at": "2026-09-14T10:57:41.525Z"
+    },
+    {
+      "id": "TBL-CCBFUX",
+      "restaurant_id": "REST-4S9SHCE5",
+      "name": "Table 9",
+      "token": "j9nzsug6yw",
+      "active": true,
+      "stand_status": "NOT_PREPARED",
+      "created_at": "2026-09-14T10:57:41.525Z"
+    },
+    {
+      "id": "TBL-5VU4FR",
+      "restaurant_id": "REST-4S9SHCE5",
+      "name": "Table 10",
+      "token": "9y9kawxwrg",
+      "active": true,
+      "stand_status": "NOT_PREPARED",
+      "created_at": "2026-09-14T10:57:41.525Z"
+    },
+    {
+      "id": "TBL-VJSERL",
+      "restaurant_id": "REST-4S9SHCE5",
+      "name": "Table 11",
+      "token": "oiwp46xdpn",
+      "active": true,
+      "stand_status": "NOT_PREPARED",
+      "created_at": "2026-09-14T10:57:41.525Z"
+    },
+    {
+      "id": "TBL-647Z29",
+      "restaurant_id": "REST-4S9SHCE5",
+      "name": "Table 12",
+      "token": "55mykv778y",
+      "active": true,
+      "stand_status": "NOT_PREPARED",
+      "created_at": "2026-09-14T10:57:41.525Z"
+    },
+    {
+      "id": "TBL-RDEGSC",
+      "restaurant_id": "REST-4S9SHCE5",
+      "name": "Table 13",
+      "token": "ubr64p93go",
+      "active": true,
+      "stand_status": "NOT_PREPARED",
+      "created_at": "2026-09-14T10:57:41.525Z"
+    },
+    {
+      "id": "TBL-STTSSS",
+      "restaurant_id": "REST-4S9SHCE5",
+      "name": "Table 14",
+      "token": "esa5annm7c",
+      "active": true,
+      "stand_status": "NOT_PREPARED",
+      "created_at": "2026-09-14T10:57:41.525Z"
+    },
+    {
+      "id": "TBL-HH4QYR",
+      "restaurant_id": "REST-4S9SHCE5",
+      "name": "Table 15",
+      "token": "269qyake6c",
+      "active": true,
+      "stand_status": "NOT_PREPARED",
+      "created_at": "2026-09-14T10:57:41.525Z"
+    },
+    {
+      "id": "TBL-RTW82E",
+      "restaurant_id": "REST-4S9SHCE5",
+      "name": "Table 16",
+      "token": "7rsa8fes4c",
+      "active": true,
+      "stand_status": "NOT_PREPARED",
+      "created_at": "2026-09-14T10:57:41.525Z"
+    },
+    {
+      "id": "TBL-U29NN5",
+      "restaurant_id": "REST-4S9SHCE5",
+      "name": "Table 17",
+      "token": "udyryvauyg",
+      "active": true,
+      "stand_status": "NOT_PREPARED",
+      "created_at": "2026-09-14T10:57:41.525Z"
+    },
+    {
+      "id": "TBL-T76VF9",
+      "restaurant_id": "REST-4S9SHCE5",
+      "name": "Table 18",
+      "token": "3c7prajci8",
+      "active": true,
+      "stand_status": "NOT_PREPARED",
+      "created_at": "2026-09-14T10:57:41.525Z"
+    },
+    {
+      "id": "TBL-46LJJD",
+      "restaurant_id": "REST-4S9SHCE5",
+      "name": "Table 19",
+      "token": "oixj5hxs5c",
+      "active": true,
+      "stand_status": "NOT_PREPARED",
+      "created_at": "2026-09-14T10:57:41.525Z"
+    },
+    {
+      "id": "TBL-2VK24B",
+      "restaurant_id": "REST-4S9SHCE5",
+      "name": "Table 20",
+      "token": "j8yxf28mtr",
+      "active": true,
+      "stand_status": "NOT_PREPARED",
+      "created_at": "2026-09-14T10:57:41.525Z"
+    }
+  ],
+  "orders": [
+    {
+      "id": "DORD-XB2SEJXM",
+      "restaurant_id": "REST-4S9SHCE5",
+      "table_id": "TBL-JEFLAE",
+      "order_number": 1001,
+      "status": "COMPLETED",
+      "items": [
+        {
+          "item_id": "ITEM-U2NC7K",
+          "name": "Chicken 65",
+          "quantity": 1,
+          "price": 180,
+          "line_total": 180
+        },
+        {
+          "item_id": "ITEM-UXNY4R",
+          "name": "Chicken Biryani",
+          "quantity": 1,
+          "price": 220,
+          "line_total": 220
+        }
+      ],
+      "subtotal": 400,
+      "total": 400,
+      "payment_status": "NOT_REQUIRED",
+      "verification_code": "9089",
+      "created_at": "2026-09-14T10:59:29.523Z",
+      "updated_at": "2026-09-14T11:55:59.543Z"
+    }
+  ]
+}

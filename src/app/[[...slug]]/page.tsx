@@ -19,6 +19,9 @@ import TapTilesPage from '@/components/pages/TapTiles';
 import CreateTapTilePage from '@/components/pages/CreateTapTile';
 import TapTileProductPage from '@/components/pages/TapTileProduct';
 import PetProfilePage from '@/components/pages/PetProfile';
+import DineAssistPage from '@/components/pages/DineAssist';
+import DineAdminPage from '@/components/pages/DineAdmin';
+import DineCustomerPage from '@/components/pages/DineCustomer';
 
 export const runtime = 'edge';
 
@@ -135,6 +138,21 @@ export async function generateMetadata({ params }: { params: Promise<{ slug?: st
       description: 'Design and customize your personalized NFC Tap Tile magnet or keychain with a custom photo, message, and target link.'
     };
   }
+  if (route === 'dine-assist' && slug.length === 1) {
+    return {
+      title: `FeelsNeat Dine Assist | Digital Menu and Table Ordering`,
+      description: 'A simple digital menu and table ordering system for restaurants. Customers scan, choose, order, and the restaurant confirms.'
+    };
+  }
+  if (route === 'dine-admin' && slug.length === 1) {
+    return { title: `Restaurant Portal | FeelsNeat Dine Assist` };
+  }
+  if (route === 'dine') {
+    return {
+      title: `Dine Assist Menu`,
+      description: 'View the restaurant menu and place a table order.'
+    };
+  }
   if (route === 'confirmation' && slug.length === 1) {
     return { title: `Order Confirmed | ${settings.siteName}` };
   }
@@ -216,6 +234,25 @@ export default async function CatchAllPage({ params, searchParams }: PageProps) 
   // 4.66. Create Tap Tile Customizer Route (e.g. /create-tap-tile)
   if (route === 'create-tap-tile' && slug.length === 1) {
     return <CreateTapTilePage />;
+  }
+
+  // 4.67. FeelsNeat Dine Assist sales and restaurant/customer routes
+  if (route === 'dine-assist' && slug.length === 1) {
+    const settings = await getSettings();
+    const waNum = (settings as any).whatsappNumber || '919999999999';
+    return <DineAssistPage whatsappNumber={waNum} />;
+  }
+  if (route === 'dine-admin' && slug.length === 1) {
+    return <DineAdminPage />;
+  }
+  if (route === 'dine') {
+    if (slug.length === 2) {
+      return <DineCustomerPage restaurantSlug={slug[1]} />;
+    }
+    if (slug.length === 4 && slug[2] === 'table') {
+      return <DineCustomerPage restaurantSlug={slug[1]} tableToken={slug[3]} />;
+    }
+    notFound();
   }
 
   // 4.68. Pet NFC Profile Routes (e.g. /p/[profileId] and /t/[profileId] redirect)
