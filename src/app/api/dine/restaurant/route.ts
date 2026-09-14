@@ -72,7 +72,7 @@ export async function POST(req: NextRequest) {
               name,
               description: String(body.description || ''),
               price,
-              image: String(body.image || ''),
+              image: body.image !== undefined ? String(body.image || '') : item.image,
               available: body.available ?? item.available,
               active: body.active ?? item.active,
               sort_order: Number.isFinite(Number(body.sort_order)) ? Number(body.sort_order) : item.sort_order,

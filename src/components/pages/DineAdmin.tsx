@@ -14,6 +14,7 @@ export default function DineAdminPage() {
   const [tableName, setTableName] = useState('');
   const [notificationsEnabled, setNotificationsEnabled] = useState(false);
   const [copyMessage, setCopyMessage] = useState('');
+  const [savingItem, setSavingItem] = useState(false);
   const knownPendingOrders = useRef<Set<string>>(new Set());
 
   const load = async () => {
@@ -61,18 +62,24 @@ export default function DineAdminPage() {
   };
 
   const action = async (payload: any) => {
-    const res = await fetch('/api/dine/restaurant', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
-    });
-    const result = await res.json();
-    if (!res.ok) {
-      setError(result.error || 'Update failed.');
-      return;
+    try {
+      const res = await fetch('/api/dine/restaurant', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      const result = await res.json();
+      if (!res.ok) {
+        setError(result.error || 'Update failed.');
+        return false;
+      }
+      setData(result);
+      setError('');
+      return true;
+    } catch {
+      setError('Network error. Please try saving again.');
+      return false;
     }
-    setData(result);
-    setError('');
   };
 
   const printAllQrCodes = () => {
@@ -109,6 +116,19 @@ export default function DineAdminPage() {
 
   const resetItemForm = (categoryId = itemForm.category_id) => {
     setItemForm({ id: '', name: '', description: '', price: '', category_id: categoryId, image: '', available: true, active: true });
+  };
+
+  const saveItem = async () => {
+    if (savingItem) return;
+    if (!itemForm.category_id || !itemForm.name.trim() || !itemForm.price) {
+      setError('Choose a category, item name, and price before saving.');
+      return;
+    }
+    setSavingItem(true);
+    const categoryId = itemForm.category_id;
+    const ok = await action({ action: 'save_item', ...itemForm, name: itemForm.name.trim() });
+    setSavingItem(false);
+    if (ok) resetItemForm(categoryId);
   };
 
   const handleItemImage = (file: File | undefined) => {
@@ -325,7 +345,7 @@ export default function DineAdminPage() {
                   <input type="file" accept="image/*" onChange={(e) => handleItemImage(e.target.files?.[0])} className="hidden" />
                 </label>
               </div>
-              <SmallButton label={itemForm.id ? 'Save changes' : 'Save item'} onClick={async () => { await action({ action: 'save_item', ...itemForm }); resetItemForm(itemForm.category_id); }} />
+              <SmallButton label={savingItem ? 'Saving...' : itemForm.id ? 'Save changes' : 'Save item'} onClick={saveItem} disabled={savingItem} />
             </div>
             <div className="lg:col-span-12 space-y-5">
               {data.categories.map((category: any) => (
@@ -426,8 +446,8 @@ export default function DineAdminPage() {
   );
 }
 
-function SmallButton({ label, onClick, muted }: { label: string; onClick: () => void; muted?: boolean }) {
-  return <button type="button" onClick={onClick} className={`rounded-lg px-3 py-2 text-[10px] font-black uppercase tracking-wider ${muted ? 'border border-zinc-200 bg-white text-zinc-700' : 'bg-[#E30613] text-white'}`}>{label}</button>;
+function SmallButton({ label, onClick, muted, disabled }: { label: string; onClick: () => void; muted?: boolean; disabled?: boolean }) {
+  return <button type="button" onClick={onClick} disabled={disabled} className={`rounded-lg px-3 py-2 text-[10px] font-black uppercase tracking-wider disabled:opacity-50 ${muted ? 'border border-zinc-200 bg-white text-zinc-700' : 'bg-[#E30613] text-white'}`}>{label}</button>;
 }
 
 function playOrderSound() {
