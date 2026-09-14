@@ -8,12 +8,6 @@ interface DineAssistPageProps {
   whatsappNumber: string;
 }
 
-const tableNamingOptions = [
-  { id: 'standard', label: 'Standard table numbers' },
-  { id: 'custom', label: 'Custom table names' },
-  { id: 'not_decided', label: 'Not decided' },
-];
-
 export default function DineAssistPage({ whatsappNumber }: DineAssistPageProps) {
   const [status, setStatus] = useState<'idle' | 'submitting' | 'success' | 'error'>('idle');
   const [message, setMessage] = useState('');
@@ -25,9 +19,7 @@ export default function DineAssistPage({ whatsappNumber }: DineAssistPageProps) 
     whatsapp: '',
     email: '',
     table_count: '20',
-    table_naming: 'standard',
     qr_stands_required: '20',
-    payment_preference: 'pay_at_restaurant',
     additional_requirements: '',
   });
   const [menuAttachment, setMenuAttachment] = useState<{ name: string; type: string; data: string } | null>(null);
@@ -164,17 +156,6 @@ export default function DineAssistPage({ whatsappNumber }: DineAssistPageProps) 
               <Field label="Number of tables" name="table_count" value={formData.table_count} onChange={handleTextChange} required type="number" />
               <Field label="Number of stands" name="qr_stands_required" value={formData.qr_stands_required} onChange={handleTextChange} type="number" />
             </div>
-            <RadioGroup title="Table naming" options={tableNamingOptions} value={formData.table_naming} onChange={(value) => setFormData((prev) => ({ ...prev, table_naming: value }))} />
-            <RadioGroup
-              title="Payment preference"
-              options={[
-                { id: 'pay_at_restaurant', label: 'Pay at restaurant' },
-                { id: 'online_payment', label: 'Online later' },
-                { id: 'not_decided', label: 'Not decided' },
-              ]}
-              value={formData.payment_preference}
-              onChange={(value) => setFormData((prev) => ({ ...prev, payment_preference: value }))}
-            />
             <div className="rounded-xl border-2 border-dashed border-zinc-200 bg-zinc-50 p-5 text-center relative">
               <LucideIcon name="UploadCloud" className="h-6 w-6 mx-auto text-zinc-400 mb-2" />
               <p className="text-xs font-black uppercase">Upload current menu</p>
@@ -207,21 +188,6 @@ function Field({ label, name, value, onChange, required, type = 'text' }: { labe
     <div>
       <label className="block text-xs font-black uppercase tracking-widest mb-2">{label} {required && <span className="text-[#E30613]">*</span>}</label>
       <input name={name} value={value} onChange={onChange} required={required} type={type} className="w-full rounded-lg border border-zinc-200 px-4 py-2.5 text-xs focus:outline-none focus:border-[#E30613]" />
-    </div>
-  );
-}
-
-function RadioGroup({ title, options, value, onChange }: { title: string; options: Array<{ id: string; label: string }>; value: string; onChange: (value: string) => void }) {
-  return (
-    <div>
-      <span className="block text-xs font-black uppercase tracking-widest mb-2">{title}</span>
-      <div className="grid sm:grid-cols-3 gap-2">
-        {options.map((option) => (
-          <button key={option.id} type="button" onClick={() => onChange(option.id)} className={`rounded-lg border px-3 py-2 text-[10px] font-black uppercase transition-colors ${value === option.id ? 'border-[#E30613] bg-[#E30613] text-white' : 'border-zinc-200 bg-white text-zinc-700 hover:bg-zinc-50'}`}>
-            {option.label}
-          </button>
-        ))}
-      </div>
     </div>
   );
 }

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { LucideIcon } from '@/components/ui/LucideIcon';
 
 export default function DineAdminPage() {
@@ -9,9 +9,12 @@ export default function DineAdminPage() {
   const [activeView, setActiveView] = useState<'dashboard' | 'orders' | 'menu' | 'tables' | 'settings'>('dashboard');
   const [data, setData] = useState<any>(null);
   const [error, setError] = useState('');
-  const [itemForm, setItemForm] = useState({ name: '', description: '', price: '', category_id: '' });
+  const [itemForm, setItemForm] = useState({ id: '', name: '', description: '', price: '', category_id: '', image: '', available: true, active: true });
   const [categoryName, setCategoryName] = useState('');
   const [tableName, setTableName] = useState('');
+  const [notificationsEnabled, setNotificationsEnabled] = useState(false);
+  const [copyMessage, setCopyMessage] = useState('');
+  const knownPendingOrders = useRef<Set<string>>(new Set());
 
   const load = async () => {
     const res = await fetch('/api/dine/restaurant');
@@ -30,6 +33,19 @@ export default function DineAdminPage() {
     const timer = setInterval(load, 6000);
     return () => clearInterval(timer);
   }, [isAuthed]);
+
+  useEffect(() => {
+    const pending = (data?.orders || []).filter((order: any) => order.status === 'PENDING_CONFIRMATION');
+    const pendingIds = new Set<string>(pending.map((order: any) => String(order.id)));
+    const hasNewPending = pending.some((order: any) => !knownPendingOrders.current.has(order.id));
+    if (notificationsEnabled && knownPendingOrders.current.size > 0 && hasNewPending) {
+      playOrderSound();
+      if ('Notification' in window && Notification.permission === 'granted') {
+        new Notification('New Dine Assist order', { body: `${data.restaurant?.name || 'Restaurant'} has a new order waiting.` });
+      }
+    }
+    knownPendingOrders.current = pendingIds;
+  }, [data?.orders, notificationsEnabled, data?.restaurant?.name]);
 
   const submitLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -79,20 +95,64 @@ export default function DineAdminPage() {
   };
 
   const editItem = (item: any) => {
-    const name = window.prompt('Item name', item.name);
-    if (!name || !name.trim()) return;
-    const price = window.prompt('Price', String(item.price));
-    if (!price) return;
-    action({
-      action: 'save_item',
+    setItemForm({
       id: item.id,
       category_id: item.category_id,
-      name: name.trim(),
+      name: item.name,
       description: item.description || '',
-      price,
+      price: String(item.price),
+      image: item.image || '',
       available: item.available,
       active: item.active,
     });
+  };
+
+  const resetItemForm = (categoryId = itemForm.category_id) => {
+    setItemForm({ id: '', name: '', description: '', price: '', category_id: categoryId, image: '', available: true, active: true });
+  };
+
+  const handleItemImage = (file: File | undefined) => {
+    if (!file) return;
+    if (!file.type.startsWith('image/')) {
+      setError('Please upload an image file for the menu item.');
+      return;
+    }
+    if (file.size > 2 * 1024 * 1024) {
+      setError('Please keep menu item images under 2MB.');
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => setItemForm((prev) => ({ ...prev, image: String(reader.result || '') }));
+    reader.readAsDataURL(file);
+  };
+
+  const copyText = async (text: string) => {
+    try {
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(text);
+      } else {
+        const input = document.createElement('textarea');
+        input.value = text;
+        input.style.position = 'fixed';
+        input.style.opacity = '0';
+        document.body.appendChild(input);
+        input.select();
+        document.execCommand('copy');
+        input.remove();
+      }
+      setCopyMessage('Copied URL.');
+      window.setTimeout(() => setCopyMessage(''), 1800);
+    } catch {
+      setError('Copy failed. Long-press or select the URL to copy it manually.');
+    }
+  };
+
+  const enableOrderNotifications = async () => {
+    if ('Notification' in window && Notification.permission === 'default') {
+      await Notification.requestPermission();
+    }
+    setNotificationsEnabled(true);
+    playOrderSound();
   };
 
   const renameCategory = (category: any) => {
@@ -126,7 +186,7 @@ export default function DineAdminPage() {
       <main className="min-h-screen bg-[#0A0A0C] text-white flex items-center justify-center p-4">
         <form onSubmit={submitLogin} className="w-full max-w-sm rounded-2xl border border-white/10 bg-[#0E0E12] p-6 space-y-5">
           <div>
-            <p className="text-[10px] font-black uppercase tracking-widest text-[#E30613]">FeelsNeat Dine Assist</p>
+            <p className="text-[10px] font-black uppercase tracking-widest text-[#E30613]">Dine Assist</p>
             <h1 className="mt-2 text-xl font-black uppercase">Restaurant Portal</h1>
             <p className="mt-2 text-xs text-[#F4F4F5]/60 font-semibold">Sign in to manage your restaurant menu, tables and orders. Use the login details provided by FeelsNeat.</p>
           </div>
@@ -147,7 +207,7 @@ export default function DineAdminPage() {
       <header className="bg-black text-white p-4">
         <div className="mx-auto max-w-6xl flex items-center justify-between gap-4">
           <div>
-            <p className="text-[10px] text-white/60 font-bold uppercase">FeelsNeat Dine Assist</p>
+            <p className="text-[10px] text-white/60 font-bold uppercase">Dine Assist</p>
             <h1 className="text-sm font-black uppercase">{data.restaurant?.name}</h1>
             <p className="text-[10px] text-white/60 font-bold uppercase">Dine Assist Restaurant Portal</p>
           </div>
@@ -178,20 +238,30 @@ export default function DineAdminPage() {
         </nav>
 
         {error && <div className="rounded-lg bg-red-50 border border-red-200 p-3 text-xs font-bold text-red-700">{error}</div>}
+        {copyMessage && <div className="rounded-lg bg-emerald-50 border border-emerald-200 p-3 text-xs font-bold text-emerald-700">{copyMessage}</div>}
 
         {activeView === 'dashboard' && (
-          <section className="grid sm:grid-cols-4 gap-3">
-            {[
-              ['New orders', counts.new],
-              ['Confirmed', counts.confirmed],
-              ['Preparing', counts.preparing],
-              ['Ready', counts.ready],
-            ].map(([label, count]) => (
-              <div key={label} className="rounded-xl border border-zinc-200 bg-white p-5">
-                <p className="text-[10px] font-black uppercase text-zinc-400">{label}</p>
-                <p className="text-3xl font-black mt-2">{count}</p>
+          <section className="space-y-4">
+            <div className="rounded-xl border border-zinc-200 bg-white p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+              <div>
+                <h2 className="text-xs font-black uppercase tracking-widest">Order alerts</h2>
+                <p className="mt-1 text-xs font-semibold text-zinc-500">Enable browser notifications and sound for new orders on this device.</p>
               </div>
-            ))}
+              <SmallButton label={notificationsEnabled ? 'Alerts enabled' : 'Enable sound alerts'} onClick={enableOrderNotifications} muted={notificationsEnabled} />
+            </div>
+            <div className="grid sm:grid-cols-4 gap-3">
+              {[
+                ['New orders', counts.new],
+                ['Confirmed', counts.confirmed],
+                ['Preparing', counts.preparing],
+                ['Ready', counts.ready],
+              ].map(([label, count]) => (
+                <div key={label} className="rounded-xl border border-zinc-200 bg-white p-5">
+                  <p className="text-[10px] font-black uppercase text-zinc-400">{label}</p>
+                  <p className="text-3xl font-black mt-2">{count}</p>
+                </div>
+              ))}
+            </div>
           </section>
         )}
 
@@ -233,7 +303,10 @@ export default function DineAdminPage() {
               <SmallButton label="Save category" onClick={() => { action({ action: 'save_category', name: categoryName }); setCategoryName(''); }} />
             </div>
             <div className="lg:col-span-8 rounded-xl border border-zinc-200 bg-white p-4 space-y-3">
-              <h2 className="text-xs font-black uppercase">Add item</h2>
+              <div className="flex items-center justify-between gap-3">
+                <h2 className="text-xs font-black uppercase">{itemForm.id ? 'Edit item' : 'Add item'}</h2>
+                {itemForm.id && <button onClick={() => resetItemForm()} className="rounded-lg border border-zinc-200 px-3 py-2 text-[10px] font-black uppercase">Cancel edit</button>}
+              </div>
               <select value={itemForm.category_id} onChange={(e) => setItemForm((prev) => ({ ...prev, category_id: e.target.value }))} className="w-full rounded-lg border border-zinc-200 px-3 py-2 text-xs">
                 <option value="">Choose category</option>
                 {data.categories.map((category: any) => <option key={category.id} value={category.id}>{category.name}</option>)}
@@ -243,7 +316,16 @@ export default function DineAdminPage() {
                 <input value={itemForm.price} onChange={(e) => setItemForm((prev) => ({ ...prev, price: e.target.value }))} type="number" className="rounded-lg border border-zinc-200 px-3 py-2 text-xs" placeholder="Price" />
               </div>
               <input value={itemForm.description} onChange={(e) => setItemForm((prev) => ({ ...prev, description: e.target.value }))} className="w-full rounded-lg border border-zinc-200 px-3 py-2 text-xs" placeholder="Description" />
-              <SmallButton label="Save item" onClick={() => { action({ action: 'save_item', ...itemForm }); setItemForm({ name: '', description: '', price: '', category_id: itemForm.category_id }); }} />
+              <div className="grid sm:grid-cols-[120px_1fr] gap-3 items-center">
+                <div className="h-24 w-24 rounded-xl border border-zinc-200 bg-zinc-50 overflow-hidden flex items-center justify-center">
+                  {itemForm.image ? <img src={itemForm.image} alt="Item preview" className="h-full w-full object-cover" /> : <LucideIcon name="Image" className="h-5 w-5 text-zinc-400" />}
+                </div>
+                <label className="rounded-xl border-2 border-dashed border-zinc-200 bg-zinc-50 p-4 text-center text-[10px] font-black uppercase text-zinc-500 cursor-pointer">
+                  Add item image
+                  <input type="file" accept="image/*" onChange={(e) => handleItemImage(e.target.files?.[0])} className="hidden" />
+                </label>
+              </div>
+              <SmallButton label={itemForm.id ? 'Save changes' : 'Save item'} onClick={async () => { await action({ action: 'save_item', ...itemForm }); resetItemForm(itemForm.category_id); }} />
             </div>
             <div className="lg:col-span-12 space-y-5">
               {data.categories.map((category: any) => (
@@ -259,9 +341,14 @@ export default function DineAdminPage() {
                   {data.items.filter((item: any) => item.category_id === category.id).map((item: any) => (
                     <div key={item.id} className="rounded-xl border border-zinc-200 bg-white p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                       <div>
-                        <h3 className="text-sm font-black">{item.name} <span className="text-zinc-400">₹{item.price}</span></h3>
-                        <p className="text-xs text-zinc-500 font-semibold">{item.description || 'No description'}</p>
-                        <p className="text-[10px] font-black uppercase text-zinc-400">{item.active ? 'Visible' : 'Hidden'} · {item.available ? 'Available' : 'Sold out'}</p>
+                        <div className="flex items-start gap-3">
+                          {item.image && <img src={item.image} alt={item.name} className="h-14 w-14 rounded-lg object-cover border border-zinc-200" />}
+                          <div>
+                            <h3 className="text-sm font-black">{item.name} <span className="text-zinc-400">₹{item.price}</span></h3>
+                            <p className="text-xs text-zinc-500 font-semibold">{item.description || 'No description'}</p>
+                            <p className="text-[10px] font-black uppercase text-zinc-400">{item.active ? 'Visible' : 'Hidden'} · {item.available ? 'Available' : 'Sold out'}</p>
+                          </div>
+                        </div>
                       </div>
                       <div className="flex flex-wrap gap-2">
                         <button onClick={() => editItem(item)} className="rounded-lg border border-zinc-200 px-3 py-2 text-[10px] font-black uppercase">Edit</button>
@@ -302,7 +389,7 @@ export default function DineAdminPage() {
                     <p className="text-[10px] font-mono break-all text-zinc-500">{url}</p>
                     <div className="flex flex-wrap gap-2">
                       <a href={qr} download className="rounded-lg bg-black px-3 py-2 text-[10px] font-black uppercase text-white">Download QR</a>
-                      <button onClick={() => navigator.clipboard.writeText(url)} className="rounded-lg border border-zinc-200 px-3 py-2 text-[10px] font-black uppercase">Copy URL</button>
+                      <button onClick={() => copyText(url)} className="rounded-lg border border-zinc-200 px-3 py-2 text-[10px] font-black uppercase">Copy URL</button>
                       <button onClick={() => renameTable(table)} className="rounded-lg border border-zinc-200 px-3 py-2 text-[10px] font-black uppercase">Rename</button>
                       <button onClick={() => action({ action: 'save_table', id: table.id, name: table.name, active: !table.active })} className="rounded-lg border border-zinc-200 px-3 py-2 text-[10px] font-black uppercase">
                         {table.active ? 'Deactivate' : 'Activate'}
@@ -341,4 +428,24 @@ export default function DineAdminPage() {
 
 function SmallButton({ label, onClick, muted }: { label: string; onClick: () => void; muted?: boolean }) {
   return <button type="button" onClick={onClick} className={`rounded-lg px-3 py-2 text-[10px] font-black uppercase tracking-wider ${muted ? 'border border-zinc-200 bg-white text-zinc-700' : 'bg-[#E30613] text-white'}`}>{label}</button>;
+}
+
+function playOrderSound() {
+  try {
+    const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
+    if (!AudioContextClass) return;
+    const context = new AudioContextClass();
+    const oscillator = context.createOscillator();
+    const gain = context.createGain();
+    oscillator.type = 'sine';
+    oscillator.frequency.setValueAtTime(880, context.currentTime);
+    oscillator.frequency.setValueAtTime(660, context.currentTime + 0.12);
+    gain.gain.setValueAtTime(0.001, context.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.2, context.currentTime + 0.02);
+    gain.gain.exponentialRampToValueAtTime(0.001, context.currentTime + 0.3);
+    oscillator.connect(gain);
+    gain.connect(context.destination);
+    oscillator.start();
+    oscillator.stop(context.currentTime + 0.32);
+  } catch (_) {}
 }

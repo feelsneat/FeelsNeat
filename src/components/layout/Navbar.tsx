@@ -17,6 +17,9 @@ export function Navbar({ settings, navigation }: NavbarProps) {
   const [isAtTop, setIsAtTop] = useState(true);
   const lastScrollY = useRef(0);
   const pathname = usePathname();
+  const isStandaloneDineExperience = pathname === '/dine-admin' || pathname.startsWith('/dine/');
+
+  if (isStandaloneDineExperience) return null;
 
   // Close mobile menu on route change
   useEffect(() => {

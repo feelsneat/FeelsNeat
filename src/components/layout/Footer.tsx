@@ -1,4 +1,7 @@
+'use client';
+
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { LucideIcon } from '../ui/LucideIcon';
 import { SiteSettings, NavigationConfig } from '@/lib/cms';
 
@@ -9,6 +12,10 @@ interface FooterProps {
 
 export function Footer({ settings, navigation }: FooterProps) {
   const currentYear = new Date().getFullYear();
+  const pathname = usePathname();
+  const isStandaloneDineExperience = pathname === '/dine-admin' || pathname.startsWith('/dine/');
+
+  if (isStandaloneDineExperience) return null;
 
   const getSocialIcon = (platform: string) => {
     switch (platform.toLowerCase()) {

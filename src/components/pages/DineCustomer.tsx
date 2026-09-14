@@ -16,6 +16,7 @@ export default function DineCustomerPage({ restaurantSlug, tableToken }: DineCus
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [reviewing, setReviewing] = useState(false);
+  const storageKey = `dine-order:${restaurantSlug}:${tableToken || 'menu'}`;
 
   const load = async () => {
     const params = new URLSearchParams({ restaurantSlug });
@@ -31,6 +32,12 @@ export default function DineCustomerPage({ restaurantSlug, tableToken }: DineCus
       setError(result.error || 'This Dine Assist page is not available.');
     }
   };
+
+  useEffect(() => {
+    if (!tableToken) return;
+    const savedToken = window.localStorage.getItem(storageKey);
+    if (savedToken) setOrderToken(savedToken);
+  }, [storageKey, tableToken]);
 
   useEffect(() => {
     load();
@@ -78,6 +85,7 @@ export default function DineCustomerPage({ restaurantSlug, tableToken }: DineCus
       if (!res.ok) throw new Error(result.error || 'Could not place order.');
       setOrder(result.order);
       setOrderToken(result.order.access_token);
+      window.localStorage.setItem(storageKey, result.order.access_token);
       setCart({});
       setReviewing(false);
     } catch (err: any) {
@@ -95,45 +103,45 @@ export default function DineCustomerPage({ restaurantSlug, tableToken }: DineCus
   }
   if (order) {
     return (
-      <main className="min-h-screen bg-[#FAFAFA] text-black p-4 sm:p-6">
-        <div className="mx-auto max-w-md rounded-2xl bg-white border border-zinc-200 p-6 shadow-sm space-y-5">
-          <div className="h-12 w-12 rounded-xl bg-[#E30613]/10 text-[#E30613] flex items-center justify-center">
+      <main className="min-h-screen bg-[#171310] text-[#FFF8ED] p-4 sm:p-6 flex items-center">
+        <div className="mx-auto w-full max-w-md rounded-2xl bg-[#241D18] border border-[#F6D7A8]/20 p-6 shadow-sm space-y-5">
+          <div className="h-12 w-12 rounded-xl bg-[#F6D7A8]/10 text-[#F6D7A8] flex items-center justify-center">
             <LucideIcon name="ReceiptText" className="h-6 w-6" />
           </div>
           <div>
             <h1 className="text-xl font-black uppercase">Order received</h1>
-            <p className="text-xs text-zinc-500 font-semibold mt-2">Your order has been sent to the restaurant. Please wait while the restaurant confirms it.</p>
+            <p className="text-xs text-[#FFF8ED]/65 font-semibold mt-2">Your order has been sent to the restaurant. Please wait while the restaurant confirms it.</p>
           </div>
-          <div className="rounded-xl bg-zinc-50 border border-zinc-200 p-4 space-y-2 text-xs font-bold">
+          <div className="rounded-xl bg-[#171310] border border-[#F6D7A8]/15 p-4 space-y-2 text-xs font-bold">
             <p>Order #{order.order_number}</p>
-            <p>Status: <span className="text-[#E30613]">{statusLabel(order.status)}</span></p>
+            <p>Status: <span className="text-[#F6D7A8]">{statusLabel(order.status)}</span></p>
             <p>Verification code: <span className="font-mono text-lg">{order.verification_code}</span></p>
           </div>
           {order.status === 'REJECTED' && (
             <p className="rounded-lg bg-red-50 p-3 text-xs font-bold text-red-700">The restaurant rejected this order. Please speak with the staff at your table.</p>
           )}
-          <p className="text-xs text-zinc-500 leading-relaxed font-semibold">Keep this page open. The status refreshes automatically.</p>
+          <p className="text-xs text-[#FFF8ED]/55 leading-relaxed font-semibold">Keep this page open. The status refreshes automatically and stays available after refresh on this device.</p>
         </div>
       </main>
     );
   }
 
   return (
-    <main className="min-h-screen bg-[#FAFAFA] text-black pb-40">
-      <header className="sticky top-0 z-20 bg-white/95 backdrop-blur border-b border-zinc-200 p-4">
+    <main className="min-h-screen bg-[#171310] text-[#FFF8ED] pb-44">
+      <header className="sticky top-0 z-20 bg-[#171310]/95 backdrop-blur border-b border-[#F6D7A8]/15 p-4">
         <div className="mx-auto max-w-3xl flex items-center justify-between gap-4">
           <div className="min-w-0">
             <h1 className="text-lg font-black uppercase truncate">{data.restaurant.name}</h1>
-            <p className="text-xs text-zinc-500 font-bold">{data.table ? data.table.name : data.restaurant.location}</p>
+            <p className="text-xs text-[#FFF8ED]/60 font-bold">{data.table ? data.table.name : data.restaurant.location}</p>
           </div>
-          <div className="shrink-0 rounded-lg bg-[#E30613] text-white px-3 py-1.5 text-[10px] font-black uppercase">Menu</div>
+          <div className="shrink-0 rounded-lg bg-[#F6D7A8] text-[#171310] px-3 py-1.5 text-[10px] font-black uppercase">Menu</div>
         </div>
       </header>
 
       <div className="mx-auto max-w-3xl p-4 space-y-6">
-        {error && <div className="rounded-lg bg-red-50 border border-red-200 p-3 text-xs font-bold text-red-700">{error}</div>}
+        {error && <div className="rounded-lg bg-red-950/60 border border-red-400/20 p-3 text-xs font-bold text-red-100">{error}</div>}
         {!tableToken && (
-          <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-xs font-bold text-amber-800">
+          <div className="rounded-xl border border-[#F6D7A8]/20 bg-[#241D18] p-4 text-xs font-bold text-[#F6D7A8]">
             Scan the QR code at your table to place an order. You can still view the menu here.
           </div>
         )}
@@ -142,20 +150,21 @@ export default function DineCustomerPage({ restaurantSlug, tableToken }: DineCus
           if (items.length === 0) return null;
           return (
             <section key={category.id} className="space-y-3">
-              <h2 className="text-xs font-black uppercase tracking-widest text-zinc-500">{category.name}</h2>
+              <h2 className="text-xs font-black uppercase tracking-widest text-[#F6D7A8]/70">{category.name}</h2>
               {items.map((item: any) => (
-                <div key={item.id} className={`rounded-xl border bg-white p-4 flex gap-4 ${item.available ? 'border-zinc-200' : 'border-zinc-100 opacity-60'}`}>
+                <div key={item.id} className={`rounded-2xl border bg-[#241D18] p-4 flex gap-4 ${item.available ? 'border-[#F6D7A8]/15' : 'border-white/5 opacity-60'}`}>
+                  {item.image && <img src={item.image} alt={item.name} className="h-20 w-20 rounded-xl object-cover border border-[#F6D7A8]/15 shrink-0" />}
                   <div className="flex-1 min-w-0">
                     <h3 className="text-sm font-black">{item.name}</h3>
-                    {item.description && <p className="text-xs text-zinc-500 mt-1 font-semibold leading-relaxed">{item.description}</p>}
+                    {item.description && <p className="text-xs text-[#FFF8ED]/55 mt-1 font-semibold leading-relaxed">{item.description}</p>}
                     <p className="text-sm font-black mt-2">₹{item.price}</p>
-                    {!item.available && <p className="text-[10px] font-black uppercase text-zinc-500 mt-1">Sold out</p>}
+                    {!item.available && <p className="text-[10px] font-black uppercase text-[#FFF8ED]/50 mt-1">Sold out</p>}
                   </div>
                   {item.available && tableToken && (
                     <div className="flex items-center gap-2 shrink-0">
-                      <button onClick={() => changeQuantity(item.id, -1)} className="h-9 w-9 rounded-lg border border-zinc-200 font-black" aria-label={`Remove ${item.name}`}>-</button>
+                      <button onClick={() => changeQuantity(item.id, -1)} className="h-9 w-9 rounded-lg border border-[#F6D7A8]/20 font-black" aria-label={`Remove ${item.name}`}>-</button>
                       <span className="w-6 text-center text-xs font-black">{cart[item.id] || 0}</span>
-                      <button onClick={() => changeQuantity(item.id, 1)} className="h-9 w-9 rounded-lg bg-black text-white font-black" aria-label={`Add ${item.name}`}>+</button>
+                      <button onClick={() => changeQuantity(item.id, 1)} className="h-9 w-9 rounded-lg bg-[#F6D7A8] text-[#171310] font-black" aria-label={`Add ${item.name}`}>+</button>
                     </div>
                   )}
                 </div>
@@ -166,11 +175,11 @@ export default function DineCustomerPage({ restaurantSlug, tableToken }: DineCus
       </div>
 
       {tableToken && (
-        <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-zinc-200 p-4">
+        <div className="fixed bottom-0 left-0 right-0 bg-[#241D18] border-t border-[#F6D7A8]/15 p-4">
           <div className="mx-auto max-w-3xl space-y-3">
             {reviewing && (
-              <div className="max-h-48 overflow-auto rounded-xl border border-zinc-200 bg-zinc-50 p-3 text-xs font-semibold">
-                <p className="mb-2 font-black uppercase text-zinc-500">Review order</p>
+              <div className="max-h-48 overflow-auto rounded-xl border border-[#F6D7A8]/15 bg-[#171310] p-3 text-xs font-semibold">
+                <p className="mb-2 font-black uppercase text-[#F6D7A8]/70">Review order</p>
                 {cartLines.map((item) => (
                   <p key={item.id} className="flex justify-between gap-3 py-1">
                     <span>{item.quantity} x {item.name}</span>
@@ -181,11 +190,11 @@ export default function DineCustomerPage({ restaurantSlug, tableToken }: DineCus
             )}
             <div className="flex items-center gap-4">
               <div className="flex-1">
-                <p className="text-xs text-zinc-500 font-bold">{cartLines.length} item types</p>
+                <p className="text-xs text-[#FFF8ED]/55 font-bold">{cartLines.length} item types</p>
                 <p className="text-lg font-black">₹{total}</p>
               </div>
               {!reviewing ? (
-                <button onClick={() => setReviewing(true)} disabled={cartLines.length === 0 || submitting} className="h-11 rounded-lg bg-black px-6 text-xs font-black uppercase tracking-widest text-white disabled:opacity-50">
+                <button onClick={() => setReviewing(true)} disabled={cartLines.length === 0 || submitting} className="h-11 rounded-lg bg-[#F6D7A8] px-6 text-xs font-black uppercase tracking-widest text-[#171310] disabled:opacity-50">
                   Review Order
                 </button>
               ) : (
