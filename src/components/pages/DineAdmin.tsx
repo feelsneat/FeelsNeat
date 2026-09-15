@@ -294,10 +294,20 @@ export default function DineAdminPage() {
                 <div key={order.id} className="rounded-xl border border-zinc-200 bg-white p-4 space-y-3">
                   <div className="flex justify-between gap-3">
                     <div>
-                      <h3 className="text-sm font-black uppercase">Order #{order.order_number}</h3>
-                      <p className="text-xs text-zinc-500 font-bold">{table?.name} | Code {order.verification_code}</p>
+                      <h3 className="text-sm font-black uppercase">
+                        {order.order_type === 'ADD_ON'
+                          ? `Add-on ${order.add_on_sequence || ''} for Order #${order.parent_order_number}`
+                          : `Order #${order.order_number}`}
+                      </h3>
+                      <p className="text-xs text-zinc-500 font-bold">
+                        {table?.name} | Code {order.verification_code}
+                        {order.order_type === 'ADD_ON' && ` | Add-on order #${order.order_number}`}
+                      </p>
                     </div>
-                    <span className="text-[10px] font-black uppercase text-[#E30613]">{order.status.replaceAll('_', ' ')}</span>
+                    <div className="text-right">
+                      {order.order_type === 'ADD_ON' && <p className="mb-1 rounded-full bg-amber-50 px-2 py-1 text-[9px] font-black uppercase text-amber-700">Linked add-on</p>}
+                      <span className="text-[10px] font-black uppercase text-[#E30613]">{order.status.replaceAll('_', ' ')}</span>
+                    </div>
                   </div>
                   <div className="text-xs font-semibold text-zinc-700 space-y-1">
                     {order.items.map((item: any) => <p key={item.item_id}>{item.quantity} x {item.name} <span className="float-right">₹{item.line_total}</span></p>)}

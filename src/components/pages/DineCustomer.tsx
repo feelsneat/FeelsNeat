@@ -12,10 +12,12 @@ export default function DineCustomerPage({ restaurantSlug, tableToken }: DineCus
   const [data, setData] = useState<any>(null);
   const [cart, setCart] = useState<Record<string, number>>({});
   const [order, setOrder] = useState<any>(null);
+  const [addOnOrders, setAddOnOrders] = useState<any[]>([]);
   const [orderToken, setOrderToken] = useState('');
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [reviewing, setReviewing] = useState(false);
+  const [addingMore, setAddingMore] = useState(false);
   const storageKey = `dine-order:${restaurantSlug}:${tableToken || 'menu'}`;
 
   const load = async () => {
@@ -26,8 +28,18 @@ export default function DineCustomerPage({ restaurantSlug, tableToken }: DineCus
     const result = await res.json();
     if (res.ok) {
       setError('');
-      if (orderToken) setOrder(result.order);
-      else setData(result);
+      if (orderToken) {
+        setOrder(result.order);
+        setAddOnOrders(result.add_on_orders || []);
+        setData({
+          restaurant: result.restaurant,
+          table: result.table,
+          categories: result.categories || [],
+          items: result.items || [],
+        });
+      } else {
+        setData(result);
+      }
     } else {
       setError(result.error || 'This Dine Assist page is not available.');
     }
@@ -78,16 +90,23 @@ export default function DineCustomerPage({ restaurantSlug, tableToken }: DineCus
         body: JSON.stringify({
           restaurantSlug,
           tableToken,
+          parentOrderToken: orderToken || undefined,
           items: cartLines.map((item) => ({ item_id: item.id, quantity: item.quantity })),
         }),
       });
       const result = await res.json();
       if (!res.ok) throw new Error(result.error || 'Could not place order.');
-      setOrder(result.order);
-      setOrderToken(result.order.access_token);
-      window.localStorage.setItem(storageKey, result.order.access_token);
+      if (orderToken && result.parent_order) {
+        setOrder(result.parent_order);
+        await load();
+      } else {
+        setOrder(result.order);
+        setOrderToken(result.order.access_token);
+        window.localStorage.setItem(storageKey, result.order.access_token);
+      }
       setCart({});
       setReviewing(false);
+      setAddingMore(false);
     } catch (err: any) {
       setError(err.message || 'Could not place order.');
     } finally {
@@ -103,24 +122,122 @@ export default function DineCustomerPage({ restaurantSlug, tableToken }: DineCus
   }
   if (order) {
     return (
-      <main className="min-h-screen bg-[#171310] text-[#FFF8ED] p-4 sm:p-6 flex items-center">
-        <div className="mx-auto w-full max-w-md rounded-2xl bg-[#241D18] border border-[#F6D7A8]/20 p-6 shadow-sm space-y-5">
-          <div className="h-12 w-12 rounded-xl bg-[#F6D7A8]/10 text-[#F6D7A8] flex items-center justify-center">
-            <LucideIcon name="ReceiptText" className="h-6 w-6" />
+      <main className="min-h-screen bg-[#171310] text-[#FFF8ED] p-4 sm:p-6">
+        <div className="mx-auto w-full max-w-3xl space-y-4">
+          <div className="rounded-2xl bg-[#241D18] border border-[#F6D7A8]/20 p-6 shadow-sm space-y-5">
+            <div className="h-12 w-12 rounded-xl bg-[#F6D7A8]/10 text-[#F6D7A8] flex items-center justify-center">
+              <LucideIcon name="ReceiptText" className="h-6 w-6" />
+            </div>
+            <div>
+              <h1 className="text-xl font-black uppercase">Order received</h1>
+              <p className="text-xs text-[#FFF8ED]/65 font-semibold mt-2">Your order has been sent to the restaurant. Add-on orders from this page stay connected to this original order and table.</p>
+            </div>
+            <div className="rounded-xl bg-[#171310] border border-[#F6D7A8]/15 p-4 space-y-2 text-xs font-bold">
+              <p>Original Order #{order.order_number}</p>
+              <p>Status: <span className="text-[#F6D7A8]">{statusLabel(order.status)}</span></p>
+              <p>Verification code: <span className="font-mono text-lg">{order.verification_code}</span></p>
+              {data?.table?.name && <p className="text-[#FFF8ED]/55">Table: {data.table.name}</p>}
+            </div>
+            {addOnOrders.length > 0 && (
+              <div className="space-y-2">
+                <p className="text-[10px] font-black uppercase tracking-widest text-[#F6D7A8]/70">Add-on orders linked to #{order.order_number}</p>
+                {addOnOrders.map((addOn) => (
+                  <div key={addOn.id} className="rounded-xl bg-[#171310] border border-[#F6D7A8]/15 p-3 text-xs font-bold">
+                    <div className="flex justify-between gap-3">
+                      <span>Add-on {addOn.add_on_sequence} · Order #{addOn.order_number}</span>
+                      <span className="text-[#F6D7A8]">{statusLabel(addOn.status)}</span>
+                    </div>
+                    <div className="mt-2 space-y-1 text-[#FFF8ED]/70">
+                      {addOn.items.map((item: any) => (
+                        <p key={item.item_id} className="flex justify-between gap-3">
+                          <span>{item.quantity} x {item.name}</span>
+                          <span>₹{item.line_total}</span>
+                        </p>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+            {order.status === 'REJECTED' && (
+              <p className="rounded-lg bg-red-50 p-3 text-xs font-bold text-red-700">The restaurant rejected this order. Please speak with the staff at your table.</p>
+            )}
+            <div className="flex flex-col sm:flex-row gap-3">
+              <button
+                type="button"
+                onClick={() => { setAddingMore((prev) => !prev); setReviewing(false); }}
+                disabled={order.status === 'REJECTED' || order.status === 'CANCELLED'}
+                className="inline-flex h-11 items-center justify-center rounded-lg bg-[#F6D7A8] px-5 text-xs font-black uppercase tracking-widest text-[#171310] disabled:opacity-50"
+              >
+                {addingMore ? 'Hide menu' : 'Add more items'}
+              </button>
+            </div>
+            <p className="text-xs text-[#FFF8ED]/55 leading-relaxed font-semibold">Keep this page open. The status refreshes automatically and stays available after refresh on this device.</p>
           </div>
-          <div>
-            <h1 className="text-xl font-black uppercase">Order received</h1>
-            <p className="text-xs text-[#FFF8ED]/65 font-semibold mt-2">Your order has been sent to the restaurant. Please wait while the restaurant confirms it.</p>
-          </div>
-          <div className="rounded-xl bg-[#171310] border border-[#F6D7A8]/15 p-4 space-y-2 text-xs font-bold">
-            <p>Order #{order.order_number}</p>
-            <p>Status: <span className="text-[#F6D7A8]">{statusLabel(order.status)}</span></p>
-            <p>Verification code: <span className="font-mono text-lg">{order.verification_code}</span></p>
-          </div>
-          {order.status === 'REJECTED' && (
-            <p className="rounded-lg bg-red-50 p-3 text-xs font-bold text-red-700">The restaurant rejected this order. Please speak with the staff at your table.</p>
+
+          {addingMore && data && (
+            <section className="space-y-4">
+              <div className="rounded-2xl bg-[#241D18] border border-[#F6D7A8]/20 p-4">
+                <h2 className="text-sm font-black uppercase">Add-on for Order #{order.order_number}</h2>
+                <p className="mt-1 text-xs text-[#FFF8ED]/55 font-semibold">The restaurant will see this as an add-on linked to your original order and {data.table?.name || 'table'}.</p>
+              </div>
+              {data.categories.map((category: any) => {
+                const items = data.items.filter((item: any) => item.category_id === category.id);
+                if (items.length === 0) return null;
+                return (
+                  <section key={category.id} className="space-y-3">
+                    <h3 className="text-xs font-black uppercase tracking-widest text-[#F6D7A8]/70">{category.name}</h3>
+                    {items.map((item: any) => (
+                      <div key={item.id} className={`rounded-2xl border bg-[#241D18] p-4 flex gap-4 ${item.available ? 'border-[#F6D7A8]/15' : 'border-white/5 opacity-60'}`}>
+                        {item.image && <img src={item.image} alt={item.name} className="h-20 w-20 rounded-xl object-cover border border-[#F6D7A8]/15 shrink-0" />}
+                        <div className="flex-1 min-w-0">
+                          <h4 className="text-sm font-black">{item.name}</h4>
+                          {item.description && <p className="text-xs text-[#FFF8ED]/55 mt-1 font-semibold leading-relaxed">{item.description}</p>}
+                          <p className="text-sm font-black mt-2">₹{item.price}</p>
+                          {!item.available && <p className="text-[10px] font-black uppercase text-[#FFF8ED]/50 mt-1">Sold out</p>}
+                        </div>
+                        {item.available && (
+                          <div className="flex items-center gap-2 shrink-0">
+                            <button onClick={() => changeQuantity(item.id, -1)} className="h-9 w-9 rounded-lg border border-[#F6D7A8]/20 font-black" aria-label={`Remove ${item.name}`}>-</button>
+                            <span className="w-6 text-center text-xs font-black">{cart[item.id] || 0}</span>
+                            <button onClick={() => changeQuantity(item.id, 1)} className="h-9 w-9 rounded-lg bg-[#F6D7A8] text-[#171310] font-black" aria-label={`Add ${item.name}`}>+</button>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </section>
+                );
+              })}
+              <div className="sticky bottom-3 rounded-2xl bg-[#241D18] border border-[#F6D7A8]/15 p-4 space-y-3 shadow-xl">
+                {reviewing && (
+                  <div className="max-h-48 overflow-auto rounded-xl border border-[#F6D7A8]/15 bg-[#171310] p-3 text-xs font-semibold">
+                    <p className="mb-2 font-black uppercase text-[#F6D7A8]/70">Review add-on</p>
+                    {cartLines.map((item) => (
+                      <p key={item.id} className="flex justify-between gap-3 py-1">
+                        <span>{item.quantity} x {item.name}</span>
+                        <span className="font-black">₹{item.line_total}</span>
+                      </p>
+                    ))}
+                  </div>
+                )}
+                <div className="flex items-center gap-4">
+                  <div className="flex-1">
+                    <p className="text-xs text-[#FFF8ED]/55 font-bold">{cartLines.length} item types</p>
+                    <p className="text-lg font-black">₹{total}</p>
+                  </div>
+                  {!reviewing ? (
+                    <button onClick={() => setReviewing(true)} disabled={cartLines.length === 0 || submitting} className="h-11 rounded-lg bg-[#F6D7A8] px-6 text-xs font-black uppercase tracking-widest text-[#171310] disabled:opacity-50">
+                      Review Add-on
+                    </button>
+                  ) : (
+                    <button onClick={submitOrder} disabled={cartLines.length === 0 || submitting} className="h-11 rounded-lg bg-[#E30613] px-6 text-xs font-black uppercase tracking-widest text-white disabled:opacity-50">
+                      {submitting ? 'Sending...' : 'Send Add-on'}
+                    </button>
+                  )}
+                </div>
+              </div>
+            </section>
           )}
-          <p className="text-xs text-[#FFF8ED]/55 leading-relaxed font-semibold">Keep this page open. The status refreshes automatically and stays available after refresh on this device.</p>
         </div>
       </main>
     );

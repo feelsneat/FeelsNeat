@@ -25,7 +25,34 @@ export async function GET(req: NextRequest) {
     );
     if (!order) return NextResponse.json({ error: 'Order not found.' }, { status: 404 });
     const table = db.tables.find((candidate) => candidate.id === order.table_id);
-    return NextResponse.json({ order, table });
+    const rootOrderId = order.parent_order_id || order.id;
+    const parentOrder = order.parent_order_id
+      ? db.orders.find((candidate) => candidate.id === order.parent_order_id && candidate.restaurant_id === restaurant.id)
+      : order;
+    const addOnOrders = db.orders
+      .filter((candidate) => candidate.restaurant_id === restaurant.id && candidate.parent_order_id === rootOrderId)
+      .sort((a, b) => (a.add_on_sequence || 0) - (b.add_on_sequence || 0));
+    const categories = db.categories
+      .filter((category) => category.restaurant_id === restaurant.id && category.active)
+      .sort((a, b) => a.sort_order - b.sort_order);
+    const items = db.items
+      .filter((item) => item.restaurant_id === restaurant.id && item.active)
+      .sort((a, b) => a.sort_order - b.sort_order);
+    return NextResponse.json({
+      order: parentOrder || order,
+      current_order: order,
+      add_on_orders: addOnOrders,
+      table,
+      restaurant: {
+        name: restaurant.name,
+        slug: restaurant.slug,
+        location: restaurant.location,
+        logo: restaurant.logo,
+        payment_preference: restaurant.payment_preference,
+      },
+      categories,
+      items,
+    });
   }
 
   const table = tableToken
@@ -65,6 +92,22 @@ export async function POST(req: NextRequest) {
   );
   if (!table) return NextResponse.json({ error: 'Invalid table.' }, { status: 400 });
 
+  const parentOrderToken = String(body.parentOrderToken || '').trim();
+  const parentOrder = parentOrderToken
+    ? db.orders.find((candidate) =>
+        (candidate.access_token || candidate.id) === parentOrderToken &&
+        candidate.restaurant_id === restaurant.id &&
+        candidate.table_id === table.id &&
+        !candidate.parent_order_id
+      )
+    : null;
+  if (parentOrderToken && !parentOrder) {
+    return NextResponse.json({ error: 'Original order not found for this table.' }, { status: 404 });
+  }
+  if (parentOrder && ['REJECTED', 'CANCELLED'].includes(parentOrder.status)) {
+    return NextResponse.json({ error: 'Add-on orders are not available for this order.' }, { status: 400 });
+  }
+
   const requested = Array.isArray(body.items) ? body.items : [];
   if (requested.length === 0) return NextResponse.json({ error: 'Please add at least one item.' }, { status: 400 });
 
@@ -97,6 +140,12 @@ export async function POST(req: NextRequest) {
     access_token: randomToken(24),
     restaurant_id: restaurant.id,
     table_id: table.id,
+    order_type: parentOrder ? 'ADD_ON' : 'ORIGINAL',
+    parent_order_id: parentOrder?.id,
+    parent_order_number: parentOrder?.order_number,
+    add_on_sequence: parentOrder
+      ? db.orders.filter((candidate) => candidate.restaurant_id === restaurant.id && candidate.parent_order_id === parentOrder.id).length + 1
+      : undefined,
     order_number: nextNumber,
     status: 'PENDING_CONFIRMATION',
     items: orderItems,
@@ -109,5 +158,10 @@ export async function POST(req: NextRequest) {
   };
   db.orders.unshift(order);
   await saveDineDb(req.url, db);
-  return NextResponse.json({ success: true, order: { ...order, access_token: order.access_token }, table });
+  return NextResponse.json({
+    success: true,
+    order: { ...order, access_token: order.access_token },
+    parent_order: parentOrder ? { ...parentOrder, access_token: parentOrder.access_token } : null,
+    table,
+  });
 }

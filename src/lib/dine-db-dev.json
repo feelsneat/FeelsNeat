@@ -277,27 +277,60 @@
       "active": true,
       "stand_status": "NOT_PREPARED",
       "created_at": "2026-09-14T10:57:41.525Z"
-    },
-    {
-      "id": "TBL-46LJJD",
-      "restaurant_id": "REST-4S9SHCE5",
-      "name": "Table 19",
-      "token": "oixj5hxs5c",
-      "active": true,
-      "stand_status": "NOT_PREPARED",
-      "created_at": "2026-09-14T10:57:41.525Z"
-    },
-    {
-      "id": "TBL-2VK24B",
-      "restaurant_id": "REST-4S9SHCE5",
-      "name": "Table 20",
-      "token": "j8yxf28mtr",
-      "active": true,
-      "stand_status": "NOT_PREPARED",
-      "created_at": "2026-09-14T10:57:41.525Z"
     }
   ],
   "orders": [
+    {
+      "id": "DORD-G9FZ8LRV",
+      "access_token": "hgwa82rnoff4a2eoa3tkfkfp",
+      "restaurant_id": "REST-4S9SHCE5",
+      "table_id": "TBL-JEFLAE",
+      "order_type": "ADD_ON",
+      "parent_order_id": "DORD-ZRVVEHFT",
+      "parent_order_number": 1002,
+      "add_on_sequence": 1,
+      "order_number": 1003,
+      "status": "PENDING_CONFIRMATION",
+      "items": [
+        {
+          "item_id": "ITEM-UXNY4R",
+          "name": "Chicken Biryani",
+          "quantity": 2,
+          "price": 220,
+          "line_total": 440
+        }
+      ],
+      "subtotal": 440,
+      "total": 440,
+      "payment_status": "NOT_REQUIRED",
+      "verification_code": "3618",
+      "created_at": "2026-09-15T06:56:40.730Z",
+      "updated_at": "2026-09-15T06:56:40.730Z"
+    },
+    {
+      "id": "DORD-ZRVVEHFT",
+      "access_token": "x4rmz9oovyjhqptvq8s2ugxr",
+      "restaurant_id": "REST-4S9SHCE5",
+      "table_id": "TBL-JEFLAE",
+      "order_type": "ORIGINAL",
+      "order_number": 1002,
+      "status": "PENDING_CONFIRMATION",
+      "items": [
+        {
+          "item_id": "ITEM-U2NC7K",
+          "name": "Chicken 65",
+          "quantity": 1,
+          "price": 180,
+          "line_total": 180
+        }
+      ],
+      "subtotal": 180,
+      "total": 180,
+      "payment_status": "NOT_REQUIRED",
+      "verification_code": "3993",
+      "created_at": "2026-09-15T06:56:40.675Z",
+      "updated_at": "2026-09-15T06:56:40.675Z"
+    },
     {
       "id": "DORD-XB2SEJXM",
       "restaurant_id": "REST-4S9SHCE5",

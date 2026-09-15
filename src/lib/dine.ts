@@ -105,6 +105,10 @@ export interface DineOrder {
   access_token: string;
   restaurant_id: string;
   table_id: string;
+  order_type?: 'ORIGINAL' | 'ADD_ON';
+  parent_order_id?: string;
+  parent_order_number?: number;
+  add_on_sequence?: number;
   order_number: number;
   status: DineOrderStatus;
   items: Array<{ item_id: string; name: string; quantity: number; price: number; line_total: number }>;
