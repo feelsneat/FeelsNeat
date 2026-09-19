@@ -16,6 +16,10 @@ function getDinePath() {
   return path.join(process.cwd(), 'src/lib/dine-db-dev.json');
 }
 
+function getEcommercePath() {
+  return path.join(process.cwd(), 'src/lib/ecommerce-db-dev.json');
+}
+
 function getEmptyDineDb() {
   return {
     enquiries: [],
@@ -36,6 +40,16 @@ export async function GET(req: NextRequest) {
   try {
     const url = new URL(req.url);
     const type = url.searchParams.get('type');
+
+    if (type === 'ecommerce') {
+      const ePath = getEcommercePath();
+      if (!fs.existsSync(ePath)) {
+        return NextResponse.json({ products: [], categories: [], collections: [], suppliers: [], supplierCatalog: [], orders: [] });
+      }
+      const content = fs.readFileSync(ePath, 'utf-8');
+      const ecommerceData = JSON.parse(content);
+      return NextResponse.json(ecommerceData);
+    }
 
     if (type === 'profiles') {
       const pPath = getProfilesPath();
@@ -76,7 +90,15 @@ export async function POST(req: NextRequest) {
 
   try {
     const body = await req.json();
-    const { action, order_id, orderData, statusUpdates, profile_id, profileData, status, dineData } = body;
+    const { action, order_id, orderData, statusUpdates, profile_id, profileData, status, dineData, ecommerceData } = body;
+
+    // Handle Ecommerce actions
+    if (action === 'save_ecommerce_db' && ecommerceData) {
+      const ePath = getEcommercePath();
+      fs.writeFileSync(ePath, JSON.stringify(ecommerceData, null, 2), 'utf-8');
+      console.log('[Dev-DB API] Saved Ecommerce data');
+      return NextResponse.json({ success: true });
+    }
 
     // Handle Profile actions
     if (action === 'save_profile' && profileData) {

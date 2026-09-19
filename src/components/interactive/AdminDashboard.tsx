@@ -10,7 +10,7 @@ interface AdminDashboardProps {
 export function AdminDashboard({ userEmail }: AdminDashboardProps) {
   const [orders, setOrders] = useState<any[]>([]);
   const [loadingOrders, setLoadingOrders] = useState(true);
-  const [activeTab, setActiveTab] = useState<'all' | 'memories' | 'service' | 'digital_product' | 'general_inquiry' | 'pet_profiles' | 'dine_assist'>('all');
+  const [activeTab, setActiveTab] = useState<'all' | 'memories' | 'service' | 'digital_product' | 'general_inquiry' | 'pet_profiles' | 'dine_assist' | 'ecommerce'>('all');
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [syncMessage, setSyncMessage] = useState('');
@@ -28,6 +28,17 @@ export function AdminDashboard({ userEmail }: AdminDashboardProps) {
   const [selectedDineEnquiryId, setSelectedDineEnquiryId] = useState<string | null>(null);
   const [selectedDineRestaurantId, setSelectedDineRestaurantId] = useState<string | null>(null);
   const [provisionResult, setProvisionResult] = useState<any>(null);
+
+  // Ecommerce Shop states
+  const [ecommerceData, setEcommerceData] = useState<any>({ products: [], categories: [], collections: [], orders: [], metrics: null });
+  const [loadingEcommerce, setLoadingEcommerce] = useState(true);
+  const [selectedEcommerceProductId, setSelectedEcommerceProductId] = useState<string | null>(null);
+  const [selectedEcommerceOrderId, setSelectedEcommerceOrderId] = useState<string | null>(null);
+  const [ecommerceCatalogFilter, setEcommerceCatalogFilter] = useState<'all' | 'dropship' | 'affiliate'>('all');
+  const [affiliateProductForm, setAffiliateProductForm] = useState<any>(null);
+  const [savingAffiliateProduct, setSavingAffiliateProduct] = useState(false);
+  const [ecommerceOrderUpdate, setEcommerceOrderUpdate] = useState<any>(null);
+  const [savingEcommerceOrder, setSavingEcommerceOrder] = useState(false);
 
   // WhatsApp Redirect Config State
   const [contentDb, setContentDb] = useState<any>(null);
@@ -134,10 +145,25 @@ export function AdminDashboard({ userEmail }: AdminDashboardProps) {
     }
   };
 
+  const loadEcommerceData = async () => {
+    setLoadingEcommerce(true);
+    try {
+      const res = await fetch('/api/ecommerce/admin');
+      if (res.ok) {
+        setEcommerceData(await res.json());
+      }
+    } catch (err) {
+      console.error('Failed to load ecommerce data:', err);
+    } finally {
+      setLoadingEcommerce(false);
+    }
+  };
+
   useEffect(() => {
     loadOrders();
     loadProfiles();
     loadDineData();
+    loadEcommerceData();
     loadContentSettings();
   }, []);
 
@@ -146,6 +172,11 @@ export function AdminDashboard({ userEmail }: AdminDashboardProps) {
     loadDineData();
     const timer = window.setInterval(loadDineData, 5000);
     return () => window.clearInterval(timer);
+  }, [activeTab]);
+
+  useEffect(() => {
+    if (activeTab !== 'ecommerce') return;
+    loadEcommerceData();
   }, [activeTab]);
 
   // Update order fields (payment references, production status, etc.)
@@ -335,6 +366,183 @@ export function AdminDashboard({ userEmail }: AdminDashboardProps) {
   });
   const selectedDineEnquiry = dineData.enquiries.find((enquiry: any) => enquiry.enquiry_id === selectedDineEnquiryId);
   const selectedDineRestaurant = dineData.restaurants.find((restaurant: any) => restaurant.id === selectedDineRestaurantId);
+  const filteredEcommerceProducts = ecommerceData.products.filter((product: any) => {
+    const isAffiliate = product.fulfillmentType === 'AFFILIATE';
+    if (ecommerceCatalogFilter === 'affiliate' && !isAffiliate) return false;
+    if (ecommerceCatalogFilter === 'dropship' && isAffiliate) return false;
+    if (searchQuery.trim() === '') return true;
+    const query = searchQuery.toLowerCase();
+    return (
+      product.title.toLowerCase().includes(query) ||
+      product.slug.toLowerCase().includes(query) ||
+      product.sku.toLowerCase().includes(query) ||
+      (product.brand || '').toLowerCase().includes(query)
+    );
+  });
+  const filteredEcommerceOrders = ecommerceData.orders.filter((order: any) => {
+    if (searchQuery.trim() === '') return true;
+    const query = searchQuery.toLowerCase();
+    return (
+      order.id.toLowerCase().includes(query) ||
+      String(order.orderNumber || '').includes(query) ||
+      order.customer?.name?.toLowerCase().includes(query) ||
+      order.customer?.email?.toLowerCase().includes(query) ||
+      order.customer?.phone?.toLowerCase().includes(query)
+    );
+  });
+  const selectedEcommerceProduct = ecommerceData.products.find((product: any) => product.id === selectedEcommerceProductId);
+  const selectedEcommerceOrder = ecommerceData.orders.find((order: any) => order.id === selectedEcommerceOrderId);
+
+  const createAffiliateProductForm = (product?: any) => ({
+    id: product?.id || '',
+    title: product?.title || '',
+    slug: product?.slug || '',
+    sku: product?.sku || '',
+    description: product?.description || '',
+    sellingPrice: product?.sellingPrice ?? '',
+    compareAtPrice: product?.compareAtPrice ?? '',
+    image: product?.images?.[0] || '',
+    affiliateUrl: product?.affiliateDetails?.affiliateUrl || '',
+    platform: product?.affiliateDetails?.platform || 'CUSTOM',
+    merchantName: product?.affiliateDetails?.merchantName || '',
+    buttonText: product?.affiliateDetails?.buttonText || 'Buy now',
+    commissionRatePercent: product?.affiliateDetails?.commissionRatePercent ?? '',
+    disclaimerText: product?.affiliateDetails?.disclaimerText || 'This is an affiliate link. We may earn a commission at no extra cost to you.',
+    status: product?.status || 'DRAFT',
+    categoryId: product?.categoryId || ecommerceData.categories?.[0]?.id || '',
+  });
+
+  const handleSaveAffiliateProduct = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const form = affiliateProductForm;
+    if (!form?.title?.trim() || !form.sku?.trim() || !form.affiliateUrl?.trim() || !form.merchantName?.trim()) {
+      alert('Title, SKU, merchant name, and affiliate URL are required.');
+      return;
+    }
+    setSavingAffiliateProduct(true);
+    const slug = (form.slug || form.title).toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+    const product = {
+      ...(selectedEcommerceProduct || {}),
+      id: form.id,
+      slug,
+      title: form.title.trim(),
+      description: form.description || form.title.trim(),
+      shortDescription: (form.description || form.title).slice(0, 140),
+      categoryId: form.categoryId || ecommerceData.categories?.[0]?.id || '',
+      collectionIds: selectedEcommerceProduct?.collectionIds || [],
+      brand: selectedEcommerceProduct?.brand || 'FeelsNeat',
+      tags: selectedEcommerceProduct?.tags || ['Affiliate'],
+      sku: form.sku.trim(),
+      sellingPrice: Number(form.sellingPrice) || 0,
+      compareAtPrice: form.compareAtPrice === '' ? undefined : Number(form.compareAtPrice),
+      costPrice: undefined,
+      images: form.image ? [form.image.trim()] : [],
+      hasVariants: false,
+      variants: [],
+      status: form.status,
+      fulfillmentType: 'AFFILIATE',
+      affiliateDetails: {
+        affiliateUrl: form.affiliateUrl.trim(),
+        platform: form.platform,
+        merchantName: form.merchantName.trim(),
+        buttonText: form.buttonText || 'Buy now',
+        commissionRatePercent: form.commissionRatePercent === '' ? undefined : Number(form.commissionRatePercent),
+        clickCount: selectedEcommerceProduct?.affiliateDetails?.clickCount || 0,
+        disclaimerText: form.disclaimerText || undefined,
+      },
+      taxIncluded: true,
+      inventorySource: 'OWNED',
+      stockQuantity: 0,
+      seoTitle: selectedEcommerceProduct?.seoTitle || form.title,
+      seoDescription: selectedEcommerceProduct?.seoDescription || form.description,
+    };
+
+    try {
+      const res = await fetch('/api/ecommerce/admin', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'save_product', product }),
+      });
+      const result = await res.json();
+      if (!res.ok) throw new Error(result.error || 'Failed to save affiliate product.');
+      await loadEcommerceData();
+      setAffiliateProductForm(null);
+      setSelectedEcommerceProductId(result.product?.id || product.id);
+    } catch (error: any) {
+      alert(error.message || 'Failed to save affiliate product.');
+    } finally {
+      setSavingAffiliateProduct(false);
+    }
+  };
+
+  const beginEcommerceOrderUpdate = (order: any) => {
+    setEcommerceOrderUpdate({
+      orderStatus: order.orderStatus,
+      paymentStatus: order.paymentStatus,
+      fulfillmentStatus: order.fulfillmentStatus,
+      courier: order.shipment?.courier || '',
+      trackingNumber: order.shipment?.trackingNumber || '',
+      trackingUrl: order.shipment?.trackingUrl || '',
+      shipmentStatus: order.shipment?.shipmentStatus || '',
+      notes: '',
+    });
+  };
+
+  const handleSaveEcommerceOrder = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (!selectedEcommerceOrder || !ecommerceOrderUpdate) return;
+    setSavingEcommerceOrder(true);
+    try {
+      const hasShipment = ecommerceOrderUpdate.courier || ecommerceOrderUpdate.trackingNumber ||
+        ecommerceOrderUpdate.trackingUrl || ecommerceOrderUpdate.shipmentStatus;
+      const res = await fetch('/api/ecommerce/admin', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'update_order_status',
+          orderId: selectedEcommerceOrder.id,
+          orderStatus: ecommerceOrderUpdate.orderStatus,
+          paymentStatus: ecommerceOrderUpdate.paymentStatus,
+          fulfillmentStatus: ecommerceOrderUpdate.fulfillmentStatus,
+          notes: ecommerceOrderUpdate.notes,
+          shipment: hasShipment ? {
+            courier: ecommerceOrderUpdate.courier,
+            trackingNumber: ecommerceOrderUpdate.trackingNumber,
+            trackingUrl: ecommerceOrderUpdate.trackingUrl,
+            shipmentStatus: ecommerceOrderUpdate.shipmentStatus || 'IN_TRANSIT',
+            shippedAt: ecommerceOrderUpdate.shipmentStatus ? new Date().toISOString() : undefined,
+          } : undefined,
+        }),
+      });
+      const result = await res.json();
+      if (!res.ok) throw new Error(result.error || 'Failed to update order.');
+      await loadEcommerceData();
+      setEcommerceOrderUpdate(null);
+    } catch (error: any) {
+      alert(error.message || 'Failed to update order.');
+    } finally {
+      setSavingEcommerceOrder(false);
+    }
+  };
+
+  const handleRefundEcommerceOrder = async (order: any) => {
+    const amount = window.prompt(`Refund amount (maximum ₹${order.total})`, String(order.total));
+    if (amount === null) return;
+    const reason = window.prompt('Refund reason', 'Admin requested refund');
+    if (reason === null) return;
+    const res = await fetch('/api/ecommerce/admin', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'process_refund', orderId: order.id, amount: Number(amount), reason }),
+    });
+    const result = await res.json();
+    if (!res.ok) {
+      alert(result.error || 'Refund failed.');
+      return;
+    }
+    await loadEcommerceData();
+    alert(result.refund?.status === 'PROCESSED' ? 'Refund processed.' : 'Refund request recorded.');
+  };
 
   const handleUpdateDineEnquiryStatus = async (enquiryId: string, status: string) => {
     const res = await fetch('/api/dine/admin', {
@@ -534,6 +742,30 @@ export function AdminDashboard({ userEmail }: AdminDashboardProps) {
             </span>
           </button>
 
+          <span className="text-[10px] font-bold text-foreground/50 uppercase tracking-widest px-3 py-2 mt-4 block border-t border-zinc-150 text-left">Ecommerce Shop</span>
+          <button
+            onClick={() => {
+              setActiveTab('ecommerce');
+              setSelectedOrderId(null);
+              setSelectedProfileId(null);
+              setSelectedDineEnquiryId(null);
+              setSelectedDineRestaurantId(null);
+            }}
+            className={`flex items-center justify-between px-3 py-2.5 rounded-lg text-xs font-bold transition-colors cursor-pointer ${
+              activeTab === 'ecommerce'
+                ? 'bg-[#E30613] text-white font-black'
+                : 'text-foreground/75 hover:bg-zinc-50'
+            }`}
+          >
+            <div className="flex items-center gap-3">
+              <LucideIcon name="ShoppingBag" className="h-4 w-4 shrink-0" />
+              <span>Shop CMS</span>
+            </div>
+            <span className={`text-[9px] px-1.5 py-0.5 rounded font-black ${activeTab === 'ecommerce' ? 'bg-white text-[#E30613]' : 'bg-zinc-100 text-zinc-500'}`}>
+              {(ecommerceData.products?.length || 0) + (ecommerceData.orders?.length || 0)}
+            </span>
+          </button>
+
           <span className="text-[10px] font-bold text-foreground/50 uppercase tracking-widest px-3 py-2 mt-4 block border-t border-zinc-150 text-left">Dine Assist</span>
           <button
             onClick={() => {
@@ -643,10 +875,21 @@ export function AdminDashboard({ userEmail }: AdminDashboardProps) {
                     Refresh Dine
                   </button>
                 )}
+                {activeTab === 'ecommerce' && (
+                  <button
+                    type="button"
+                    onClick={loadEcommerceData}
+                    className="inline-flex h-8 items-center justify-center rounded-lg bg-[#E30613] hover:bg-zinc-900 px-3 text-[10px] font-black uppercase tracking-wider text-white transition-colors cursor-pointer shrink-0"
+                  >
+                    Refresh Shop
+                  </button>
+                )}
               </div>
               <span className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">
                 {activeTab === 'dine_assist' ? (
                   `Showing ${filteredDineEnquiries.length} enquiries and ${filteredDineRestaurants.length} restaurants`
+                ) : activeTab === 'ecommerce' ? (
+                  `Showing ${filteredEcommerceProducts.length} products and ${filteredEcommerceOrders.length} orders`
                 ) : activeTab === 'pet_profiles' ? (
                   `Showing ${filteredProfiles.length} of ${profiles.length} Profiles`
                 ) : (
@@ -656,7 +899,91 @@ export function AdminDashboard({ userEmail }: AdminDashboardProps) {
             </div>
 
             <div className="grid md:grid-cols-12 gap-6">
-              {activeTab === 'dine_assist' ? (
+              {activeTab === 'ecommerce' ? (
+                <div className="md:col-span-5 space-y-4 max-h-[560px] overflow-y-auto pr-0 md:pr-4 border-r border-zinc-100">
+                  {loadingEcommerce ? (
+                    <p className="text-xs text-zinc-400 italic text-center py-10">Loading ecommerce data...</p>
+                  ) : (
+                    <>
+                      <div className="grid grid-cols-2 gap-2">
+                        {[
+                          ['Orders', ecommerceData.metrics?.totalOrders || 0],
+                          ['Revenue', `₹${ecommerceData.metrics?.totalRevenue || 0}`],
+                          ['Products', ecommerceData.products?.length || 0],
+                          ['Pending pay', ecommerceData.metrics?.pendingPaymentCount || 0],
+                          ['Cashfree', ecommerceData.metrics?.cashfreeConfigured ? 'Ready' : 'Not configured'],
+                          ['AliShipping', ecommerceData.metrics?.aliShippingConfigured ? 'Ready' : 'Affiliate mode'],
+                          ['Dropship revenue', `₹${ecommerceData.metrics?.dropshipRevenue || 0}`],
+                          ['Dropship profit', `₹${ecommerceData.metrics?.dropshipEstimatedProfit || 0}`],
+                          ['Affiliate clicks', ecommerceData.metrics?.totalAffiliateClicks || 0],
+                        ].map(([label, value]) => (
+                          <div key={label} className="rounded-lg border border-zinc-150 bg-zinc-50 p-3">
+                            <p className="text-[9px] font-black uppercase text-zinc-400">{label}</p>
+                            <p className="mt-1 text-sm font-black text-zinc-900">{value}</p>
+                          </div>
+                        ))}
+                      </div>
+                      <div>
+                        <span className="text-[10px] font-black text-zinc-400 uppercase tracking-widest block mb-2">Shop Orders</span>
+                        {filteredEcommerceOrders.length === 0 ? (
+                          <p className="text-xs text-zinc-400 italic py-4">No ecommerce orders found.</p>
+                        ) : filteredEcommerceOrders.map((order: any) => (
+                          <div
+                            key={order.id}
+                            onClick={() => { setSelectedEcommerceOrderId(order.id); setSelectedEcommerceProductId(null); }}
+                            className={`p-3 rounded-lg border text-left cursor-pointer mb-2 ${selectedEcommerceOrderId === order.id ? 'border-zinc-800 bg-zinc-50' : 'border-zinc-150 hover:bg-zinc-50/50'}`}
+                          >
+                            <div className="flex justify-between gap-2">
+                              <span className="text-xs font-black text-zinc-900 truncate">{order.id}</span>
+                              <span className="text-[8px] font-black uppercase text-[#E30613]">{order.orderStatus}</span>
+                            </div>
+                            <p className="text-[10px] text-zinc-450 font-semibold mt-1">{order.customer?.name} | ₹{order.total}</p>
+                          </div>
+                        ))}
+                      </div>
+                      <div className="border-t border-zinc-150 pt-4">
+                        <div className="flex items-center justify-between gap-2 mb-2">
+                          <span className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">Products</span>
+                          <button
+                            type="button"
+                            onClick={() => { setAffiliateProductForm(createAffiliateProductForm()); setSelectedEcommerceProductId(null); setSelectedEcommerceOrderId(null); }}
+                            className="rounded-lg bg-[#E30613] px-2.5 py-1.5 text-[9px] font-black uppercase text-white"
+                          >
+                            + Affiliate product
+                          </button>
+                        </div>
+                        <div className="mb-3 flex rounded-lg border border-zinc-150 bg-white p-1">
+                          {(['all', 'dropship', 'affiliate'] as const).map((filter) => (
+                            <button
+                              key={filter}
+                              type="button"
+                              onClick={() => setEcommerceCatalogFilter(filter)}
+                              className={`flex-1 rounded-md px-2 py-1.5 text-[9px] font-black uppercase ${ecommerceCatalogFilter === filter ? 'bg-zinc-900 text-white' : 'text-zinc-500 hover:bg-zinc-50'}`}
+                            >
+                              {filter}
+                            </button>
+                          ))}
+                        </div>
+                        {filteredEcommerceProducts.length === 0 ? (
+                          <p className="text-xs text-zinc-400 italic py-4">No products found.</p>
+                        ) : filteredEcommerceProducts.map((product: any) => (
+                          <div
+                            key={product.id}
+                            onClick={() => { setSelectedEcommerceProductId(product.id); setSelectedEcommerceOrderId(null); }}
+                            className={`p-3 rounded-lg border text-left cursor-pointer mb-2 ${selectedEcommerceProductId === product.id ? 'border-zinc-800 bg-zinc-50' : 'border-zinc-150 hover:bg-zinc-50/50'}`}
+                          >
+                            <div className="flex justify-between gap-2">
+                              <span className="text-xs font-black text-zinc-900 truncate">{product.title}</span>
+                              <span className={`text-[8px] font-black uppercase ${product.fulfillmentType === 'AFFILIATE' ? 'text-violet-600' : product.status === 'ACTIVE' ? 'text-emerald-600' : 'text-zinc-400'}`}>{product.fulfillmentType === 'AFFILIATE' ? 'AFFILIATE' : product.status}</span>
+                            </div>
+                            <p className="text-[10px] text-zinc-450 font-semibold mt-1">{product.sku} | ₹{product.sellingPrice} | Stock {product.stockQuantity}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </>
+                  )}
+                </div>
+              ) : activeTab === 'dine_assist' ? (
                 <div className="md:col-span-5 space-y-4 max-h-[560px] overflow-y-auto pr-0 md:pr-4 border-r border-zinc-100">
                   {loadingDine ? (
                     <p className="text-xs text-zinc-400 italic text-center py-10">Loading Dine Assist...</p>
@@ -813,7 +1140,185 @@ export function AdminDashboard({ userEmail }: AdminDashboardProps) {
 
               {/* Order / Profile Specific Detail Content Column */}
               <div className="md:col-span-7 space-y-6">
-                {activeTab === 'dine_assist' ? (
+                {activeTab === 'ecommerce' ? (
+                  <div className="space-y-6">
+                    {affiliateProductForm ? (
+                      <form onSubmit={handleSaveAffiliateProduct} className="space-y-4 rounded-xl border border-border-custom bg-zinc-50/30 p-4 text-left">
+                        <div className="flex items-center justify-between border-b border-zinc-200 pb-3">
+                          <div>
+                            <span className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Affiliate catalog</span>
+                            <h3 className="text-lg font-black text-zinc-900">{affiliateProductForm.id ? 'Edit affiliate product' : 'Create affiliate product'}</h3>
+                          </div>
+                          <button type="button" onClick={() => setAffiliateProductForm(null)} className="text-xs font-bold text-zinc-500">Cancel</button>
+                        </div>
+                        <div className="grid sm:grid-cols-2 gap-3">
+                          {[
+                            ['title', 'Title', 'text', true],
+                            ['slug', 'Slug (optional)', 'text', false],
+                            ['sku', 'SKU', 'text', true],
+                            ['merchantName', 'Merchant name', 'text', true],
+                            ['sellingPrice', 'Reference price (₹)', 'number', false],
+                            ['compareAtPrice', 'Compare at (₹)', 'number', false],
+                            ['commissionRatePercent', 'Commission (%)', 'number', false],
+                            ['image', 'Image URL', 'url', false],
+                          ].map(([key, label, type, required]) => (
+                            <label key={key as string} className="text-[10px] font-black uppercase tracking-wider text-zinc-500">
+                              {label as string}
+                              <input
+                                type={type as string}
+                                required={Boolean(required)}
+                                value={affiliateProductForm[key as string]}
+                                onChange={(e) => setAffiliateProductForm((prev: any) => ({ ...prev, [key as string]: e.target.value }))}
+                                className="mt-1 w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-xs font-semibold normal-case text-zinc-800 outline-none focus:ring-1 focus:ring-[#E30613]"
+                              />
+                            </label>
+                          ))}
+                          <label className="text-[10px] font-black uppercase tracking-wider text-zinc-500">Platform
+                            <select value={affiliateProductForm.platform} onChange={(e) => setAffiliateProductForm((prev: any) => ({ ...prev, platform: e.target.value }))} className="mt-1 w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-xs font-semibold text-zinc-800">
+                              {['AMAZON', 'ETSY', 'NOTION', 'GUMROAD', 'MANUFACTURER', 'CUSTOM'].map((platform) => <option key={platform}>{platform}</option>)}
+                            </select>
+                          </label>
+                          <label className="text-[10px] font-black uppercase tracking-wider text-zinc-500">Status
+                            <select value={affiliateProductForm.status} onChange={(e) => setAffiliateProductForm((prev: any) => ({ ...prev, status: e.target.value }))} className="mt-1 w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-xs font-semibold text-zinc-800">
+                              {['DRAFT', 'ACTIVE', 'UNPUBLISHED', 'ARCHIVED'].map((status) => <option key={status}>{status}</option>)}
+                            </select>
+                          </label>
+                        </div>
+                        <label className="block text-[10px] font-black uppercase tracking-wider text-zinc-500">Affiliate URL
+                          <input type="url" required value={affiliateProductForm.affiliateUrl} onChange={(e) => setAffiliateProductForm((prev: any) => ({ ...prev, affiliateUrl: e.target.value }))} className="mt-1 w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-xs font-semibold normal-case text-zinc-800" />
+                        </label>
+                        <div className="grid sm:grid-cols-2 gap-3">
+                          <label className="text-[10px] font-black uppercase tracking-wider text-zinc-500">Button text
+                            <input value={affiliateProductForm.buttonText} onChange={(e) => setAffiliateProductForm((prev: any) => ({ ...prev, buttonText: e.target.value }))} className="mt-1 w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-xs font-semibold normal-case text-zinc-800" />
+                          </label>
+                          <label className="text-[10px] font-black uppercase tracking-wider text-zinc-500">Description
+                            <textarea value={affiliateProductForm.description} onChange={(e) => setAffiliateProductForm((prev: any) => ({ ...prev, description: e.target.value }))} rows={2} className="mt-1 w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-xs font-semibold normal-case text-zinc-800" />
+                          </label>
+                        </div>
+                        <label className="block text-[10px] font-black uppercase tracking-wider text-zinc-500">Disclosure
+                          <input value={affiliateProductForm.disclaimerText} onChange={(e) => setAffiliateProductForm((prev: any) => ({ ...prev, disclaimerText: e.target.value }))} className="mt-1 w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-xs font-semibold normal-case text-zinc-800" />
+                        </label>
+                        <button type="submit" disabled={savingAffiliateProduct} className="rounded-lg bg-[#E30613] px-4 py-2 text-[10px] font-black uppercase text-white disabled:opacity-50">
+                          {savingAffiliateProduct ? 'Saving...' : 'Save affiliate product'}
+                        </button>
+                      </form>
+                    ) : selectedEcommerceOrder ? (
+                      <div className="space-y-4 p-4 rounded-xl border border-border-custom bg-zinc-50/30 text-left">
+                        <div className="flex justify-between gap-4 border-b border-zinc-200 pb-3">
+                          <div>
+                            <span className="text-[10px] font-black text-zinc-400 uppercase tracking-widest block">Ecommerce Order</span>
+                            <h3 className="text-lg font-black text-zinc-900">{selectedEcommerceOrder.id}</h3>
+                            <p className="text-xs text-zinc-500 font-semibold">Order #{selectedEcommerceOrder.orderNumber} · {selectedEcommerceOrder.customer?.name}</p>
+                          </div>
+                          <span className="rounded bg-[#E30613]/10 px-2 py-1 text-[10px] font-black uppercase text-[#E30613]">{selectedEcommerceOrder.orderStatus}</span>
+                        </div>
+                        <div className="grid sm:grid-cols-2 gap-3 text-xs font-semibold text-zinc-700">
+                          <p><span className="text-zinc-400 block">Customer</span>{selectedEcommerceOrder.customer?.name}</p>
+                          <p><span className="text-zinc-400 block">Phone</span>{selectedEcommerceOrder.customer?.phone}</p>
+                          <p><span className="text-zinc-400 block">Payment</span>{selectedEcommerceOrder.paymentMethod} · {selectedEcommerceOrder.paymentStatus}</p>
+                          <p><span className="text-zinc-400 block">Fulfillment</span>{selectedEcommerceOrder.fulfillmentStatus}</p>
+                          <p><span className="text-zinc-400 block">Destination</span>{selectedEcommerceOrder.shippingAddress?.city}, {selectedEcommerceOrder.shippingAddress?.state}</p>
+                          <p><span className="text-zinc-400 block">Total</span>₹{selectedEcommerceOrder.total}</p>
+                          <p><span className="text-zinc-400 block">Estimated profit</span>₹{selectedEcommerceOrder.estimatedMargin?.estimatedProfit || 0}</p>
+                          <p><span className="text-zinc-400 block">Created</span>{new Date(selectedEcommerceOrder.createdAt).toLocaleString()}</p>
+                        </div>
+                        <div className="rounded-lg border border-zinc-150 bg-white p-3 text-xs font-semibold space-y-2">
+                          <span className="text-[10px] font-black text-zinc-400 uppercase tracking-widest block">Items</span>
+                          {selectedEcommerceOrder.items?.map((item: any, idx: number) => (
+                            <p key={`${item.sku}-${idx}`} className="flex justify-between gap-3">
+                              <span>{item.quantity} x {item.title}{item.variantTitle ? ` (${item.variantTitle})` : ''}</span>
+                              <span className="font-black">₹{item.lineTotal}</span>
+                            </p>
+                          ))}
+                        </div>
+                        {ecommerceOrderUpdate ? (
+                          <form onSubmit={handleSaveEcommerceOrder} className="rounded-lg border border-zinc-200 bg-white p-3 space-y-3">
+                            <p className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Operations update</p>
+                            <div className="grid sm:grid-cols-3 gap-2">
+                              {[
+                                ['orderStatus', 'Order status', ['PENDING_PAYMENT', 'CONFIRMED', 'PROCESSING', 'PACKED', 'SHIPPED', 'OUT_FOR_DELIVERY', 'DELIVERED', 'CANCELLED', 'RTO', 'RETURNED']],
+                                ['paymentStatus', 'Payment status', ['PENDING', 'PAID', 'FAILED', 'REFUNDED', 'PARTIALLY_REFUNDED']],
+                                ['fulfillmentStatus', 'Fulfillment', ['NOT_CREATED', 'PENDING', 'PROCESSING', 'PACKED', 'SHIPPED', 'OUT_FOR_DELIVERY', 'DELIVERED', 'FAILED', 'RTO', 'RETURNED', 'CANCELLED']],
+                              ].map(([key, label, options]) => (
+                                <label key={key as string} className="text-[9px] font-black uppercase text-zinc-500">
+                                  {label as string}
+                                  <select value={ecommerceOrderUpdate[key as string]} onChange={(e) => setEcommerceOrderUpdate((prev: any) => ({ ...prev, [key as string]: e.target.value }))} className="mt-1 w-full rounded-md border border-zinc-200 px-2 py-2 text-[10px] text-zinc-800">
+                                    {(options as string[]).map((option) => <option key={option}>{option}</option>)}
+                                  </select>
+                                </label>
+                              ))}
+                            </div>
+                            <div className="grid sm:grid-cols-2 gap-2">
+                              {[
+                                ['courier', 'Courier'],
+                                ['trackingNumber', 'AWB / tracking number'],
+                                ['trackingUrl', 'Tracking URL'],
+                                ['shipmentStatus', 'Shipment status'],
+                              ].map(([key, label]) => (
+                                <label key={key} className="text-[9px] font-black uppercase text-zinc-500">
+                                  {label}
+                                  <input value={ecommerceOrderUpdate[key]} onChange={(e) => setEcommerceOrderUpdate((prev: any) => ({ ...prev, [key]: e.target.value }))} className="mt-1 w-full rounded-md border border-zinc-200 px-2 py-2 text-[10px] text-zinc-800" />
+                                </label>
+                              ))}
+                            </div>
+                            <textarea value={ecommerceOrderUpdate.notes} onChange={(e) => setEcommerceOrderUpdate((prev: any) => ({ ...prev, notes: e.target.value }))} placeholder="Internal timeline note (optional)" className="w-full rounded-md border border-zinc-200 px-2 py-2 text-[10px] text-zinc-800" rows={2} />
+                            <div className="flex gap-2">
+                              <button type="submit" disabled={savingEcommerceOrder} className="rounded-lg bg-[#E30613] px-3 py-2 text-[10px] font-black uppercase text-white">{savingEcommerceOrder ? 'Saving...' : 'Save update'}</button>
+                              <button type="button" onClick={() => setEcommerceOrderUpdate(null)} className="rounded-lg border border-zinc-200 px-3 py-2 text-[10px] font-black uppercase text-zinc-700">Cancel</button>
+                            </div>
+                          </form>
+                        ) : null}
+                        <div className="flex flex-wrap gap-2">
+                          <a href={`/track?orderId=${encodeURIComponent(selectedEcommerceOrder.id)}&token=${encodeURIComponent(selectedEcommerceOrder.trackingToken || '')}`} target="_blank" rel="noopener noreferrer" className="rounded-lg bg-[#E30613] px-3 py-2 text-[10px] font-black uppercase text-white">Open Tracking</a>
+                          <button type="button" onClick={() => beginEcommerceOrderUpdate(selectedEcommerceOrder)} className="rounded-lg border border-zinc-200 bg-white px-3 py-2 text-[10px] font-black uppercase text-zinc-700">Update order</button>
+                          {selectedEcommerceOrder.paymentStatus === 'PAID' && <button type="button" onClick={() => handleRefundEcommerceOrder(selectedEcommerceOrder)} className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-[10px] font-black uppercase text-red-700">Refund</button>}
+                          <button onClick={loadEcommerceData} className="rounded-lg border border-zinc-200 bg-white px-3 py-2 text-[10px] font-black uppercase text-zinc-700">Refresh</button>
+                        </div>
+                      </div>
+                    ) : selectedEcommerceProduct ? (
+                      <div className="space-y-4 p-4 rounded-xl border border-border-custom bg-zinc-50/30 text-left">
+                        <div className="flex justify-between gap-4 border-b border-zinc-200 pb-3">
+                          <div>
+                            <span className="text-[10px] font-black text-zinc-400 uppercase tracking-widest block">Shop Product</span>
+                            <h3 className="text-lg font-black text-zinc-900">{selectedEcommerceProduct.title}</h3>
+                            <p className="text-xs text-zinc-500 font-semibold">{selectedEcommerceProduct.sku} · /shop/product/{selectedEcommerceProduct.slug}</p>
+                          </div>
+                          <span className="rounded bg-zinc-100 px-2 py-1 text-[10px] font-black uppercase text-zinc-700">{selectedEcommerceProduct.status}</span>
+                        </div>
+                        {selectedEcommerceProduct.images?.[0] && <img src={selectedEcommerceProduct.images[0]} alt={selectedEcommerceProduct.title} className="h-40 w-full rounded-xl object-cover border border-zinc-200" />}
+                        <div className="grid sm:grid-cols-2 gap-3 text-xs font-semibold text-zinc-700">
+                          <p><span className="text-zinc-400 block">Price</span>₹{selectedEcommerceProduct.sellingPrice}</p>
+                          <p><span className="text-zinc-400 block">Compare at</span>{selectedEcommerceProduct.compareAtPrice ? `₹${selectedEcommerceProduct.compareAtPrice}` : 'Not set'}</p>
+                          <p><span className="text-zinc-400 block">Inventory source</span>{selectedEcommerceProduct.inventorySource}</p>
+                          <p><span className="text-zinc-400 block">Stock</span>{selectedEcommerceProduct.stockQuantity}</p>
+                          <p><span className="text-zinc-400 block">Supplier SKU</span>{selectedEcommerceProduct.supplierMapping?.supplierSku || 'Not mapped'}</p>
+                          <p><span className="text-zinc-400 block">Supplier cost</span>{selectedEcommerceProduct.supplierMapping?.supplierCost ? `₹${selectedEcommerceProduct.supplierMapping.supplierCost}` : 'Not set'}</p>
+                          <p><span className="text-zinc-400 block">Catalog type</span>{selectedEcommerceProduct.fulfillmentType === 'AFFILIATE' ? 'Affiliate' : 'Dropship'}</p>
+                          {selectedEcommerceProduct.fulfillmentType === 'AFFILIATE' && (
+                            <>
+                              <p><span className="text-zinc-400 block">Platform / merchant</span>{selectedEcommerceProduct.affiliateDetails?.platform || 'Custom'} · {selectedEcommerceProduct.affiliateDetails?.merchantName || 'Not set'}</p>
+                              <p><span className="text-zinc-400 block">Commission</span>{selectedEcommerceProduct.affiliateDetails?.commissionRatePercent != null ? `${selectedEcommerceProduct.affiliateDetails.commissionRatePercent}%` : 'Not set'}</p>
+                              <p className="sm:col-span-2"><span className="text-zinc-400 block">Affiliate URL</span><span className="break-all">{selectedEcommerceProduct.affiliateDetails?.affiliateUrl || 'Not set'}</span></p>
+                              <p><span className="text-zinc-400 block">Outbound clicks</span>{selectedEcommerceProduct.affiliateDetails?.clickCount || 0}</p>
+                              <p><span className="text-zinc-400 block">CTA</span>{selectedEcommerceProduct.affiliateDetails?.buttonText || 'Buy now'}</p>
+                            </>
+                          )}
+                        </div>
+                        <div className="flex flex-wrap gap-2">
+                          <a href={`/shop/product/${selectedEcommerceProduct.slug}`} target="_blank" rel="noopener noreferrer" className="rounded-lg bg-[#E30613] px-3 py-2 text-[10px] font-black uppercase text-white">Open Product</a>
+                          {selectedEcommerceProduct.fulfillmentType === 'AFFILIATE' && (
+                            <button type="button" onClick={() => setAffiliateProductForm(createAffiliateProductForm(selectedEcommerceProduct))} className="rounded-lg border border-zinc-200 bg-white px-3 py-2 text-[10px] font-black uppercase text-zinc-700">Edit affiliate</button>
+                          )}
+                          <button onClick={loadEcommerceData} className="rounded-lg border border-zinc-200 bg-white px-3 py-2 text-[10px] font-black uppercase text-zinc-700">Refresh</button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="rounded-xl border border-dashed border-zinc-200 p-10 text-center">
+                        <p className="text-xs text-zinc-400 font-bold">Select an ecommerce order or product.</p>
+                      </div>
+                    )}
+                  </div>
+                ) : activeTab === 'dine_assist' ? (
                   <div className="space-y-6">
                     {provisionResult && (
                       <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-left text-xs font-semibold text-emerald-800">

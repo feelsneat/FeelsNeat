@@ -3,6 +3,7 @@
     { "label": "Home", "path": "/" },
     { "label": "Output", "path": "/output" },
     { "label": "About", "path": "/about" },
+    { "label": "Store", "path": "/shop" },
     { "label": "Contact", "path": "/contact" }
   ],
   "footerLinks": [
@@ -12,6 +13,7 @@
         { "label": "Home", "path": "/" },
         { "label": "Output", "path": "/output" },
         { "label": "About", "path": "/about" },
+        { "label": "Store", "path": "/shop" },
         { "label": "Contact", "path": "/contact" }
       ]
     },

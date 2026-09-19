@@ -22,6 +22,12 @@ import PetProfilePage from '@/components/pages/PetProfile';
 import DineAssistPage from '@/components/pages/DineAssist';
 import DineAdminPage from '@/components/pages/DineAdmin';
 import DineCustomerPage from '@/components/pages/DineCustomer';
+import ShopPage from '@/components/pages/Shop';
+import ProductDetailPage from '@/components/pages/ProductDetail';
+import CartPage from '@/components/pages/Cart';
+import CheckoutPage from '@/components/pages/Checkout';
+import EcommerceOrderConfirmationPage from '@/components/pages/OrderConfirmation';
+import TrackOrderPage from '@/components/pages/TrackOrder';
 
 export const runtime = 'edge';
 
@@ -32,6 +38,9 @@ interface PageProps {
   searchParams: Promise<{
     error?: string;
     email?: string;
+    orderId?: string;
+    phone?: string;
+    token?: string;
   }>;
 }
 
@@ -153,6 +162,23 @@ export async function generateMetadata({ params }: { params: Promise<{ slug?: st
       description: 'View the restaurant menu and place a table order.'
     };
   }
+  if (route === 'shop') {
+    if (slug.length === 1) {
+      return {
+        title: `FeelsNeat Shop | Curated Design Objects`,
+        description: 'Shop minimalist design objects, lighting, and workspace essentials from FeelsNeat.'
+      };
+    }
+    if (slug.length === 3 && slug[1] === 'product') {
+      return { title: `Product Details | ${settings.siteName}` };
+    }
+    if (slug.length === 3 && slug[1] === 'order-confirmation') {
+      return { title: `Order Confirmed | ${settings.siteName}` };
+    }
+  }
+  if (route === 'cart' && slug.length === 1) return { title: `Cart | ${settings.siteName}` };
+  if (route === 'checkout' && slug.length === 1) return { title: `Checkout | ${settings.siteName}` };
+  if (route === 'track' && slug.length === 1) return { title: `Track Order | ${settings.siteName}` };
   if (route === 'confirmation' && slug.length === 1) {
     return { title: `Order Confirmed | ${settings.siteName}` };
   }
@@ -174,7 +200,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug?: st
 
 export default async function CatchAllPage({ params, searchParams }: PageProps) {
   const { slug } = await params;
-  const { error, email } = await searchParams;
+  const { error, email, orderId, phone, token } = await searchParams;
 
   // 1. Home Page (e.g. /)
   if (!slug || slug.length === 0) {
@@ -253,6 +279,29 @@ export default async function CatchAllPage({ params, searchParams }: PageProps) 
       return <DineCustomerPage restaurantSlug={slug[1]} tableToken={slug[3]} />;
     }
     notFound();
+  }
+
+  // 4.675. Ecommerce Shop Routes
+  if (route === 'shop') {
+    if (slug.length === 1) {
+      return <ShopPage />;
+    }
+    if (slug.length === 3 && slug[1] === 'product') {
+      return <ProductDetailPage slug={slug[2]} />;
+    }
+    if (slug.length === 3 && slug[1] === 'order-confirmation') {
+      return <EcommerceOrderConfirmationPage orderId={slug[2]} token={token} />;
+    }
+    notFound();
+  }
+  if (route === 'cart' && slug.length === 1) {
+    return <CartPage />;
+  }
+  if (route === 'checkout' && slug.length === 1) {
+    return <CheckoutPage />;
+  }
+  if (route === 'track' && slug.length === 1) {
+    return <TrackOrderPage initialOrderId={orderId} initialPhone={phone} initialToken={token} />;
   }
 
   // 4.68. Pet NFC Profile Routes (e.g. /p/[profileId] and /t/[profileId] redirect)
