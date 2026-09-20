@@ -279,10 +279,12 @@ export default function ShopPage({ initialCategory, initialCollection }: ShopPag
           <div className="text-center py-24 border border-dashed border-white/15 rounded-2xl bg-white/5">
             <LucideIcon name="Package" className="h-10 w-10 text-zinc-500 mx-auto mb-3" />
             <h3 className="text-lg font-bold uppercase tracking-wider text-white">
-              No products found
+              {selectedType === 'affiliate' ? 'No curated partner finds yet' : 'No products found'}
             </h3>
             <p className="text-xs text-zinc-400 mt-1">
-              Try adjusting your category filters or search terms.
+              {selectedType === 'affiliate'
+                ? 'We are reviewing new recommendations. Please check back soon.'
+                : 'Try adjusting your category filters or search terms.'}
             </p>
             <button
               onClick={() => {
@@ -438,6 +440,11 @@ export default function ShopPage({ initialCategory, initialCollection }: ShopPag
             })}
           </div>
         )}
+
+        <p className="mt-12 text-center text-[11px] leading-relaxed text-zinc-500">
+          Some products are recommended through partner links. If you purchase through one of these links,
+          FeelsNeat may earn a commission at no extra cost to you.
+        </p>
       </div>
     </main>
   );

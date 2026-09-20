@@ -17,7 +17,11 @@ export async function GET(req: NextRequest) {
     // Single product lookup
     if (productSlug) {
       const product = db.products.find(
-        (p) => p.slug === productSlug && p.status === 'ACTIVE'
+        (p) =>
+          p.slug === productSlug &&
+          p.status === 'ACTIVE' &&
+          (p.fulfillmentType !== 'AFFILIATE' ||
+            (p.affiliateDetails?.affiliateUrl && /^https:\/\//i.test(p.affiliateDetails.affiliateUrl)))
       );
       if (!product) {
         return NextResponse.json({ error: 'Product not found' }, { status: 404 });
@@ -72,7 +76,12 @@ export async function GET(req: NextRequest) {
     }
 
     // Filter active products
-    let items = db.products.filter((p) => p.status === 'ACTIVE');
+    let items = db.products.filter(
+      (p) =>
+        p.status === 'ACTIVE' &&
+        (p.fulfillmentType !== 'AFFILIATE' ||
+          (p.affiliateDetails?.affiliateUrl && /^https:\/\//i.test(p.affiliateDetails.affiliateUrl)))
+    );
 
     if (categorySlug) {
       const cat = db.categories.find((c) => c.slug === categorySlug);

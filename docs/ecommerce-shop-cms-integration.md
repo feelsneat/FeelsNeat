@@ -70,6 +70,8 @@ The site records outbound clicks and displays estimated affiliate reference valu
 
 Affiliate products bypass the FeelsNeat cart and checkout. They do not require Cashfree or AliShipping credentials.
 
+For production publication, the affiliate destination must be a valid public `https://` URL. Products with missing, invalid, or non-HTTPS affiliate destinations are rejected when saved as `ACTIVE` and are excluded from the public catalog until corrected.
+
 ### Dropship Product Workflow
 
 Dropship products require Cashfree for prepaid payment and a live/manual AliShipping fulfillment process before they should be activated.
@@ -216,6 +218,7 @@ If a product should be hidden later, use:
 - `src/lib/ecommerce-db-dev.json` is not synchronized to production.
 - Never copy placeholder/demo affiliate URLs into the production catalog.
 - Verify every partner URL, disclosure, price label, and merchant name before publishing.
+- The first production smoke test should publish one real affiliate product, verify its detail page and tracked redirect, and confirm the click count in Shop CMS.
 
 ## Current Admin Page Behavior
 

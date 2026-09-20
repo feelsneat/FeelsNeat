@@ -110,10 +110,35 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: 'Product title and SKU are required.' }, { status: 400 });
       }
       if (productData.fulfillmentType === 'AFFILIATE') {
-        const affiliateUrl = productData.affiliateDetails?.affiliateUrl;
-        if (!affiliateUrl || !/^https?:\/\//i.test(affiliateUrl)) {
-          return NextResponse.json({ error: 'A valid affiliate URL is required.' }, { status: 400 });
+        const affiliateDetails = productData.affiliateDetails;
+        const affiliateUrl = affiliateDetails?.affiliateUrl;
+        const merchantName = affiliateDetails?.merchantName?.trim();
+        const platform = affiliateDetails?.platform;
+        let parsedAffiliateUrl: URL | null = null;
+        try {
+          parsedAffiliateUrl = affiliateUrl ? new URL(affiliateUrl) : null;
+        } catch {
+          parsedAffiliateUrl = null;
         }
+        if (
+          !parsedAffiliateUrl ||
+          !['http:', 'https:'].includes(parsedAffiliateUrl.protocol) ||
+          !parsedAffiliateUrl.hostname ||
+          !merchantName ||
+          !platform ||
+          (productData.status === 'ACTIVE' && parsedAffiliateUrl.protocol !== 'https:')
+        ) {
+          return NextResponse.json(
+            { error: 'Affiliate products require a valid HTTPS URL, platform, and merchant name.' },
+            { status: 400 }
+          );
+        }
+        productData.affiliateDetails = {
+          ...affiliateDetails,
+          affiliateUrl: parsedAffiliateUrl.toString(),
+          merchantName,
+          platform,
+        };
         productData.inventorySource = 'OWNED';
         productData.stockQuantity = 0;
       }

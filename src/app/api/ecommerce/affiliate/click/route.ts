@@ -20,17 +20,15 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: 'Affiliate product not found or missing URL.' }, { status: 404 });
     }
 
-    // Increment click count
-    if (!product.affiliateDetails.clickCount) {
-      product.affiliateDetails.clickCount = 1;
-    } else {
-      product.affiliateDetails.clickCount += 1;
+    const destination = product.affiliateDetails.affiliateUrl;
+    if (!/^https:\/\//i.test(destination)) {
+      return NextResponse.json({ error: 'Affiliate destination is not production-ready.' }, { status: 409 });
     }
 
+    // Increment click count only after validating the production destination.
+    product.affiliateDetails.clickCount = (product.affiliateDetails.clickCount || 0) + 1;
     product.updatedAt = new Date().toISOString();
     await saveEcommerceDb(req.url, db);
-
-    const destination = product.affiliateDetails.affiliateUrl;
 
     if (redirectParam) {
       return NextResponse.redirect(destination, 302);
