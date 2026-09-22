@@ -29,43 +29,33 @@ export const initialEcommerceSettings: EcommerceSettings = {
 
 export const initialCategories: Category[] = [
   {
-    id: 'cat-home-living',
-    name: 'Home & Living',
-    slug: 'home-living',
-    description: 'Minimalist objects and thoughtful design pieces for intentional living.',
+    id: 'cat-home',
+    name: 'Home',
+    slug: 'home',
+    description: 'Thoughtful objects and design pieces for intentional spaces.',
     parentId: null,
     image: 'https://images.unsplash.com/photo-1513519245088-0e12902e5a38?q=80&w=800',
     order: 1,
     active: true,
   },
   {
-    id: 'cat-lighting',
-    name: 'Lighting',
-    slug: 'lighting',
-    description: 'Ambient wireless and sculptural lighting for calm spaces.',
-    parentId: 'cat-home-living',
-    image: 'https://images.unsplash.com/photo-1507473885765-e6ed057f782c?q=80&w=800',
+    id: 'cat-tech',
+    name: 'Tech',
+    slug: 'tech',
+    description: 'Useful technology and smart tools for work and everyday life.',
+    parentId: null,
+    image: 'https://images.unsplash.com/photo-1527864550417-7fd91fc51a46?q=80&w=800',
     order: 2,
     active: true,
   },
   {
-    id: 'cat-desk-setup',
-    name: 'Desk Setup',
-    slug: 'desk-setup',
-    description: 'Ergonomic surfaces, cable management, and tactile desk essentials.',
-    parentId: 'cat-home-living',
+    id: 'cat-accessories',
+    name: 'Accessories',
+    slug: 'accessories',
+    description: 'Practical finishing touches for desks, rooms, and daily routines.',
+    parentId: null,
     image: 'https://images.unsplash.com/photo-1527864550417-7fd91fc51a46?q=80&w=800',
     order: 3,
-    active: true,
-  },
-  {
-    id: 'cat-storage',
-    name: 'Storage & Trays',
-    slug: 'storage',
-    description: 'Everyday carry organizers, valet trays, and modular desktop compartments.',
-    parentId: 'cat-home-living',
-    image: 'https://images.unsplash.com/photo-1583847268964-b28dc8f51f92?q=80&w=800',
-    order: 4,
     active: true,
   },
 ];
@@ -96,15 +86,6 @@ export const initialCollections: Collection[] = [
     description: 'Currently popular aesthetic workspace upgrades.',
     image: 'https://images.unsplash.com/photo-1527864550417-7fd91fc51a46?q=80&w=800',
     order: 3,
-    active: true,
-  },
-  {
-    id: 'col-under-999',
-    name: 'Under ₹999',
-    slug: 'under-999',
-    description: 'Accessible designer additions under ₹999.',
-    image: 'https://images.unsplash.com/photo-1583847268964-b28dc8f51f92?q=80&w=800',
-    order: 4,
     active: true,
   },
 ];
@@ -216,7 +197,7 @@ export const initialProducts: Product[] = [
 Engineered with an aviation-grade aluminum unibody, stepless capacitive touch dimming, and a high-density rechargeable battery that provides up to 24 hours of continuous glow on a single USB-C charge.
     
 Perfect for nightstands, coffee tables, dining settings, or reading nooks.`,
-    categoryId: 'cat-lighting',
+    categoryId: 'cat-home',
     collectionIds: ['col-new-arrivals', 'col-best-sellers'],
     brand: 'FeelsNeat',
     tags: ['Lighting', 'Minimalist', 'Wireless', 'Rechargeable', 'Desk'],
@@ -262,8 +243,8 @@ Perfect for nightstands, coffee tables, dining settings, or reading nooks.`,
     description: `Redefine your workspace with the FeelsNeat Minimalist Desk Mat. Crafted with premium textured vegan leather on the front and non-slip felt suede on the reverse.
     
 Provides smooth precision tracking for optical mice, cushions your wrists during long focus sessions, and protects your desk surface from scratches and hot mugs.`,
-    categoryId: 'cat-desk-setup',
-    collectionIds: ['col-best-sellers', 'col-under-999'],
+    categoryId: 'cat-accessories',
+    collectionIds: ['col-best-sellers'],
     brand: 'FeelsNeat',
     tags: ['Desk Setup', 'Workspace', 'Accessories', 'Vegan Leather'],
     sku: 'FN-MAT-001',
@@ -354,8 +335,8 @@ Provides smooth precision tracking for optical mice, cushions your wrists during
     description: `Stop picking cables off the floor. The FeelsNeat Magnetic Cable Management Tray keeps charging cables neatly anchored exactly where you need them.
     
 Features a solid weighted metal base and 3 modular magnetic collars compatible with USB-C, Lightning, and braided power cords.`,
-    categoryId: 'cat-storage',
-    collectionIds: ['col-under-999', 'col-trending'],
+    categoryId: 'cat-accessories',
+    collectionIds: ['col-trending'],
     brand: 'FeelsNeat',
     tags: ['Cable Management', 'Desk Setup', 'Organization'],
     sku: 'FN-CAB-001',
@@ -400,7 +381,7 @@ Features a solid weighted metal base and 3 modular magnetic collars compatible w
 Engineered with Gateron G Pro mechanical switches, wireless Bluetooth 5.1 multi-device pairing (up to 3 devices), seamless Mac & Windows physical switch toggles, and a massive 4000mAh battery that delivers up to 240 hours of typing.
     
 Finished with double-shot keycaps and an anodized aluminum frame for a sturdy, resonance-dampened sound profile.`,
-    categoryId: 'cat-desk-setup',
+    categoryId: 'cat-tech',
     collectionIds: ['col-trending', 'col-best-sellers'],
     brand: 'Keychron',
     tags: ['Mechanical Keyboard', 'Wireless', 'Desk Setup', 'Productivity'],
@@ -444,7 +425,7 @@ Finished with double-shot keycaps and an anodized aluminum frame for a sturdy, r
 Handmade from a single slab of sustainable American black walnut with subtle organic grain variations, sealed with natural hardwax oil for lasting spill and scratch protection.
     
 Features integrated cork-backed feet that protect your desk surface and an open undercarriage sized specifically to stow a 16-inch laptop or keyboard when not in use.`,
-    categoryId: 'cat-desk-setup',
+    categoryId: 'cat-home',
     collectionIds: ['col-new-arrivals', 'col-best-sellers'],
     brand: 'Artisan Woodcraft',
     tags: ['Walnut', 'Desk Shelf', 'Ergonomics', 'Artisan'],

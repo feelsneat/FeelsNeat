@@ -18,9 +18,9 @@ export default function ShopPage({ initialCategory, initialCollection }: ShopPag
 
   const [selectedCategory, setSelectedCategory] = useState<string>(initialCategory || 'all');
   const [selectedCollection, setSelectedCollection] = useState<string>(initialCollection || 'all');
-  const [selectedType, setSelectedType] = useState<'all' | 'dropship' | 'affiliate'>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [sortOption, setSortOption] = useState<'featured' | 'price_asc' | 'price_desc'>('featured');
+  const [showFilters, setShowFilters] = useState(false);
   const [addedToast, setAddedToast] = useState<string | null>(null);
 
   useEffect(() => {
@@ -30,7 +30,6 @@ export default function ShopPage({ initialCategory, initialCollection }: ShopPag
         const params = new URLSearchParams();
         if (selectedCategory !== 'all') params.set('category', selectedCategory);
         if (selectedCollection !== 'all') params.set('collection', selectedCollection);
-        if (selectedType !== 'all') params.set('type', selectedType);
         if (searchQuery.trim()) params.set('search', searchQuery.trim());
         if (sortOption !== 'featured') params.set('sort', sortOption);
 
@@ -49,7 +48,7 @@ export default function ShopPage({ initialCategory, initialCollection }: ShopPag
     }
 
     loadShopData();
-  }, [selectedCategory, selectedCollection, selectedType, searchQuery, sortOption]);
+  }, [selectedCategory, selectedCollection, searchQuery, sortOption]);
 
   const handleQuickAdd = (product: any, e: React.MouseEvent) => {
     e.preventDefault();
@@ -89,6 +88,23 @@ export default function ShopPage({ initialCategory, initialCollection }: ShopPag
       window.location.href = `/shop/product/${product.slug}`;
     }
   };
+
+  const activeFilterCount = [
+    selectedCategory !== 'all',
+    selectedCollection !== 'all',
+  ].filter(Boolean).length;
+
+  const resetFilters = () => {
+    setSelectedCategory('all');
+    setSelectedCollection('all');
+    setSearchQuery('');
+    setSortOption('featured');
+  };
+
+  const selectedCategoryName =
+    categories.find((category) => category.slug === selectedCategory)?.name;
+  const selectedCollectionName =
+    collections.find((collection) => collection.slug === selectedCollection)?.name;
 
   return (
     <main className="min-h-screen bg-[#0A0A0C] text-[#F4F4F5] pt-28 pb-24 px-4 sm:px-6 lg:px-12 relative overflow-hidden">
@@ -143,12 +159,10 @@ export default function ShopPage({ initialCategory, initialCollection }: ShopPag
           </div>
         </div>
 
-        {/* Filter Controls Row */}
-        <div className="space-y-6 mb-12">
-          {/* Search bar & Sorting */}
-          <div className="flex flex-col sm:flex-row gap-4 justify-between items-center">
-            {/* Search Input */}
-            <div className="relative w-full sm:max-w-md">
+        {/* Filter Controls */}
+        <div className="mb-12 rounded-2xl border border-white/10 bg-white/[0.025] p-3 sm:p-4">
+          <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
+            <div className="relative min-w-0 flex-1">
               <LucideIcon
                 name="Search"
                 className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-400"
@@ -170,100 +184,122 @@ export default function ShopPage({ initialCategory, initialCollection }: ShopPag
               )}
             </div>
 
-            {/* Sorting Select */}
-            <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
-              <span className="text-xs font-bold text-zinc-400 uppercase tracking-wider whitespace-nowrap">
-                Sort By:
-              </span>
-              <select
-                value={sortOption}
-                onChange={(e) => setSortOption(e.target.value as any)}
-                className="h-11 px-3 rounded-xl bg-white/5 border border-white/15 text-xs font-bold uppercase tracking-wider text-white focus:outline-none focus:border-[#E30613] cursor-pointer"
-              >
-                <option value="featured" className="bg-[#0A0A0C]">Featured</option>
-                <option value="price_asc" className="bg-[#0A0A0C]">Price: Low to High</option>
-                <option value="price_desc" className="bg-[#0A0A0C]">Price: High to Low</option>
-              </select>
+            <div className="flex w-full gap-3 sm:w-auto">
+                <select
+                  value={sortOption}
+                  onChange={(e) => setSortOption(e.target.value as any)}
+                  aria-label="Sort products"
+                  className="h-11 min-w-0 flex-1 rounded-xl bg-white/5 border border-white/15 px-3 text-xs font-bold uppercase tracking-wider text-white focus:outline-none focus:border-[#E30613] cursor-pointer sm:w-48 sm:flex-none"
+                >
+                  <option value="featured" className="bg-[#0A0A0C]">Featured</option>
+                  <option value="price_asc" className="bg-[#0A0A0C]">Price: Low to High</option>
+                  <option value="price_desc" className="bg-[#0A0A0C]">Price: High to Low</option>
+                </select>
+
+                <button
+                  type="button"
+                  onClick={() => setShowFilters((open) => !open)}
+                  aria-expanded={showFilters}
+                  className={`inline-flex h-11 items-center justify-center gap-2 rounded-xl border px-4 text-xs font-black uppercase tracking-wider transition-colors ${
+                    showFilters || activeFilterCount > 0
+                      ? 'border-[#E30613]/60 bg-[#E30613]/10 text-white'
+                      : 'border-white/15 bg-white/5 text-zinc-300 hover:border-white/30 hover:text-white'
+                  }`}
+                >
+                  <LucideIcon name="SlidersHorizontal" className="h-4 w-4" />
+                  <span>Filters</span>
+                  {activeFilterCount > 0 && (
+                    <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-[#E30613] px-1.5 text-[10px] text-white">
+                      {activeFilterCount}
+                    </span>
+                  )}
+                </button>
             </div>
           </div>
 
-          {/* Product Type Toggle */}
-          <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
-            <span className="text-[10px] font-black uppercase tracking-widest text-[#E30613] mr-2 whitespace-nowrap">Browse:</span>
-            {(['all', 'dropship', 'affiliate'] as const).map((type) => (
-              <button
-                key={type}
-                onClick={() => setSelectedType(type)}
-                className={`px-4 py-2 rounded-lg text-xs font-black uppercase tracking-wider transition-all whitespace-nowrap cursor-pointer ${
-                  selectedType === type
-                    ? 'bg-[#E30613] text-white shadow-sm'
-                    : 'bg-white/5 border border-white/10 text-zinc-400 hover:text-white hover:border-white/20'
-                }`}
-              >
-                {type === 'all' ? 'All Items' : type === 'dropship' ? 'FeelsNeat Fulfilled' : 'Curated Partner Deals'}
-              </button>
-            ))}
-          </div>
-
-          {/* Category Filter Pills */}
-          <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
-            <button
-              onClick={() => setSelectedCategory('all')}
-              className={`px-4 py-2 rounded-lg text-xs font-black uppercase tracking-wider transition-all whitespace-nowrap cursor-pointer ${
-                selectedCategory === 'all'
-                  ? 'bg-white text-black shadow-sm'
-                  : 'bg-white/5 border border-white/10 text-zinc-400 hover:text-white hover:border-white/20'
-              }`}
-            >
-              All Categories
-            </button>
-            {categories.map((cat) => (
-              <button
-                key={cat.id}
-                onClick={() => setSelectedCategory(cat.slug)}
-                className={`px-4 py-2 rounded-lg text-xs font-black uppercase tracking-wider transition-all whitespace-nowrap cursor-pointer ${
-                  selectedCategory === cat.slug
-                    ? 'bg-white text-black shadow-sm'
-                    : 'bg-white/5 border border-white/10 text-zinc-400 hover:text-white hover:border-white/20'
-                }`}
-              >
-                {cat.name}
-              </button>
-            ))}
-          </div>
-
-          {/* Collection Tabs */}
-          {collections.length > 0 && (
-            <div className="flex items-center gap-2 border-t border-white/5 pt-4 overflow-x-auto pb-2 scrollbar-none">
-              <span className="text-[10px] font-black uppercase tracking-widest text-[#E30613] mr-2 whitespace-nowrap">
-                Collections:
-              </span>
-              <button
-                onClick={() => setSelectedCollection('all')}
-                className={`px-3 py-1.5 rounded-md text-[11px] font-bold uppercase tracking-wider transition-colors whitespace-nowrap cursor-pointer ${
-                  selectedCollection === 'all'
-                    ? 'bg-[#E30613] text-white'
-                    : 'text-zinc-400 hover:text-white'
-                }`}
-              >
-                All
-              </button>
-              {collections.map((col) => (
+          {(searchQuery || activeFilterCount > 0 || sortOption !== 'featured') && (
+            <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-white/10 pt-3">
+                <span className="mr-1 text-[10px] font-black uppercase tracking-widest text-zinc-500">
+                  Showing
+                </span>
+                {searchQuery && (
+                  <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[11px] text-zinc-300">
+                    “{searchQuery}”
+                  </span>
+                )}
+                {selectedCategoryName && (
+                  <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[11px] text-zinc-300">
+                    {selectedCategoryName}
+                  </span>
+                )}
+                {selectedCollectionName && (
+                  <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[11px] text-zinc-300">
+                    {selectedCollectionName}
+                  </span>
+                )}
                 <button
-                  key={col.id}
-                  onClick={() => setSelectedCollection(col.slug)}
-                  className={`px-3 py-1.5 rounded-md text-[11px] font-bold uppercase tracking-wider transition-colors whitespace-nowrap cursor-pointer ${
-                    selectedCollection === col.slug
-                      ? 'bg-[#E30613] text-white'
-                      : 'text-zinc-400 hover:text-white'
-                  }`}
+                  type="button"
+                  onClick={resetFilters}
+                  className="ml-auto text-[10px] font-black uppercase tracking-widest text-[#E30613] hover:text-white"
                 >
-                  {col.name}
+                  Clear all
                 </button>
-              ))}
+            </div>
+          )}
+
+          {showFilters && (
+            <div className="mt-3 grid gap-3 border-t border-white/10 pt-4 sm:grid-cols-2">
+                <label className="flex flex-col gap-2">
+                  <span className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Category</span>
+                  <select
+                    value={selectedCategory}
+                    onChange={(e) => setSelectedCategory(e.target.value)}
+                    className="h-10 rounded-lg border border-white/15 bg-white/5 px-3 text-xs font-bold text-white outline-none focus:border-[#E30613]"
+                  >
+                    <option value="all" className="bg-[#0A0A0C]">All categories</option>
+                    {categories.map((category) => (
+                      <option key={category.id} value={category.slug} className="bg-[#0A0A0C]">
+                        {category.name}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <label className="flex flex-col gap-2">
+                  <span className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Collection</span>
+                  <select
+                    value={selectedCollection}
+                    onChange={(e) => setSelectedCollection(e.target.value)}
+                    className="h-10 rounded-lg border border-white/15 bg-white/5 px-3 text-xs font-bold text-white outline-none focus:border-[#E30613]"
+                  >
+                    <option value="all" className="bg-[#0A0A0C]">All collections</option>
+                    {collections.map((collection) => (
+                      <option key={collection.id} value={collection.slug} className="bg-[#0A0A0C]">
+                        {collection.name}
+                      </option>
+                    ))}
+                  </select>
+                </label>
             </div>
           )}
         </div>
+
+        {!loading && (
+          <div className="mb-5 flex items-center justify-between gap-4 text-xs text-zinc-500">
+            <span>
+              {products.length} {products.length === 1 ? 'result' : 'results'}
+              {searchQuery.trim() ? ` for “${searchQuery.trim()}”` : ''}
+            </span>
+            {(selectedCategory !== 'all' || selectedCollection !== 'all') && (
+              <button
+                type="button"
+                onClick={resetFilters}
+                className="font-bold uppercase tracking-wider text-zinc-400 hover:text-white"
+              >
+                Clear filters
+              </button>
+            )}
+          </div>
+        )}
 
         {/* Products Grid */}
         {loading ? (
@@ -279,12 +315,10 @@ export default function ShopPage({ initialCategory, initialCollection }: ShopPag
           <div className="text-center py-24 border border-dashed border-white/15 rounded-2xl bg-white/5">
             <LucideIcon name="Package" className="h-10 w-10 text-zinc-500 mx-auto mb-3" />
             <h3 className="text-lg font-bold uppercase tracking-wider text-white">
-              {selectedType === 'affiliate' ? 'No curated partner finds yet' : 'No products found'}
+              No products found
             </h3>
             <p className="text-xs text-zinc-400 mt-1">
-              {selectedType === 'affiliate'
-                ? 'We are reviewing new recommendations. Please check back soon.'
-                : 'Try adjusting your category filters or search terms.'}
+              Try adjusting your search or filters.
             </p>
             <button
               onClick={() => {

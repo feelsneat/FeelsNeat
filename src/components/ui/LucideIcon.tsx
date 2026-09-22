@@ -1,7 +1,7 @@
 import { 
   X, Menu, Link, Feather, ArrowRight, ArrowUpRight, ExternalLink, BookOpen, 
   Briefcase, Cpu, Paintbrush, Code, ArrowLeft, Globe, 
-  Settings, FileText, Bookmark, Check, AlertCircle, AlertTriangle, ShieldAlert, Trash2, Mail, HelpCircle
+  Settings, SlidersHorizontal, FileText, Bookmark, Check, AlertCircle, AlertTriangle, ShieldAlert, Trash2, Mail, HelpCircle
 } from 'lucide-react';
 
 interface LucideIconProps extends React.ComponentPropsWithoutRef<'svg'> {
@@ -13,7 +13,7 @@ interface LucideIconProps extends React.ComponentPropsWithoutRef<'svg'> {
 const iconsMap: Record<string, React.ComponentType<any>> = {
   X, Menu, Link, Feather, ArrowRight, ArrowUpRight, ExternalLink, BookOpen, 
   Briefcase, Cpu, Paintbrush, Code, ArrowLeft, Globe, 
-  Settings, FileText, Bookmark, Check, AlertCircle, AlertTriangle, ShieldAlert, Trash2, Mail, HelpCircle
+  Settings, SlidersHorizontal, FileText, Bookmark, Check, AlertCircle, AlertTriangle, ShieldAlert, Trash2, Mail, HelpCircle
 };
 
 // Custom SVG components for brand/social icons absent in this version of lucide-react
