@@ -44,7 +44,7 @@ interface PageProps {
   }>;
 }
 
-export async function generateMetadata({ params }: { params: Promise<{ slug?: string[] }> }) {
+async function generateRouteMetadata({ params }: { params: Promise<{ slug?: string[] }> }) {
   const { slug } = await params;
   const settings = await getSettings();
   
@@ -196,6 +196,11 @@ export async function generateMetadata({ params }: { params: Promise<{ slug?: st
   if (route === 'admin') return { title: `CMS Admin | ${settings.siteName}` };
   
   return { title: settings.siteName };
+}
+
+export async function generateMetadata(args: { params: Promise<{ slug?: string[] }> }) {
+  const metadata = await generateRouteMetadata(args);
+  return { ...metadata, title: { absolute: 'FeelsNeat' } };
 }
 
 export default async function CatchAllPage({ params, searchParams }: PageProps) {

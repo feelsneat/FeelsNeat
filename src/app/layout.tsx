@@ -20,8 +20,8 @@ export async function generateMetadata(): Promise<Metadata> {
   const settings = await getSettings();
   return {
     title: {
-      default: settings.siteTitle,
-      template: `%s | ${settings.siteName}`
+      default: "FeelsNeat",
+      template: "FeelsNeat"
     },
     description: settings.siteDescription,
     openGraph: {
