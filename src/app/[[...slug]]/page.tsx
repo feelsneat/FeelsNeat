@@ -29,7 +29,7 @@ import CheckoutPage from '@/components/pages/Checkout';
 import EcommerceOrderConfirmationPage from '@/components/pages/OrderConfirmation';
 import TrackOrderPage from '@/components/pages/TrackOrder';
 
-export const runtime = 'edge';
+export const runtime = 'nodejs';
 
 interface PageProps {
   params: Promise<{
