@@ -6,6 +6,8 @@ import { Footer } from "@/components/layout/Footer";
 import { ScrollObserver } from "@/components/layout/ScrollObserver";
 import { getSettings, getNavigation } from "@/lib/cms";
 
+export const runtime = "edge";
+
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
