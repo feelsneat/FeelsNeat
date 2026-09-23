@@ -3,6 +3,10 @@
 import { useState, useEffect } from 'react';
 import { LucideIcon } from '../ui/LucideIcon';
 
+const AFFILIATE_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
+const AFFILIATE_MAX_IMAGE_BYTES = 5 * 1024 * 1024;
+const AFFILIATE_MAX_IMAGES = 8;
+
 interface AdminDashboardProps {
   userEmail: string;
 }
@@ -401,7 +405,7 @@ export function AdminDashboard({ userEmail }: AdminDashboardProps) {
     description: product?.description || '',
     sellingPrice: product?.sellingPrice ?? '',
     compareAtPrice: product?.compareAtPrice ?? '',
-    image: product?.images?.[0] || '',
+    images: Array.isArray(product?.images) ? product.images : [],
     affiliateUrl: product?.affiliateDetails?.affiliateUrl || '',
     platform: product?.affiliateDetails?.platform || 'CUSTOM',
     merchantName: product?.affiliateDetails?.merchantName || '',
@@ -411,6 +415,45 @@ export function AdminDashboard({ userEmail }: AdminDashboardProps) {
     status: product?.status || 'DRAFT',
     categoryId: product?.categoryId || ecommerceData.categories?.[0]?.id || '',
   });
+
+  const handleAffiliateImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(event.target.files || []);
+    event.target.value = '';
+    if (!files.length) return;
+    const currentImages: string[] = affiliateProductForm?.images || [];
+    if (currentImages.length + files.length > AFFILIATE_MAX_IMAGES) {
+      alert(`You can add up to ${AFFILIATE_MAX_IMAGES} images.`);
+      return;
+    }
+    const invalid = files.find((file) => !AFFILIATE_IMAGE_TYPES.includes(file.type) || file.size > AFFILIATE_MAX_IMAGE_BYTES);
+    if (invalid) {
+      alert('Images must be JPG, JPEG, PNG, or WEBP and no larger than 5 MB each.');
+      return;
+    }
+    Promise.all(files.map((file) => new Promise<string>((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(String(reader.result));
+      reader.onerror = () => reject(new Error('Could not read image.'));
+      reader.readAsDataURL(file);
+    }))).then((newImages) => {
+      setAffiliateProductForm((prev: any) => ({ ...prev, images: [...(prev.images || []), ...newImages] }));
+    }).catch(() => alert('Could not read one of the selected images.'));
+  };
+
+  const removeAffiliateImage = (index: number) => {
+    setAffiliateProductForm((prev: any) => ({
+      ...prev,
+      images: (prev.images || []).filter((_: string, imageIndex: number) => imageIndex !== index),
+    }));
+  };
+
+  const setPrimaryAffiliateImage = (index: number) => {
+    setAffiliateProductForm((prev: any) => {
+      const images = [...(prev.images || [])];
+      const [primary] = images.splice(index, 1);
+      return { ...prev, images: [primary, ...images] };
+    });
+  };
 
   const handleSaveAffiliateProduct = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -436,7 +479,7 @@ export function AdminDashboard({ userEmail }: AdminDashboardProps) {
       sellingPrice: Number(form.sellingPrice) || 0,
       compareAtPrice: form.compareAtPrice === '' ? undefined : Number(form.compareAtPrice),
       costPrice: undefined,
-      images: form.image ? [form.image.trim()] : [],
+      images: (form.images || []).filter((image: string) => image.trim()),
       hasVariants: false,
       variants: [],
       status: form.status,
@@ -1160,7 +1203,6 @@ export function AdminDashboard({ userEmail }: AdminDashboardProps) {
                             ['sellingPrice', 'Reference price (₹)', 'number', false],
                             ['compareAtPrice', 'Compare at (₹)', 'number', false],
                             ['commissionRatePercent', 'Commission (%)', 'number', false],
-                            ['image', 'Image URL', 'url', false],
                           ].map(([key, label, type, required]) => (
                             <label key={key as string} className="text-[10px] font-black uppercase tracking-wider text-zinc-500">
                               {label as string}
@@ -1183,6 +1225,36 @@ export function AdminDashboard({ userEmail }: AdminDashboardProps) {
                               {['DRAFT', 'ACTIVE', 'UNPUBLISHED', 'ARCHIVED'].map((status) => <option key={status}>{status}</option>)}
                             </select>
                           </label>
+                        </div>
+                        <div className="rounded-lg border border-dashed border-zinc-300 bg-white p-3">
+                          <div className="flex items-center justify-between gap-3">
+                            <label className="text-[10px] font-black uppercase tracking-wider text-zinc-500">
+                              Product images
+                              <span className="ml-2 normal-case font-semibold text-zinc-400">JPG, PNG, WEBP · 5 MB each · first is primary</span>
+                              <input
+                                type="file"
+                                accept="image/jpeg,image/png,image/webp"
+                                multiple
+                                onChange={handleAffiliateImageUpload}
+                                className="mt-2 block w-full text-xs normal-case text-zinc-600 file:mr-2 file:rounded-md file:border-0 file:bg-zinc-900 file:px-2 file:py-1.5 file:text-[10px] file:font-bold file:text-white"
+                              />
+                            </label>
+                          </div>
+                          {(affiliateProductForm.images || []).length > 0 && (
+                            <div className="mt-3 grid grid-cols-3 sm:grid-cols-5 gap-2">
+                              {(affiliateProductForm.images || []).map((image: string, index: number) => (
+                                <div key={`${image.slice(0, 24)}-${index}`} className="relative overflow-hidden rounded-lg border border-zinc-200 bg-zinc-50">
+                                  <img src={image} alt={`Product image ${index + 1}`} className="aspect-square w-full object-cover" />
+                                  <div className="absolute inset-x-0 bottom-0 flex items-center justify-between gap-1 bg-black/65 p-1">
+                                    <button type="button" onClick={() => setPrimaryAffiliateImage(index)} disabled={index === 0} className="text-[8px] font-bold text-white disabled:text-emerald-300">
+                                      {index === 0 ? 'Primary' : 'Make primary'}
+                                    </button>
+                                    <button type="button" onClick={() => removeAffiliateImage(index)} className="text-[8px] font-bold text-red-200 hover:text-white">Remove</button>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          )}
                         </div>
                         <label className="block text-[10px] font-black uppercase tracking-wider text-zinc-500">Affiliate URL
                           <input type="url" required value={affiliateProductForm.affiliateUrl} onChange={(e) => setAffiliateProductForm((prev: any) => ({ ...prev, affiliateUrl: e.target.value }))} className="mt-1 w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-xs font-semibold normal-case text-zinc-800" />

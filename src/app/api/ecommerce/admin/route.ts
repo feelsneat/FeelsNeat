@@ -7,6 +7,47 @@ import { getFulfillmentProvider } from '@/lib/ecommerce/fulfillment/mock';
 
 export const runtime = 'edge';
 
+const MAX_PRODUCT_IMAGES = 8;
+const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
+const MAX_IMAGE_DATA_BYTES = 20 * 1024 * 1024;
+const ALLOWED_IMAGE_MIME_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp']);
+
+function validateProductImages(images: unknown): string[] | null {
+  if (images === undefined) return [];
+  if (!Array.isArray(images) || images.length > MAX_PRODUCT_IMAGES) return null;
+  let totalDataBytes = 0;
+  for (const image of images) {
+    if (typeof image !== 'string' || image.length === 0) return null;
+    if (image.startsWith('data:')) {
+      const match = image.match(/^data:(image\/(?:jpeg|png|webp));base64,([A-Za-z0-9+/=\s]+)$/);
+      if (!match || !ALLOWED_IMAGE_MIME_TYPES.has(match[1])) return null;
+      const base64 = match[2].replace(/\s/g, '');
+      const bytes = Math.floor((base64.length * 3) / 4) - (base64.endsWith('==') ? 2 : base64.endsWith('=') ? 1 : 0);
+      if (bytes < 1 || bytes > MAX_IMAGE_BYTES) return null;
+      try {
+        const binary = atob(base64);
+        const signature = Array.from(binary.slice(0, 12), (character) => character.charCodeAt(0));
+        const isJpeg = match[1] === 'image/jpeg' && signature[0] === 0xff && signature[1] === 0xd8 && signature[2] === 0xff;
+        const isPng = match[1] === 'image/png' && signature.slice(0, 8).join(',') === '137,80,78,71,13,10,26,10';
+        const isWebp = match[1] === 'image/webp' && binary.slice(0, 4) === 'RIFF' && binary.slice(8, 12) === 'WEBP';
+        if (!isJpeg && !isPng && !isWebp) return null;
+      } catch {
+        return null;
+      }
+      totalDataBytes += bytes;
+      if (totalDataBytes > MAX_IMAGE_DATA_BYTES) return null;
+    } else {
+      try {
+        const url = new URL(image);
+        if (!['http:', 'https:'].includes(url.protocol)) return null;
+      } catch {
+        return null;
+      }
+    }
+  }
+  return images;
+}
+
 async function authenticateAdmin(req: NextRequest): Promise<boolean> {
   const sessionCookie = req.cookies.get('feelsneat_session');
   if (!sessionCookie || !sessionCookie.value) return false;
@@ -109,6 +150,14 @@ export async function POST(req: NextRequest) {
       if (!productData || !productData.title || !productData.sku) {
         return NextResponse.json({ error: 'Product title and SKU are required.' }, { status: 400 });
       }
+      const validatedImages = validateProductImages(productData.images);
+      if (!validatedImages) {
+        return NextResponse.json(
+          { error: 'Images must be up to 8 JPG, JPEG, PNG, or WEBP files (5 MB each, 20 MB total), or valid HTTP(S) URLs.' },
+          { status: 400 }
+        );
+      }
+      productData.images = validatedImages;
       if (productData.fulfillmentType === 'AFFILIATE') {
         const affiliateDetails = productData.affiliateDetails;
         const affiliateUrl = affiliateDetails?.affiliateUrl;
