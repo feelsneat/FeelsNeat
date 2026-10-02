@@ -27,6 +27,79 @@ export const initialEcommerceSettings: EcommerceSettings = {
   estimatedRtoCostPerOrder: 30,
 };
 
+const ECOMMERCE_DB_CHUNK_SIZE = 5_000_000;
+const ECOMMERCE_DB_CHUNK_PREFIX = 'ecommerce_db_chunk';
+const ECOMMERCE_DB_MANIFEST_KEY = 'ecommerce_db_manifest';
+const ECOMMERCE_DB_PREVIOUS_GENERATION_RETENTION_MS = 120_000;
+
+interface EcommerceDbGeneration {
+  generation: string;
+  chunkCount: number;
+  retiredAt: number;
+}
+
+interface EcommerceDbManifest extends EcommerceDbGeneration {
+  previous?: EcommerceDbGeneration[];
+}
+
+function splitEcommerceDb(serialized: string): string[] {
+  const chunks: string[] = [];
+  let start = 0;
+
+  while (start < serialized.length) {
+    let end = Math.min(start + ECOMMERCE_DB_CHUNK_SIZE, serialized.length);
+    const lastCodeUnit = serialized.charCodeAt(end - 1);
+    if (end < serialized.length && lastCodeUnit >= 0xd800 && lastCodeUnit <= 0xdbff) {
+      end -= 1;
+    }
+    chunks.push(serialized.slice(start, end));
+    start = end;
+  }
+
+  return chunks;
+}
+
+function parseEcommerceDbManifest(value: string): EcommerceDbManifest {
+  const manifest = JSON.parse(value) as Partial<EcommerceDbManifest>;
+  if (
+    typeof manifest.generation !== 'string' ||
+    !Number.isSafeInteger(manifest.chunkCount) ||
+    (manifest.chunkCount ?? 0) < 1 ||
+    (manifest.chunkCount ?? 0) > 10_000 ||
+    (manifest.previous !== undefined &&
+      (!Array.isArray(manifest.previous) ||
+        manifest.previous.some((generation) =>
+          typeof generation.generation !== 'string' ||
+          !Number.isSafeInteger(generation.chunkCount) ||
+          generation.chunkCount < 1 ||
+          generation.chunkCount > 10_000 ||
+          !Number.isFinite(generation.retiredAt)
+        )))
+  ) {
+    throw new Error('Ecommerce storage manifest is invalid.');
+  }
+  return manifest as EcommerceDbManifest;
+}
+
+async function readEcommerceDbFromKv(kv: any): Promise<unknown> {
+  const manifestValue = await kv.get(ECOMMERCE_DB_MANIFEST_KEY);
+  if (!manifestValue) {
+    const legacyValue = await kv.get('ecommerce_db');
+    return legacyValue ? JSON.parse(legacyValue) : null;
+  }
+
+  const manifest = parseEcommerceDbManifest(manifestValue);
+  const chunks = await Promise.all(
+    Array.from({ length: manifest.chunkCount }, (_, index) =>
+      kv.get(`${ECOMMERCE_DB_CHUNK_PREFIX}:${manifest.generation}:${index}`)
+    )
+  );
+  if (chunks.some((chunk) => typeof chunk !== 'string')) {
+    throw new Error('Ecommerce storage data is incomplete.');
+  }
+  return JSON.parse(chunks.join(''));
+}
+
 export const initialCategories: Category[] = [
   {
     id: 'cat-home',
@@ -539,8 +612,8 @@ export async function loadEcommerceDb(reqUrl: string): Promise<EcommerceDb> {
     const env = context?.env;
     if (env && env.FEELSNEAT_CMS_KV) {
       productionStorageResolved = true;
-      const val = await env.FEELSNEAT_CMS_KV.get('ecommerce_db');
-      if (val) mergeIfDb(JSON.parse(val));
+      const storedDb = await readEcommerceDbFromKv(env.FEELSNEAT_CMS_KV);
+      if (storedDb) mergeIfDb(storedDb);
     }
   } catch (error) {
     if (process.env.NODE_ENV === 'production') {
@@ -575,8 +648,51 @@ export async function saveEcommerceDb(reqUrl: string, db: EcommerceDb) {
     const context = getRequestContext();
     const env = context?.env;
     if (env && env.FEELSNEAT_CMS_KV) {
-      await env.FEELSNEAT_CMS_KV.put('ecommerce_db', JSON.stringify(db));
+      const kv = env.FEELSNEAT_CMS_KV;
+      const oldManifestValue = await kv.get(ECOMMERCE_DB_MANIFEST_KEY);
+      const oldManifest = oldManifestValue ? parseEcommerceDbManifest(oldManifestValue) : null;
+      const now = Date.now();
+      const previous = [
+        ...(oldManifest?.previous || []),
+        ...(oldManifest
+          ? [{
+            generation: oldManifest.generation,
+            chunkCount: oldManifest.chunkCount,
+            retiredAt: now,
+          }]
+          : []),
+      ];
+      const staleGenerations = previous.filter(
+        (generation) => now - generation.retiredAt >= ECOMMERCE_DB_PREVIOUS_GENERATION_RETENTION_MS
+      );
+      const retainedGenerations = previous.filter(
+        (generation) => now - generation.retiredAt < ECOMMERCE_DB_PREVIOUS_GENERATION_RETENTION_MS
+      );
+      const serialized = JSON.stringify(db);
+      const chunks = splitEcommerceDb(serialized);
+      const generation = crypto.randomUUID();
+
+      await Promise.all(chunks.map((chunk, index) =>
+        kv.put(`${ECOMMERCE_DB_CHUNK_PREFIX}:${generation}:${index}`, chunk)
+      ));
+      await kv.put(ECOMMERCE_DB_MANIFEST_KEY, JSON.stringify({
+        generation,
+        chunkCount: chunks.length,
+        retiredAt: now,
+        previous: retainedGenerations,
+      } satisfies EcommerceDbManifest));
       persisted = true;
+
+      const cleanupResults = await Promise.allSettled(
+        staleGenerations.flatMap((stale) =>
+          Array.from({ length: stale.chunkCount }, (_, index) =>
+            kv.delete(`${ECOMMERCE_DB_CHUNK_PREFIX}:${stale.generation}:${index}`)
+          )
+        )
+      );
+      if (cleanupResults.some((result) => result.status === 'rejected')) {
+        console.warn('[Ecommerce DB] Could not clean up all expired KV generations.');
+      }
     }
   } catch (error) {
     if (process.env.NODE_ENV === 'production') {
