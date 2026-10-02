@@ -518,6 +518,25 @@ export function AdminDashboard({ userEmail }: AdminDashboardProps) {
     }
   };
 
+  const handleDeleteEcommerceProduct = async () => {
+    if (!selectedEcommerceProduct) return;
+    if (!confirm(`Permanently delete "${selectedEcommerceProduct.title}"? This cannot be undone.`)) return;
+    try {
+      const res = await fetch('/api/ecommerce/admin', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'delete_product', productId: selectedEcommerceProduct.id }),
+      });
+      const result = await res.json();
+      if (!res.ok) throw new Error(result.error || 'Could not delete product.');
+      setAffiliateProductForm(null);
+      setSelectedEcommerceProductId(null);
+      await loadEcommerceData();
+    } catch (error: any) {
+      alert(error.message || 'Could not delete product.');
+    }
+  };
+
   const beginEcommerceOrderUpdate = (order: any) => {
     setEcommerceOrderUpdate({
       orderStatus: order.orderStatus,
@@ -1381,6 +1400,7 @@ export function AdminDashboard({ userEmail }: AdminDashboardProps) {
                           {selectedEcommerceProduct.fulfillmentType === 'AFFILIATE' && (
                             <button type="button" onClick={() => setAffiliateProductForm(createAffiliateProductForm(selectedEcommerceProduct))} className="rounded-lg border border-zinc-200 bg-white px-3 py-2 text-[10px] font-black uppercase text-zinc-700">Edit affiliate</button>
                           )}
+                          <button type="button" onClick={handleDeleteEcommerceProduct} className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-[10px] font-black uppercase text-red-700">Delete product</button>
                           <button onClick={loadEcommerceData} className="rounded-lg border border-zinc-200 bg-white px-3 py-2 text-[10px] font-black uppercase text-zinc-700">Refresh</button>
                         </div>
                       </div>

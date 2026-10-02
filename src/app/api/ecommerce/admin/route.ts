@@ -234,6 +234,12 @@ export async function POST(req: NextRequest) {
 
     if (action === 'delete_product') {
       const { productId } = body;
+      if (typeof productId !== 'string' || !productId.trim()) {
+        return NextResponse.json({ error: 'A product ID is required.' }, { status: 400 });
+      }
+      if (!db.products.some((product) => product.id === productId)) {
+        return NextResponse.json({ error: 'Product not found.' }, { status: 404 });
+      }
       db.products = db.products.filter((p) => p.id !== productId);
       await saveEcommerceDb(req.url, db);
       return NextResponse.json({ success: true });
