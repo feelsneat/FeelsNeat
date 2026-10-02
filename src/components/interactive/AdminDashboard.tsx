@@ -1217,7 +1217,7 @@ export function AdminDashboard({ userEmail }: AdminDashboardProps) {
                           ))}
                           <label className="text-[10px] font-black uppercase tracking-wider text-zinc-500">Platform
                             <select value={affiliateProductForm.platform} onChange={(e) => setAffiliateProductForm((prev: any) => ({ ...prev, platform: e.target.value }))} className="mt-1 w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-xs font-semibold text-zinc-800">
-                              {['AMAZON', 'ETSY', 'NOTION', 'GUMROAD', 'MANUFACTURER', 'CUSTOM'].map((platform) => <option key={platform}>{platform}</option>)}
+                              {['AMAZON', 'MEESHO'].map((platform) => <option key={platform}>{platform}</option>)}
                             </select>
                           </label>
                           <label className="text-[10px] font-black uppercase tracking-wider text-zinc-500">Status

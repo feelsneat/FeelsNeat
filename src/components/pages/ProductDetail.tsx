@@ -200,7 +200,7 @@ export default function ProductDetailPage({ slug }: ProductDetailPageProps) {
                 <span>SKU: {currentSku}</span>
                 <span className="inline-flex items-center gap-1.5 text-emerald-400 text-[11px] font-sans">
                   <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
-                  In Stock ({currentStock} available)
+                  {isAffiliate ? 'In Stock' : `In Stock (${currentStock} available)`}
                 </span>
               </div>
 

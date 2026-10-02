@@ -4,7 +4,7 @@ export type InventorySource = 'OWNED' | 'SUPPLIER';
 
 export type FulfillmentType = 'DROPSHIP' | 'AFFILIATE' | 'DIRECT';
 
-export type AffiliatePlatform = 'AMAZON' | 'ETSY' | 'NOTION' | 'GUMROAD' | 'MANUFACTURER' | 'CUSTOM';
+export type AffiliatePlatform = 'AMAZON' | 'MEESHO' | 'ETSY' | 'NOTION' | 'GUMROAD' | 'MANUFACTURER' | 'CUSTOM';
 
 export interface AffiliateDetails {
   affiliateUrl: string; // The destination tracked referral link
