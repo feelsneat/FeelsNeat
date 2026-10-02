@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { LucideIcon } from '@/components/ui/LucideIcon';
 import { addToCart } from '@/lib/ecommerce/cart';
+import { getAffiliatePlatformLabel } from '@/lib/ecommerce/affiliate-platform';
 
 interface ShopPageProps {
   initialCategory?: string;
@@ -377,7 +378,11 @@ export default function ShopPage({ initialCategory, initialCollection }: ShopPag
                     {product.fulfillmentType === 'AFFILIATE' && (
                       <span className="absolute top-3 left-3 bg-amber-500/90 backdrop-blur-sm text-white text-[9px] font-black uppercase tracking-widest px-2.5 py-1 rounded-md shadow-md flex items-center gap-1">
                         <LucideIcon name="ExternalLink" className="h-3 w-3" />
-                        {product.affiliateDetails?.platform || 'Partner'} Deal
+                        {getAffiliatePlatformLabel(
+                          product.affiliateDetails?.platform,
+                          product.affiliateDetails?.merchantName,
+                          product.affiliateDetails?.affiliateUrl
+                        )} Deal
                       </span>
                     )}
 

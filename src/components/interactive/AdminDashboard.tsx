@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { LucideIcon } from '../ui/LucideIcon';
+import { getAffiliatePlatformSelection } from '@/lib/ecommerce/affiliate-platform';
 
 const AFFILIATE_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
 const AFFILIATE_MAX_IMAGE_BYTES = 5 * 1024 * 1024;
@@ -407,7 +408,11 @@ export function AdminDashboard({ userEmail }: AdminDashboardProps) {
     compareAtPrice: product?.compareAtPrice ?? '',
     images: Array.isArray(product?.images) ? product.images : [],
     affiliateUrl: product?.affiliateDetails?.affiliateUrl || '',
-    platform: product?.affiliateDetails?.platform || 'CUSTOM',
+    platform: getAffiliatePlatformSelection(
+      product?.affiliateDetails?.platform,
+      product?.affiliateDetails?.merchantName,
+      product?.affiliateDetails?.affiliateUrl
+    ),
     merchantName: product?.affiliateDetails?.merchantName || '',
     buttonText: product?.affiliateDetails?.buttonText || 'Buy now',
     commissionRatePercent: product?.affiliateDetails?.commissionRatePercent ?? '',
@@ -1387,7 +1392,7 @@ export function AdminDashboard({ userEmail }: AdminDashboardProps) {
                           <p><span className="text-zinc-400 block">Catalog type</span>{selectedEcommerceProduct.fulfillmentType === 'AFFILIATE' ? 'Affiliate' : 'Dropship'}</p>
                           {selectedEcommerceProduct.fulfillmentType === 'AFFILIATE' && (
                             <>
-                              <p><span className="text-zinc-400 block">Platform / merchant</span>{selectedEcommerceProduct.affiliateDetails?.platform || 'Custom'} · {selectedEcommerceProduct.affiliateDetails?.merchantName || 'Not set'}</p>
+                              <p><span className="text-zinc-400 block">Platform / merchant</span>{getAffiliatePlatformSelection(selectedEcommerceProduct.affiliateDetails?.platform, selectedEcommerceProduct.affiliateDetails?.merchantName, selectedEcommerceProduct.affiliateDetails?.affiliateUrl)} · {selectedEcommerceProduct.affiliateDetails?.merchantName || 'Not set'}</p>
                               <p><span className="text-zinc-400 block">Commission</span>{selectedEcommerceProduct.affiliateDetails?.commissionRatePercent != null ? `${selectedEcommerceProduct.affiliateDetails.commissionRatePercent}%` : 'Not set'}</p>
                               <p className="sm:col-span-2"><span className="text-zinc-400 block">Affiliate URL</span><span className="break-all">{selectedEcommerceProduct.affiliateDetails?.affiliateUrl || 'Not set'}</span></p>
                               <p><span className="text-zinc-400 block">Outbound clicks</span>{selectedEcommerceProduct.affiliateDetails?.clickCount || 0}</p>
