@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { loadEcommerceDb } from '@/lib/ecommerce/db';
 import { isDigitalProduct } from '@/lib/ecommerce/product-classification';
+import { getPublicProductImageUrl } from '@/lib/ecommerce/product-images';
 
 export const runtime = 'edge';
 
@@ -50,7 +51,9 @@ export async function GET(req: NextRequest) {
         sku: product.sku,
         sellingPrice: product.sellingPrice,
         compareAtPrice: product.compareAtPrice,
-        images: product.images,
+        images: product.images.map((image, index) =>
+          getPublicProductImageUrl(image, req.url, product.id, index)
+        ),
         hasVariants: product.hasVariants,
         productType: product.productType || (product.downloadableFiles?.length ? 'TEMPLATE' : 'PHYSICAL'),
         digitalProductType: product.digitalProductType,
@@ -71,7 +74,7 @@ export async function GET(req: NextRequest) {
           compareAtPrice: v.compareAtPrice,
           weightGrams: v.weightGrams,
           stockQuantity: v.stockQuantity,
-          image: v.image,
+          image: getPublicProductImageUrl(v.image, req.url, product.id, undefined, v.id),
           active: v.active,
         })),
         fulfillmentType: product.fulfillmentType || 'DROPSHIP',
@@ -165,7 +168,9 @@ export async function GET(req: NextRequest) {
       sku: product.sku,
       sellingPrice: product.sellingPrice,
       compareAtPrice: product.compareAtPrice,
-      images: product.images,
+      images: product.images.map((image, index) =>
+        getPublicProductImageUrl(image, req.url, product.id, index)
+      ),
       hasVariants: product.hasVariants,
       productType: product.productType || (product.downloadableFiles?.length ? 'TEMPLATE' : 'PHYSICAL'),
       digitalProductType: product.digitalProductType,
@@ -186,7 +191,7 @@ export async function GET(req: NextRequest) {
         compareAtPrice: v.compareAtPrice,
         weightGrams: v.weightGrams,
         stockQuantity: v.stockQuantity,
-        image: v.image,
+        image: getPublicProductImageUrl(v.image, req.url, product.id, undefined, v.id),
         active: v.active,
       })),
       fulfillmentType: product.fulfillmentType || 'DROPSHIP',

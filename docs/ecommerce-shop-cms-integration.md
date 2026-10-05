@@ -84,6 +84,8 @@ Choose `+ Add Product` -> `Own-stock product`. Enter FeelsNeat's internal SKU, s
 
 All physical and digital product editors also support image uploads or public HTTP(S) image URLs. You can add up to 8 images; uploaded images must be JPG, PNG, or WEBP, up to 5 MB each and 20 MB combined. The first image is the primary image; reorder by making another image primary.
 
+Uploaded product images are served individually by the public product-image endpoint rather than embedded in every catalog API response.
+
 ### Digital Product Delivery
 
 Digital products use the same Razorpay checkout as physical products. In the Digital Store product editor, add up to 10 delivery items:

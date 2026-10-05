@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { loadEcommerceDb } from '@/lib/ecommerce/db';
 import { isDigitalProduct } from '@/lib/ecommerce/product-classification';
+import { getPublicProductImageUrl } from '@/lib/ecommerce/product-images';
 
 export const runtime = 'edge';
 
@@ -49,14 +50,33 @@ export async function GET(req: NextRequest) {
       shippingCity: order.shippingAddress.city,
       shippingState: order.shippingAddress.state,
       total: order.total,
-      items: order.items.map((item) => ({
-        title: item.title,
-        variantTitle: item.variantTitle,
-        quantity: item.quantity,
-        unitPrice: item.unitPrice,
-        lineTotal: item.lineTotal,
-        image: item.image,
-      })),
+      items: order.items.map((item) => {
+        let image = item.image || '';
+        if (image.startsWith('data:image/')) {
+          const product = db.products.find((candidate) => candidate.id === item.productId);
+          const variant = item.variantId
+            ? product?.variants.find((candidate) => candidate.id === item.variantId)
+            : undefined;
+          if (product && variant?.image === image) {
+            image = getPublicProductImageUrl(image, req.url, product.id, undefined, variant.id);
+          } else if (product) {
+            const imageIndex = product.images.indexOf(image);
+            image = imageIndex >= 0
+              ? getPublicProductImageUrl(image, req.url, product.id, imageIndex)
+              : '';
+          } else {
+            image = '';
+          }
+        }
+        return {
+          title: item.title,
+          variantTitle: item.variantTitle,
+          quantity: item.quantity,
+          unitPrice: item.unitPrice,
+          lineTotal: item.lineTotal,
+          image,
+        };
+      }),
       isDigital: order.items.every((item) => {
         const product = db.products.find((candidate) => candidate.id === item.productId);
         return product && isDigitalProduct(product);

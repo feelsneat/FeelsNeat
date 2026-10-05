@@ -11,6 +11,7 @@ import {
 } from '@/lib/ecommerce/types';
 import { getPaymentProvider } from '@/lib/ecommerce/payments/mock';
 import { isDigitalProduct } from '@/lib/ecommerce/product-classification';
+import { getPublicProductImageUrl } from '@/lib/ecommerce/product-images';
 
 export const runtime = 'edge';
 
@@ -128,7 +129,7 @@ export async function POST(req: NextRequest) {
       let supplierSku = product.supplierMapping?.supplierSku;
       let supplierCost = product.supplierMapping?.supplierCost || product.costPrice || 0;
       let availableStock = product.stockQuantity;
-      let image = product.images[0] || '';
+      let image = getPublicProductImageUrl(product.images[0], req.url, product.id, 0);
 
       if (product.hasVariants && item.variantId) {
         const variant = product.variants.find((v) => v.id === item.variantId && v.active);
@@ -144,7 +145,7 @@ export async function POST(req: NextRequest) {
         supplierSku = variant.supplierSku || variant.supplierMapping?.supplierSku || supplierSku;
         supplierCost = variant.supplierMapping?.supplierCost || variant.costPrice || supplierCost;
         availableStock = variant.stockQuantity;
-        if (variant.image) image = variant.image;
+        if (variant.image) image = getPublicProductImageUrl(variant.image, req.url, product.id, undefined, variant.id);
       }
 
       const qty = Math.max(1, Math.min(item.quantity || 1, 50));
