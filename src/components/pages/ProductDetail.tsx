@@ -100,6 +100,7 @@ export default function ProductDetailPage({ slug }: ProductDetailPageProps) {
       quantity,
       image: images[selectedImageIndex] || images[0],
       maxStock: currentStock || 50,
+      isDigital: false,
     });
 
     setToastMessage(`Added ${quantity} × ${product.title} to cart!`);

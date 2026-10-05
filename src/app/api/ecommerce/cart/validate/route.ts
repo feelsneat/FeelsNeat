@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { loadEcommerceDb } from '@/lib/ecommerce/db';
+import { isDigitalProduct } from '@/lib/ecommerce/product-classification';
 
 export const runtime = 'edge';
 
@@ -35,6 +36,7 @@ export async function POST(req: NextRequest) {
     const validatedItems: any[] = [];
     let subtotal = 0;
     const errors: string[] = [];
+    const productTypes = new Set<'DIGITAL' | 'PHYSICAL'>();
 
     for (const item of items) {
       const product = db.products.find((p) => p.id === item.productId && p.status === 'ACTIVE');
@@ -46,6 +48,8 @@ export async function POST(req: NextRequest) {
         errors.push(`"${product.title}" is purchased through its partner site and cannot be added to this cart.`);
         continue;
       }
+      const isDigital = isDigitalProduct(product);
+      productTypes.add(isDigital ? 'DIGITAL' : 'PHYSICAL');
 
       let unitPrice = product.sellingPrice;
       let title = product.title;
@@ -68,7 +72,7 @@ export async function POST(req: NextRequest) {
       }
 
       const qty = Math.max(1, Math.min(item.quantity || 1, 50));
-      if (qty > availableStock) {
+      if (!isDigital && qty > availableStock) {
         errors.push(`Only ${availableStock} units available for "${title}${variantTitle ? ` (${variantTitle})` : ''}".`);
       }
 
@@ -87,6 +91,14 @@ export async function POST(req: NextRequest) {
         image,
       });
     }
+
+    if (productTypes.size > 1) {
+      errors.push('Digital and physical products are purchased separately. Please use separate checkouts.');
+    }
+    if (paymentMethod === 'COD' && productTypes.has('DIGITAL')) {
+      errors.push('Cash on Delivery is not available for digital products.');
+    }
+    const isDigitalOnly = productTypes.size === 1 && productTypes.has('DIGITAL');
 
     // Discount validation
     let discountAmount = 0;
@@ -122,10 +134,10 @@ export async function POST(req: NextRequest) {
     // Shipping calculation
     const freeShippingThreshold = db.settings.freeShippingThreshold || 999;
     const standardShipping = db.settings.standardShippingFee || 60;
-    const shippingCharge = subtotal >= freeShippingThreshold || subtotal === 0 ? 0 : standardShipping;
+    const shippingCharge = isDigitalOnly || subtotal >= freeShippingThreshold || subtotal === 0 ? 0 : standardShipping;
 
     // COD fee
-    const codFee = paymentMethod === 'COD' && db.settings.codAvailable ? (db.settings.codFee || 40) : 0;
+    const codFee = !isDigitalOnly && paymentMethod === 'COD' && db.settings.codAvailable ? (db.settings.codFee || 40) : 0;
 
     const total = Math.max(0, subtotal - discountAmount + shippingCharge + codFee);
 
@@ -142,6 +154,9 @@ export async function POST(req: NextRequest) {
       taxAmount: 0,
       total,
       currency: 'INR',
+      isDigitalOnly,
+      shippingRequired: !isDigitalOnly,
+      codAllowed: !isDigitalOnly && db.settings.codAvailable,
     });
   } catch (error: any) {
     console.error('Cart validation error:', error);

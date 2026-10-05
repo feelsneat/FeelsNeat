@@ -10,6 +10,7 @@ export interface CartItem {
   quantity: number;
   image: string;
   maxStock: number;
+  isDigital?: boolean;
 }
 
 const CART_STORAGE_KEY = 'feelsneat_cart';

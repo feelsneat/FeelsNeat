@@ -1,8 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { getAffiliatePlatformSelection } from '@/lib/ecommerce/affiliate-platform';
 import { LucideIcon } from '../ui/LucideIcon';
+import { getAffiliatePlatformSelection } from '@/lib/ecommerce/affiliate-platform';
 import ReviewCardsAdmin from './ReviewCardsAdmin';
 
 const AFFILIATE_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
@@ -16,7 +16,7 @@ interface AdminDashboardProps {
 export function AdminDashboard({ userEmail }: AdminDashboardProps) {
   const [orders, setOrders] = useState<any[]>([]);
   const [loadingOrders, setLoadingOrders] = useState(true);
-  const [activeTab, setActiveTab] = useState<'all' | 'memories' | 'service' | 'digital_product' | 'general_inquiry' | 'pet_profiles' | 'dine_assist' | 'ecommerce' | 'review_cards'>('all');
+  const [activeTab, setActiveTab] = useState<'all' | 'memories' | 'service' | 'digital_product' | 'general_inquiry' | 'pet_profiles' | 'dine_assist' | 'ecommerce' | 'digital_ecommerce' | 'review_cards'>('all');
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [syncMessage, setSyncMessage] = useState('');
@@ -40,9 +40,13 @@ export function AdminDashboard({ userEmail }: AdminDashboardProps) {
   const [loadingEcommerce, setLoadingEcommerce] = useState(true);
   const [selectedEcommerceProductId, setSelectedEcommerceProductId] = useState<string | null>(null);
   const [selectedEcommerceOrderId, setSelectedEcommerceOrderId] = useState<string | null>(null);
-  const [ecommerceCatalogFilter, setEcommerceCatalogFilter] = useState<'all' | 'dropship' | 'affiliate'>('all');
+  const [ecommerceCatalogFilter, setEcommerceCatalogFilter] = useState<'all' | 'dropship' | 'affiliate' | 'digital' | 'ACTIVE' | 'DRAFT' | 'ARCHIVED'>('all');
   const [affiliateProductForm, setAffiliateProductForm] = useState<any>(null);
+  const [physicalProductForm, setPhysicalProductForm] = useState<any>(null);
+  const [digitalProductForm, setDigitalProductForm] = useState<any>(null);
+  const [savingDigitalProduct, setSavingDigitalProduct] = useState(false);
   const [savingAffiliateProduct, setSavingAffiliateProduct] = useState(false);
+  const [savingPhysicalProduct, setSavingPhysicalProduct] = useState(false);
   const [ecommerceOrderUpdate, setEcommerceOrderUpdate] = useState<any>(null);
   const [savingEcommerceOrder, setSavingEcommerceOrder] = useState(false);
 
@@ -154,7 +158,8 @@ export function AdminDashboard({ userEmail }: AdminDashboardProps) {
   const loadEcommerceData = async () => {
     setLoadingEcommerce(true);
     try {
-      const res = await fetch('/api/ecommerce/admin');
+      const store = activeTab === 'digital_ecommerce' ? 'digital' : activeTab === 'ecommerce' ? 'physical' : '';
+      const res = await fetch(`/api/ecommerce/admin${store ? `?store=${store}` : ''}`);
       if (res.ok) {
         setEcommerceData(await res.json());
       }
@@ -172,9 +177,8 @@ export function AdminDashboard({ userEmail }: AdminDashboardProps) {
     loadContentSettings();
   }, []);
 
-
   useEffect(() => {
-    if (activeTab !== 'ecommerce') return;
+    if (activeTab !== 'ecommerce' && activeTab !== 'digital_ecommerce') return;
     loadEcommerceData();
   }, [activeTab]);
 
@@ -367,8 +371,13 @@ export function AdminDashboard({ userEmail }: AdminDashboardProps) {
   const selectedDineRestaurant = dineData.restaurants.find((restaurant: any) => restaurant.id === selectedDineRestaurantId);
   const filteredEcommerceProducts = ecommerceData.products.filter((product: any) => {
     const isAffiliate = product.fulfillmentType === 'AFFILIATE';
+    const isDigital = product.productType !== 'PHYSICAL' && Boolean(product.productType || product.digitalProductType || product.downloadableFiles?.length);
+    if (activeTab === 'digital_ecommerce' && !isDigital) return false;
+    if (activeTab === 'ecommerce' && isDigital) return false;
     if (ecommerceCatalogFilter === 'affiliate' && !isAffiliate) return false;
     if (ecommerceCatalogFilter === 'dropship' && isAffiliate) return false;
+    if (ecommerceCatalogFilter === 'digital' && !isDigital) return false;
+    if (['ACTIVE', 'DRAFT', 'ARCHIVED'].includes(ecommerceCatalogFilter) && product.status !== ecommerceCatalogFilter) return false;
     if (searchQuery.trim() === '') return true;
     const query = searchQuery.toLowerCase();
     return (
@@ -414,6 +423,187 @@ export function AdminDashboard({ userEmail }: AdminDashboardProps) {
     status: product?.status || 'DRAFT',
     categoryId: product?.categoryId || ecommerceData.categories?.[0]?.id || '',
   });
+
+  const createPhysicalProductForm = (product?: any) => ({
+    id: product?.id || '',
+    title: product?.title || '',
+    slug: product?.slug || '',
+    sku: product?.sku || '',
+    description: product?.description || '',
+    sellingPrice: product?.sellingPrice ?? '',
+    compareAtPrice: product?.compareAtPrice ?? '',
+    stockQuantity: product?.stockQuantity ?? 0,
+    categoryId: product?.categoryId || ecommerceData.categories?.find((c: any) => c.categoryType !== 'DIGITAL')?.id || '',
+    status: product?.status || 'DRAFT',
+    images: Array.isArray(product?.images) ? product.images.join('\n') : '',
+  });
+
+  const handleSavePhysicalProduct = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const form = physicalProductForm;
+    if (!form?.title?.trim() || !form.sku?.trim() || !form.description?.trim()) {
+      alert('Title, SKU, and description are required.');
+      return;
+    }
+    setSavingPhysicalProduct(true);
+    const slug = (form.slug || form.title).toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+    const product = {
+      ...(selectedEcommerceProduct || {}),
+      id: form.id,
+      slug,
+      title: form.title.trim(),
+      description: form.description.trim(),
+      shortDescription: form.description.trim().slice(0, 140),
+      categoryId: form.categoryId,
+      collectionIds: selectedEcommerceProduct?.collectionIds || [],
+      brand: selectedEcommerceProduct?.brand || 'FeelsNeat',
+      tags: selectedEcommerceProduct?.tags || [],
+      sku: form.sku.trim(),
+      sellingPrice: Number(form.sellingPrice) || 0,
+      compareAtPrice: form.compareAtPrice === '' ? undefined : Number(form.compareAtPrice),
+      images: form.images.split('\n').map((image: string) => image.trim()).filter(Boolean),
+      hasVariants: false,
+      variants: [],
+      status: form.status,
+      productType: 'PHYSICAL',
+      fulfillmentType: selectedEcommerceProduct?.fulfillmentType === 'DROPSHIP' ? 'DROPSHIP' : 'OWNED',
+      taxIncluded: true,
+      inventorySource: 'OWNED',
+      stockQuantity: Number(form.stockQuantity) || 0,
+    };
+    try {
+      const res = await fetch('/api/ecommerce/admin', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'save_product', product }),
+      });
+      const result = await res.json();
+      if (!res.ok) throw new Error(result.error || 'Failed to save physical product.');
+      await loadEcommerceData();
+      setPhysicalProductForm(null);
+      setSelectedEcommerceProductId(result.product.id);
+    } catch (error: any) {
+      alert(error.message);
+    } finally {
+      setSavingPhysicalProduct(false);
+    }
+  };
+
+  const createDigitalProductForm = (product?: any) => ({
+    id: product?.id || '',
+    title: product?.title || '',
+    slug: product?.slug || '',
+    sku: product?.sku || '',
+    description: product?.description || '',
+    sellingPrice: product?.sellingPrice ?? '',
+    compareAtPrice: product?.compareAtPrice ?? '',
+    categoryId: product?.categoryId || ecommerceData.categories?.find((c: any) => c.categoryType === 'DIGITAL')?.id || '',
+    digitalProductType: product?.digitalProductType || 'TEMPLATE',
+    status: product?.status || 'DRAFT',
+    featured: Boolean(product?.featured),
+    tags: Array.isArray(product?.tags) ? product.tags.join(', ') : '',
+    images: Array.isArray(product?.images) ? product.images.join('\n') : '',
+    downloadableFiles: Array.isArray(product?.downloadableFiles) ? product.downloadableFiles : [{ id: `file-${Date.now()}`, title: '', filename: '', mimeType: 'application/pdf', sizeBytes: '', url: '' }],
+  });
+
+  const handleSaveDigitalProduct = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const form = digitalProductForm;
+    if (!form?.title?.trim() || !form.sku?.trim() || !form.description?.trim()) {
+      alert('Title, SKU, and description are required.');
+      return;
+    }
+    if (!form.downloadableFiles?.length || form.downloadableFiles.some((file: any) => !file.title?.trim() || !file.filename?.trim() || !file.mimeType?.trim() || !file.url?.trim())) {
+      alert('Add a title, filename, MIME type, and URL for every downloadable file.');
+      return;
+    }
+    setSavingDigitalProduct(true);
+    const slug = (form.slug || form.title).toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+    const product = {
+      ...(selectedEcommerceProduct || {}),
+      id: form.id,
+      slug,
+      title: form.title.trim(),
+      description: form.description.trim(),
+      shortDescription: form.description.trim().slice(0, 140),
+      categoryId: form.categoryId,
+      collectionIds: selectedEcommerceProduct?.collectionIds || [],
+      brand: selectedEcommerceProduct?.brand || 'FeelsNeat',
+      tags: form.tags.split(',').map((tag: string) => tag.trim()).filter(Boolean),
+      sku: form.sku.trim(),
+      sellingPrice: Number(form.sellingPrice) || 0,
+      compareAtPrice: form.compareAtPrice === '' ? undefined : Number(form.compareAtPrice),
+      images: form.images.split('\n').map((image: string) => image.trim()).filter(Boolean),
+      hasVariants: false,
+      variants: [],
+      status: form.status,
+      productType: form.digitalProductType,
+      digitalProductType: form.digitalProductType,
+      downloadableFiles: form.downloadableFiles.map((file: any) => ({ ...file, sizeBytes: file.sizeBytes === '' ? undefined : Number(file.sizeBytes) })),
+      fulfillmentType: 'DIRECT',
+      taxIncluded: true,
+      inventorySource: 'OWNED',
+      stockQuantity: 0,
+      featured: form.featured,
+    };
+
+    try {
+      const res = await fetch('/api/ecommerce/admin', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'save_product', product }),
+      });
+      const result = await res.json();
+      if (!res.ok) throw new Error(result.error || 'Failed to save digital product.');
+      await loadEcommerceData();
+      setDigitalProductForm(null);
+      setSelectedEcommerceProductId(result.product.id);
+    } catch (error: any) {
+      alert(error.message);
+    } finally {
+      setSavingDigitalProduct(false);
+    }
+  };
+
+  const handleDigitalProductAction = async (action: 'archive' | 'delete') => {
+    if (!selectedEcommerceProduct) return;
+    if (!confirm(action === 'delete' ? 'Permanently delete this digital product?' : 'Archive this digital product?')) return;
+    const res = await fetch('/api/ecommerce/admin', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(action === 'archive'
+        ? { action: 'save_product', product: { ...selectedEcommerceProduct, status: 'ARCHIVED' } }
+        : { action: 'delete_product', productId: selectedEcommerceProduct.id }),
+    });
+    if (!res.ok) {
+      const result = await res.json().catch(() => ({}));
+      alert(result.error || `Could not ${action} product.`);
+      return;
+    }
+    setSelectedEcommerceProductId(null);
+    await loadEcommerceData();
+  };
+
+  const handleDeleteEcommerceProduct = async () => {
+    if (!selectedEcommerceProduct) return;
+    if (!confirm(`Permanently delete "${selectedEcommerceProduct.title}"? This cannot be undone.`)) return;
+    try {
+      const res = await fetch('/api/ecommerce/admin', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'delete_product', productId: selectedEcommerceProduct.id }),
+      });
+      const result = await res.json();
+      if (!res.ok) throw new Error(result.error || 'Could not delete product.');
+      setAffiliateProductForm(null);
+      setDigitalProductForm(null);
+      setPhysicalProductForm(null);
+      setSelectedEcommerceProductId(null);
+      await loadEcommerceData();
+    } catch (error: any) {
+      alert(error.message || 'Could not delete product.');
+    }
+  };
 
   const handleAffiliateImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(event.target.files || []);
@@ -514,25 +704,6 @@ export function AdminDashboard({ userEmail }: AdminDashboardProps) {
       alert(error.message || 'Failed to save affiliate product.');
     } finally {
       setSavingAffiliateProduct(false);
-    }
-  };
-
-  const handleDeleteEcommerceProduct = async () => {
-    if (!selectedEcommerceProduct) return;
-    if (!confirm(`Permanently delete "${selectedEcommerceProduct.title}"? This cannot be undone.`)) return;
-    try {
-      const res = await fetch('/api/ecommerce/admin', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'delete_product', productId: selectedEcommerceProduct.id }),
-      });
-      const result = await res.json();
-      if (!res.ok) throw new Error(result.error || 'Could not delete product.');
-      setAffiliateProductForm(null);
-      setSelectedEcommerceProductId(null);
-      await loadEcommerceData();
-    } catch (error: any) {
-      alert(error.message || 'Could not delete product.');
     }
   };
 
@@ -804,27 +975,56 @@ export function AdminDashboard({ userEmail }: AdminDashboardProps) {
             </span>
           </button>
 
-          <span className="text-[10px] font-bold text-foreground/50 uppercase tracking-widest px-3 py-2 mt-4 block border-t border-zinc-150 text-left">Ecommerce Shop</span>
+          <span className="text-[10px] font-bold text-foreground/50 uppercase tracking-widest px-3 py-2 mt-4 block border-t border-zinc-150 text-left">Ecommerce</span>
           <button
             onClick={() => {
               setActiveTab('ecommerce');
+              setPhysicalProductForm(null);
+              setDigitalProductForm(null);
+              setAffiliateProductForm(null);
               setSelectedOrderId(null);
               setSelectedProfileId(null);
               setSelectedDineEnquiryId(null);
               setSelectedDineRestaurantId(null);
             }}
             className={`flex items-center justify-between px-3 py-2.5 rounded-lg text-xs font-bold transition-colors cursor-pointer ${
-              activeTab === 'ecommerce'
+              activeTab === 'ecommerce' || activeTab === 'digital_ecommerce'
                 ? 'bg-[#E30613] text-white font-black'
                 : 'text-foreground/75 hover:bg-zinc-50'
             }`}
           >
             <div className="flex items-center gap-3">
               <LucideIcon name="ShoppingBag" className="h-4 w-4 shrink-0" />
-              <span>Shop CMS</span>
+              <span>Physical Store</span>
             </div>
             <span className={`text-[9px] px-1.5 py-0.5 rounded font-black ${activeTab === 'ecommerce' ? 'bg-white text-[#E30613]' : 'bg-zinc-100 text-zinc-500'}`}>
               {(ecommerceData.products?.length || 0) + (ecommerceData.orders?.length || 0)}
+            </span>
+          </button>
+          <button
+            onClick={() => {
+              setActiveTab('digital_ecommerce');
+              setPhysicalProductForm(null);
+              setDigitalProductForm(null);
+              setAffiliateProductForm(null);
+              setEcommerceCatalogFilter('digital');
+              setSelectedOrderId(null);
+              setSelectedProfileId(null);
+              setSelectedDineEnquiryId(null);
+              setSelectedDineRestaurantId(null);
+            }}
+            className={`flex items-center justify-between px-3 py-2.5 rounded-lg text-xs font-bold transition-colors cursor-pointer ${
+              activeTab === 'digital_ecommerce'
+                ? 'bg-emerald-500 text-black font-black'
+                : 'text-foreground/75 hover:bg-zinc-50'
+            }`}
+          >
+            <div className="flex items-center gap-3">
+              <LucideIcon name="DownloadCloud" className="h-4 w-4 shrink-0" />
+              <span>Digital Store</span>
+            </div>
+            <span className={`text-[9px] px-1.5 py-0.5 rounded font-black ${activeTab === 'digital_ecommerce' ? 'bg-black text-emerald-300' : 'bg-zinc-100 text-zinc-500'}`}>
+              {ecommerceData.products?.filter((product: any) => product.productType !== 'PHYSICAL' && Boolean(product.productType || product.digitalProductType || product.downloadableFiles?.length)).length || 0}
             </span>
           </button>
 
@@ -833,8 +1033,8 @@ export function AdminDashboard({ userEmail }: AdminDashboardProps) {
             onClick={() => {
               setActiveTab('review_cards');
               setSelectedOrderId(null);
-              setModalFormData(null);
               setSelectedProfileId(null);
+              setModalFormData(null);
             }}
             className={`flex items-center justify-between px-3 py-2.5 rounded-lg text-xs font-bold transition-colors cursor-pointer ${
               activeTab === 'review_cards'
@@ -938,7 +1138,7 @@ export function AdminDashboard({ userEmail }: AdminDashboardProps) {
                     Refresh Dine
                   </button>
                 )}
-                {activeTab === 'ecommerce' && (
+                {(activeTab === 'ecommerce' || activeTab === 'digital_ecommerce') && (
                   <button
                     type="button"
                     onClick={loadEcommerceData}
@@ -951,7 +1151,7 @@ export function AdminDashboard({ userEmail }: AdminDashboardProps) {
               <span className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">
                 {activeTab === 'dine_assist' ? (
                   `Showing ${filteredDineEnquiries.length} enquiries and ${filteredDineRestaurants.length} restaurants`
-                ) : activeTab === 'ecommerce' ? (
+                ) : activeTab === 'ecommerce' || activeTab === 'digital_ecommerce' ? (
                   `Showing ${filteredEcommerceProducts.length} products and ${filteredEcommerceOrders.length} orders`
                 ) : activeTab === 'pet_profiles' ? (
                   `Showing ${filteredProfiles.length} of ${profiles.length} Profiles`
@@ -962,7 +1162,7 @@ export function AdminDashboard({ userEmail }: AdminDashboardProps) {
             </div>
 
             <div className="grid md:grid-cols-12 gap-6">
-              {activeTab === 'ecommerce' ? (
+              {activeTab === 'ecommerce' || activeTab === 'digital_ecommerce' ? (
                 <div className="md:col-span-5 space-y-4 max-h-[560px] overflow-y-auto pr-0 md:pr-4 border-r border-zinc-100">
                   {loadingEcommerce ? (
                     <p className="text-xs text-zinc-400 italic text-center py-10">Loading ecommerce data...</p>
@@ -974,7 +1174,7 @@ export function AdminDashboard({ userEmail }: AdminDashboardProps) {
                           ['Revenue', `₹${ecommerceData.metrics?.totalRevenue || 0}`],
                           ['Products', ecommerceData.products?.length || 0],
                           ['Pending pay', ecommerceData.metrics?.pendingPaymentCount || 0],
-                          ['Cashfree', ecommerceData.metrics?.cashfreeConfigured ? 'Ready' : 'Not configured'],
+                          ['Razorpay', ecommerceData.metrics?.razorpayConfigured ? 'Ready' : 'Not configured'],
                           ['AliShipping', ecommerceData.metrics?.aliShippingConfigured ? 'Ready' : 'Affiliate mode'],
                           ['Dropship revenue', `₹${ecommerceData.metrics?.dropshipRevenue || 0}`],
                           ['Dropship profit', `₹${ecommerceData.metrics?.dropshipEstimatedProfit || 0}`],
@@ -987,7 +1187,7 @@ export function AdminDashboard({ userEmail }: AdminDashboardProps) {
                         ))}
                       </div>
                       <div>
-                        <span className="text-[10px] font-black text-zinc-400 uppercase tracking-widest block mb-2">Shop Orders</span>
+                        <span className="text-[10px] font-black text-zinc-400 uppercase tracking-widest block mb-2">{activeTab === 'digital_ecommerce' ? 'Digital Store Orders' : 'Physical Store Orders'}</span>
                         {filteredEcommerceOrders.length === 0 ? (
                           <p className="text-xs text-zinc-400 italic py-4">No ecommerce orders found.</p>
                         ) : filteredEcommerceOrders.map((order: any) => (
@@ -1009,14 +1209,20 @@ export function AdminDashboard({ userEmail }: AdminDashboardProps) {
                           <span className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">Products</span>
                           <button
                             type="button"
-                            onClick={() => { setAffiliateProductForm(createAffiliateProductForm()); setSelectedEcommerceProductId(null); setSelectedEcommerceOrderId(null); }}
+                            onClick={() => {
+                              setAffiliateProductForm(null);
+                              setPhysicalProductForm(null);
+                              setDigitalProductForm(activeTab === 'digital_ecommerce' ? createDigitalProductForm() : null);
+                              if (activeTab !== 'digital_ecommerce') setPhysicalProductForm(createPhysicalProductForm());
+                              setSelectedEcommerceProductId(null); setSelectedEcommerceOrderId(null);
+                            }}
                             className="rounded-lg bg-[#E30613] px-2.5 py-1.5 text-[9px] font-black uppercase text-white"
                           >
-                            + Affiliate product
+                            {activeTab === 'digital_ecommerce' ? '+ Add Digital Product' : '+ Add Physical Product'}
                           </button>
                         </div>
                         <div className="mb-3 flex rounded-lg border border-zinc-150 bg-white p-1">
-                          {(['all', 'dropship', 'affiliate'] as const).map((filter) => (
+                          {(activeTab === 'digital_ecommerce' ? (['digital'] as const) : (['all', 'ACTIVE', 'DRAFT', 'ARCHIVED'] as const)).map((filter) => (
                             <button
                               key={filter}
                               type="button"
@@ -1039,7 +1245,11 @@ export function AdminDashboard({ userEmail }: AdminDashboardProps) {
                               <span className="text-xs font-black text-zinc-900 truncate">{product.title}</span>
                               <span className={`text-[8px] font-black uppercase ${product.fulfillmentType === 'AFFILIATE' ? 'text-violet-600' : product.status === 'ACTIVE' ? 'text-emerald-600' : 'text-zinc-400'}`}>{product.fulfillmentType === 'AFFILIATE' ? 'AFFILIATE' : product.status}</span>
                             </div>
-                            <p className="text-[10px] text-zinc-450 font-semibold mt-1">{product.sku} | ₹{product.sellingPrice} | Stock {product.stockQuantity}</p>
+                            <p className="text-[10px] text-zinc-450 font-semibold mt-1">
+                              {activeTab === 'digital_ecommerce'
+                                ? `₹${product.sellingPrice} | ${product.downloadableFiles?.length || 0} file${product.downloadableFiles?.length === 1 ? '' : 's'}`
+                                : `${product.sku} | ₹${product.sellingPrice} | Stock ${product.stockQuantity}`}
+                            </p>
                           </div>
                         ))}
                       </div>
@@ -1203,9 +1413,81 @@ export function AdminDashboard({ userEmail }: AdminDashboardProps) {
 
               {/* Order / Profile Specific Detail Content Column */}
               <div className="md:col-span-7 space-y-6">
-                {activeTab === 'ecommerce' ? (
+                {activeTab === 'ecommerce' || activeTab === 'digital_ecommerce' ? (
                   <div className="space-y-6">
-                    {affiliateProductForm ? (
+                      {physicalProductForm ? (
+                        <form onSubmit={handleSavePhysicalProduct} className="space-y-4 rounded-xl border border-red-200 bg-red-50/20 p-4 text-left">
+                          <div className="flex items-center justify-between border-b border-red-100 pb-3">
+                            <div><span className="text-[10px] font-black uppercase tracking-widest text-[#E30613]">Physical Store · Products</span><h3 className="text-lg font-black text-zinc-900">{physicalProductForm.id ? 'Edit Physical Product' : 'Create Physical Product'}</h3><p className="text-xs text-zinc-500">Manage inventory, pricing, media, and fulfillment for the physical store.</p></div>
+                            <button type="button" onClick={() => setPhysicalProductForm(null)} className="text-xs font-bold text-zinc-500">Cancel</button>
+                          </div>
+                          <div className="grid sm:grid-cols-2 gap-3">
+                            {[
+                              ['title', 'Product name', 'text', true], ['slug', 'Slug', 'text', false],
+                              ['sku', 'SKU', 'text', true], ['sellingPrice', 'Price (₹)', 'number', true],
+                              ['compareAtPrice', 'Compare-at price (₹)', 'number', false], ['stockQuantity', 'Stock', 'number', true],
+                            ].map(([key, label, type, required]) => (
+                              <label key={key as string} className="text-[10px] font-black uppercase tracking-wider text-zinc-500">{label as string}
+                                <input type={type as string} required={Boolean(required)} value={physicalProductForm[key as string]} onChange={(e) => setPhysicalProductForm((prev: any) => ({ ...prev, [key as string]: e.target.value }))} className="mt-1 w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-xs font-semibold normal-case text-zinc-800" />
+                              </label>
+                            ))}
+                            <label className="text-[10px] font-black uppercase tracking-wider text-zinc-500">Physical category
+                              <select value={physicalProductForm.categoryId} onChange={(e) => setPhysicalProductForm((prev: any) => ({ ...prev, categoryId: e.target.value }))} className="mt-1 w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-xs text-zinc-800">{ecommerceData.categories?.filter((c: any) => c.categoryType !== 'DIGITAL').map((category: any) => <option key={category.id} value={category.id}>{category.name}</option>)}</select>
+                            </label>
+                            <label className="text-[10px] font-black uppercase tracking-wider text-zinc-500">Publishing status
+                              <select value={physicalProductForm.status} onChange={(e) => setPhysicalProductForm((prev: any) => ({ ...prev, status: e.target.value }))} className="mt-1 w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-xs text-zinc-800">{['DRAFT', 'ACTIVE', 'ARCHIVED'].map((status) => <option key={status}>{status}</option>)}</select>
+                            </label>
+                          </div>
+                          <label className="block text-[10px] font-black uppercase tracking-wider text-zinc-500">Description
+                            <textarea required value={physicalProductForm.description} onChange={(e) => setPhysicalProductForm((prev: any) => ({ ...prev, description: e.target.value }))} rows={4} className="mt-1 w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-xs normal-case text-zinc-800" />
+                          </label>
+                          <label className="block text-[10px] font-black uppercase tracking-wider text-zinc-500">Product images
+                            <textarea value={physicalProductForm.images} onChange={(e) => setPhysicalProductForm((prev: any) => ({ ...prev, images: e.target.value }))} placeholder="One image URL per line" rows={3} className="mt-1 w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-xs normal-case text-zinc-800" />
+                          </label>
+                          <div className="rounded-lg border border-red-100 bg-white p-3 text-xs text-zinc-600"><strong>Physical product settings</strong><p className="mt-1">Shipping, inventory, and COD remain available only for this store. Digital files and download settings are not part of this editor.</p></div>
+                          <button type="submit" disabled={savingPhysicalProduct} className="rounded-lg bg-[#E30613] px-4 py-2 text-[10px] font-black uppercase text-white disabled:opacity-50">{savingPhysicalProduct ? 'Saving...' : 'Save Physical Product'}</button>
+                        </form>
+                      ) : digitalProductForm ? (
+                      <form onSubmit={handleSaveDigitalProduct} className="space-y-4 rounded-xl border border-emerald-200 bg-emerald-50/20 p-4 text-left">
+                        <div className="flex items-center justify-between border-b border-emerald-100 pb-3">
+                          <div><span className="text-[10px] font-black uppercase tracking-widest text-emerald-600">Digital catalog</span><h3 className="text-lg font-black text-zinc-900">{digitalProductForm.id ? 'Edit digital product' : 'Create digital product'}</h3></div>
+                          <button type="button" onClick={() => setDigitalProductForm(null)} className="text-xs font-bold text-zinc-500">Cancel</button>
+                        </div>
+                        <div className="grid sm:grid-cols-2 gap-3">
+                          {[
+                            ['title', 'Title', 'text', true], ['slug', 'Slug (optional)', 'text', false],
+                            ['sku', 'SKU', 'text', true], ['sellingPrice', 'Price (₹)', 'number', true],
+                            ['compareAtPrice', 'Compare-at price (₹)', 'number', false],
+                          ].map(([key, label, type, required]) => (
+                            <label key={key as string} className="text-[10px] font-black uppercase tracking-wider text-zinc-500">{label as string}
+                              <input type={type as string} required={Boolean(required)} value={digitalProductForm[key as string]} onChange={(e) => setDigitalProductForm((prev: any) => ({ ...prev, [key as string]: e.target.value }))} className="mt-1 w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-xs font-semibold normal-case text-zinc-800" />
+                            </label>
+                          ))}
+                          <label className="text-[10px] font-black uppercase tracking-wider text-zinc-500">Category
+                            <select value={digitalProductForm.categoryId} onChange={(e) => setDigitalProductForm((prev: any) => ({ ...prev, categoryId: e.target.value }))} className="mt-1 w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-xs text-zinc-800">{ecommerceData.categories?.filter((c: any) => c.categoryType === 'DIGITAL').map((category: any) => <option key={category.id} value={category.id}>{category.name}</option>)}</select>
+                          </label>
+                          <label className="text-[10px] font-black uppercase tracking-wider text-zinc-500">Digital type
+                            <select value={digitalProductForm.digitalProductType} onChange={(e) => setDigitalProductForm((prev: any) => ({ ...prev, digitalProductType: e.target.value }))} className="mt-1 w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-xs text-zinc-800">{['PRINTABLE', 'TEMPLATE', 'CARD', 'PROMPT_PACK', 'TRACKING_SHEET', 'PLANNER', 'GUIDE', 'STUDY_RESOURCE', 'TOOLKIT', 'BUNDLE', 'OTHER'].map((type) => <option key={type}>{type}</option>)}</select>
+                          </label>
+                          <label className="text-[10px] font-black uppercase tracking-wider text-zinc-500">Status
+                            <select value={digitalProductForm.status} onChange={(e) => setDigitalProductForm((prev: any) => ({ ...prev, status: e.target.value }))} className="mt-1 w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-xs text-zinc-800">{['DRAFT', 'ACTIVE', 'PUBLISHED', 'UNPUBLISHED', 'ARCHIVED'].map((status) => <option key={status}>{status}</option>)}</select>
+                          </label>
+                        </div>
+                        <label className="block text-[10px] font-black uppercase tracking-wider text-zinc-500">Description
+                          <textarea required value={digitalProductForm.description} onChange={(e) => setDigitalProductForm((prev: any) => ({ ...prev, description: e.target.value }))} rows={4} className="mt-1 w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-xs normal-case text-zinc-800" />
+                        </label>
+                        <div className="grid sm:grid-cols-2 gap-3">
+                          <label className="text-[10px] font-black uppercase tracking-wider text-zinc-500">Tags <input value={digitalProductForm.tags} onChange={(e) => setDigitalProductForm((prev: any) => ({ ...prev, tags: e.target.value }))} placeholder="planner, productivity" className="mt-1 w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-xs normal-case text-zinc-800" /></label>
+                          <label className="text-[10px] font-black uppercase tracking-wider text-zinc-500">Image URLs <textarea value={digitalProductForm.images} onChange={(e) => setDigitalProductForm((prev: any) => ({ ...prev, images: e.target.value }))} placeholder="One URL per line" rows={2} className="mt-1 w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-xs normal-case text-zinc-800" /></label>
+                        </div>
+                        <div className="rounded-lg border border-dashed border-zinc-300 bg-white p-3 space-y-2">
+                          <div className="flex items-center justify-between"><span className="text-[10px] font-black uppercase tracking-wider text-zinc-500">Downloadable files</span><button type="button" onClick={() => setDigitalProductForm((prev: any) => ({ ...prev, downloadableFiles: [...prev.downloadableFiles, { id: `file-${Date.now()}`, title: '', filename: '', mimeType: 'application/pdf', sizeBytes: '', url: '' }] }))} className="text-[9px] font-black uppercase text-emerald-700">+ Add file</button></div>
+                          {digitalProductForm.downloadableFiles.map((file: any, index: number) => <div key={file.id} className="grid sm:grid-cols-5 gap-2"><input placeholder="Title" value={file.title} onChange={(e) => setDigitalProductForm((prev: any) => ({ ...prev, downloadableFiles: prev.downloadableFiles.map((f: any, i: number) => i === index ? { ...f, title: e.target.value } : f) }))} className="rounded border border-zinc-200 px-2 py-1.5 text-[10px]" /><input placeholder="Filename" value={file.filename} onChange={(e) => setDigitalProductForm((prev: any) => ({ ...prev, downloadableFiles: prev.downloadableFiles.map((f: any, i: number) => i === index ? { ...f, filename: e.target.value } : f) }))} className="rounded border border-zinc-200 px-2 py-1.5 text-[10px]" /><input placeholder="MIME type" value={file.mimeType} onChange={(e) => setDigitalProductForm((prev: any) => ({ ...prev, downloadableFiles: prev.downloadableFiles.map((f: any, i: number) => i === index ? { ...f, mimeType: e.target.value } : f) }))} className="rounded border border-zinc-200 px-2 py-1.5 text-[10px]" /><input placeholder="File URL (HTTPS)" type="url" value={file.url} onChange={(e) => setDigitalProductForm((prev: any) => ({ ...prev, downloadableFiles: prev.downloadableFiles.map((f: any, i: number) => i === index ? { ...f, url: e.target.value } : f) }))} className="rounded border border-zinc-200 px-2 py-1.5 text-[10px]" /><button type="button" onClick={() => setDigitalProductForm((prev: any) => ({ ...prev, downloadableFiles: prev.downloadableFiles.filter((_: any, i: number) => i !== index) }))} className="text-[9px] font-bold text-red-600">Remove</button></div>)}
+                        </div>
+                        <label className="flex items-center gap-2 text-[10px] font-black uppercase text-zinc-500"><input type="checkbox" checked={digitalProductForm.featured} onChange={(e) => setDigitalProductForm((prev: any) => ({ ...prev, featured: e.target.checked }))} /> Featured product</label>
+                        <button type="submit" disabled={savingDigitalProduct} className="rounded-lg bg-emerald-600 px-4 py-2 text-[10px] font-black uppercase text-white disabled:opacity-50">{savingDigitalProduct ? 'Saving...' : 'Save digital product'}</button>
+                      </form>
+                    ) : affiliateProductForm ? (
                       <form onSubmit={handleSaveAffiliateProduct} className="space-y-4 rounded-xl border border-border-custom bg-zinc-50/30 p-4 text-left">
                         <div className="flex items-center justify-between border-b border-zinc-200 pb-3">
                           <div>
@@ -1309,7 +1591,11 @@ export function AdminDashboard({ userEmail }: AdminDashboardProps) {
                           <p><span className="text-zinc-400 block">Phone</span>{selectedEcommerceOrder.customer?.phone}</p>
                           <p><span className="text-zinc-400 block">Payment</span>{selectedEcommerceOrder.paymentMethod} · {selectedEcommerceOrder.paymentStatus}</p>
                           <p><span className="text-zinc-400 block">Fulfillment</span>{selectedEcommerceOrder.fulfillmentStatus}</p>
-                          <p><span className="text-zinc-400 block">Destination</span>{selectedEcommerceOrder.shippingAddress?.city}, {selectedEcommerceOrder.shippingAddress?.state}</p>
+                          {activeTab === 'digital_ecommerce' ? (
+                            <p><span className="text-zinc-400 block">Download access</span>{selectedEcommerceOrder.fulfillmentStatus === 'FULFILLED' ? 'Available' : 'Pending payment'}</p>
+                          ) : (
+                            <p><span className="text-zinc-400 block">Destination</span>{selectedEcommerceOrder.shippingAddress?.city}, {selectedEcommerceOrder.shippingAddress?.state}</p>
+                          )}
                           <p><span className="text-zinc-400 block">Total</span>₹{selectedEcommerceOrder.total}</p>
                           <p><span className="text-zinc-400 block">Estimated profit</span>₹{selectedEcommerceOrder.estimatedMargin?.estimatedProfit || 0}</p>
                           <p><span className="text-zinc-400 block">Created</span>{new Date(selectedEcommerceOrder.createdAt).toLocaleString()}</p>
@@ -1371,7 +1657,7 @@ export function AdminDashboard({ userEmail }: AdminDashboardProps) {
                       <div className="space-y-4 p-4 rounded-xl border border-border-custom bg-zinc-50/30 text-left">
                         <div className="flex justify-between gap-4 border-b border-zinc-200 pb-3">
                           <div>
-                            <span className="text-[10px] font-black text-zinc-400 uppercase tracking-widest block">Shop Product</span>
+                            <span className="text-[10px] font-black text-zinc-400 uppercase tracking-widest block">{selectedEcommerceProduct.productType !== 'PHYSICAL' ? 'Digital Product' : 'Shop Product'}</span>
                             <h3 className="text-lg font-black text-zinc-900">{selectedEcommerceProduct.title}</h3>
                             <p className="text-xs text-zinc-500 font-semibold">{selectedEcommerceProduct.sku} · /shop/product/{selectedEcommerceProduct.slug}</p>
                           </div>
@@ -1386,6 +1672,16 @@ export function AdminDashboard({ userEmail }: AdminDashboardProps) {
                           <p><span className="text-zinc-400 block">Supplier SKU</span>{selectedEcommerceProduct.supplierMapping?.supplierSku || 'Not mapped'}</p>
                           <p><span className="text-zinc-400 block">Supplier cost</span>{selectedEcommerceProduct.supplierMapping?.supplierCost ? `₹${selectedEcommerceProduct.supplierMapping.supplierCost}` : 'Not set'}</p>
                           <p><span className="text-zinc-400 block">Catalog type</span>{selectedEcommerceProduct.fulfillmentType === 'AFFILIATE' ? 'Affiliate' : 'Dropship'}</p>
+                          {selectedEcommerceProduct.productType !== 'PHYSICAL' && (
+                            <>
+                              <p><span className="text-zinc-400 block">Digital type</span>{selectedEcommerceProduct.digitalProductType}</p>
+                              <p><span className="text-zinc-400 block">Featured</span>{selectedEcommerceProduct.featured ? 'Yes' : 'No'}</p>
+                              <p className="sm:col-span-2"><span className="text-zinc-400 block">Downloadable files</span>{selectedEcommerceProduct.downloadableFiles?.map((file: any) => `${file.title} (${file.filename})`).join(' · ') || 'None'}</p>
+                            </>
+                          )}
+                          {selectedEcommerceProduct.productType === 'PHYSICAL' && (
+                            <button type="button" onClick={() => setPhysicalProductForm(createPhysicalProductForm(selectedEcommerceProduct))} className="rounded-lg border border-zinc-200 bg-white px-3 py-2 text-[10px] font-black uppercase text-zinc-700">Edit physical</button>
+                          )}
                           {selectedEcommerceProduct.fulfillmentType === 'AFFILIATE' && (
                             <>
                               <p><span className="text-zinc-400 block">Platform / merchant</span>{getAffiliatePlatformSelection(selectedEcommerceProduct.affiliateDetails?.platform, selectedEcommerceProduct.affiliateDetails?.merchantName, selectedEcommerceProduct.affiliateDetails?.affiliateUrl)} · {selectedEcommerceProduct.affiliateDetails?.merchantName || 'Not set'}</p>
@@ -1397,7 +1693,13 @@ export function AdminDashboard({ userEmail }: AdminDashboardProps) {
                           )}
                         </div>
                         <div className="flex flex-wrap gap-2">
-                          <a href={`/shop/product/${selectedEcommerceProduct.slug}`} target="_blank" rel="noopener noreferrer" className="rounded-lg bg-[#E30613] px-3 py-2 text-[10px] font-black uppercase text-white">Open Product</a>
+                          <a href={selectedEcommerceProduct.productType !== 'PHYSICAL' ? `/digital-store/product/${selectedEcommerceProduct.slug}` : `/shop/product/${selectedEcommerceProduct.slug}`} target="_blank" rel="noopener noreferrer" className="rounded-lg bg-[#E30613] px-3 py-2 text-[10px] font-black uppercase text-white">Open Product</a>
+                          {selectedEcommerceProduct.productType !== 'PHYSICAL' && (
+                            <>
+                              <button type="button" onClick={() => setDigitalProductForm(createDigitalProductForm(selectedEcommerceProduct))} className="rounded-lg border border-zinc-200 bg-white px-3 py-2 text-[10px] font-black uppercase text-zinc-700">Edit digital</button>
+                              {selectedEcommerceProduct.status !== 'ARCHIVED' && <button type="button" onClick={() => handleDigitalProductAction('archive')} className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-[10px] font-black uppercase text-amber-700">Archive</button>}
+                            </>
+                          )}
                           {selectedEcommerceProduct.fulfillmentType === 'AFFILIATE' && (
                             <button type="button" onClick={() => setAffiliateProductForm(createAffiliateProductForm(selectedEcommerceProduct))} className="rounded-lg border border-zinc-200 bg-white px-3 py-2 text-[10px] font-black uppercase text-zinc-700">Edit affiliate</button>
                           )}

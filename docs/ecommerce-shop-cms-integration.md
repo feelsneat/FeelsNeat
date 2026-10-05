@@ -6,7 +6,7 @@ This guide explains how the FeelsNeat ecommerce shop works, how a newly found pr
 
 FeelsNeat CMS is the source of truth for the storefront. If a product should appear on `feelsneat.com/shop`, it must exist as a FeelsNeat product record with title, slug, SKU, price, images, stock, category, collection, and status.
 
-Cashfree is only the payment gateway. Adding something in Cashfree does not add a product to the FeelsNeat website. Cashfree receives payment orders from FeelsNeat, collects payment, and sends payment status back through the webhook.
+Razorpay is only the payment gateway. Adding something in Razorpay does not add a product to the FeelsNeat website. Razorpay receives payment orders from FeelsNeat, collects payment, and sends payment status back through the webhook.
 
 AliShipping is the supplier and fulfillment side. Adding or finding a product in AliShipping does not automatically make it live on the FeelsNeat website unless we build a real supplier catalog sync. For now, FeelsNeat still needs its own product record that points to the AliShipping supplier SKU.
 
@@ -48,7 +48,7 @@ Admin ecommerce API:
 
 Payment webhook:
 
-- `POST /api/webhooks/cashfree`
+- `POST /api/webhooks/razorpay`
 
 ## Full Workflow: Listing a New Product
 
@@ -68,13 +68,13 @@ Affiliate products do not create FeelsNeat orders. The partner site owns checkou
 
 The site records outbound clicks and displays estimated affiliate reference value. It must not treat clicks as confirmed sales or commission earnings. Confirmed conversions and payouts must be reconciled from the partner dashboard or a future partner report import.
 
-Affiliate products bypass the FeelsNeat cart and checkout. They do not require Cashfree or AliShipping credentials.
+Affiliate products bypass the FeelsNeat cart and checkout. They do not require Razorpay or AliShipping credentials.
 
 For production publication, the affiliate destination must be a valid public `https://` URL. Products with missing, invalid, or non-HTTPS affiliate destinations are rejected when saved as `ACTIVE` and are excluded from the public catalog until corrected.
 
 ### Dropship Product Workflow
 
-Dropship products require Cashfree for prepaid payment and a live/manual AliShipping fulfillment process before they should be activated.
+Dropship products require Razorpay for prepaid payment and a live/manual AliShipping fulfillment process before they should be activated.
 
 ### 1. Evaluate the Product
 
@@ -341,44 +341,64 @@ For Cash on Delivery:
 For online payment:
 
 1. Order starts as `PENDING_PAYMENT`.
-2. FeelsNeat creates a Cashfree payment order if credentials are configured.
-3. Customer pays through Cashfree.
-4. Cashfree sends a webhook to `/api/webhooks/cashfree`.
+2. FeelsNeat creates a Razorpay payment order if credentials are configured.
+3. Customer pays through Razorpay.
+4. Razorpay sends a webhook to `/api/webhooks/razorpay`.
 5. The webhook verifies signature.
 6. On success, order becomes `CONFIRMED` and `PAID`.
 7. The system attempts fulfillment creation.
 
-## Cashfree Production Setup
+## Razorpay Production Setup
 
 Set these production environment variables:
 
 ```bash
-CASHFREE_CLIENT_ID=your_cashfree_client_id
-CASHFREE_CLIENT_SECRET=your_cashfree_client_secret
-CASHFREE_ENVIRONMENT=TEST
+RAZORPAY_KEY_ID=your_razorpay_key_id
+RAZORPAY_KEY_SECRET=your_razorpay_key_secret
+RAZORPAY_WEBHOOK_SECRET=your_razorpay_webhook_secret
 ```
 
-Use `TEST` first. Move to `PRODUCTION` only after sandbox payment verification.
+Use Razorpay Test Mode keys first. Move to live keys only after sandbox payment verification.
 
-Cashfree dashboard setup:
+Razorpay dashboard setup:
 
-1. Create/open the Cashfree merchant account.
+1. Create/open the Razorpay merchant account.
 2. Enable Payment Gateway.
-3. Copy Client ID and Client Secret.
-4. Add those values to the production environment.
+3. In Razorpay Dashboard -> Account & Settings -> API Keys, generate Test Mode keys.
+4. Copy the Key ID into `RAZORPAY_KEY_ID` and the Key Secret into `RAZORPAY_KEY_SECRET`.
 5. Configure webhook URL:
 
 ```text
-https://your-domain.com/api/webhooks/cashfree
+https://your-domain.com/api/webhooks/razorpay
 ```
 
-6. Enable payment success and payment failed webhook events.
-7. Run a sandbox prepaid order.
-8. Confirm webhook changes the order to `PAID` and `CONFIRMED`.
-9. Confirm failed payment changes the order to `PAYMENT_FAILED`.
-10. Switch to live credentials and `CASHFREE_ENVIRONMENT=PRODUCTION`.
+6. Enable `payment.captured` and `payment.failed` webhook events.
+7. For local testing, expose the app with a public HTTPS tunnel, then use:
 
-Cashfree does not manage FeelsNeat products. It only receives order/payment requests from FeelsNeat.
+```text
+https://your-tunnel-domain.example/api/webhooks/razorpay
+```
+
+8. Set the same webhook secret in Razorpay and `RAZORPAY_WEBHOOK_SECRET`.
+9. Run a Test Mode prepaid order using Razorpay test credentials.
+10. Confirm the browser verification endpoint marks the order `PAID` and `CONFIRMED`.
+11. Confirm the webhook also arrives and is idempotent.
+12. Confirm failed payment changes the order to `PAYMENT_FAILED`.
+13. Switch to live Razorpay keys after sandbox verification.
+
+### Local payment test checklist
+
+1. Copy `.env.example` to `.env.local`.
+2. Add your Razorpay Test Mode `Key ID` and `Key Secret`. Never put the secret in client code or commit it.
+3. Restart the dev server after changing `.env.local`.
+4. Add a product to the cart and open `/checkout`.
+5. Choose prepaid payment and submit the checkout form.
+6. Razorpay Checkout should open with the `rzp_test_...` public key.
+7. Complete the payment with Razorpay's Test Mode credentials.
+8. The app verifies the Checkout signature at `/api/ecommerce/payments/verify`.
+9. Configure a tunnel if you also want to test `/api/webhooks/razorpay`; `localhost` cannot receive Razorpay webhooks directly.
+
+Razorpay does not manage FeelsNeat products. It only receives order/payment requests from FeelsNeat.
 
 ## AliShipping Production Setup
 
@@ -473,8 +493,8 @@ Before pushing live:
 1. Configure `AUTH_SECRET`.
 2. Configure `FEELSNEAT_CMS_KV`.
 3. Seed or migrate `ecommerce_db` into production KV.
-4. Configure Cashfree sandbox credentials.
-5. Configure Cashfree webhook URL.
+4. Configure Razorpay sandbox credentials.
+5. Configure Razorpay webhook URL.
 6. Test prepaid success payment.
 7. Test prepaid failed payment.
 8. Test COD order.
@@ -500,8 +520,8 @@ For a production-ready operating system, the highest-value next tasks are:
 6. Add a production KV seed/migration script.
 7. Implement real AliShipping API calls after official docs are available.
 8. Add inventory sync and low-stock warnings.
-9. Add Cashfree live-mode verification checklist.
+9. Add Razorpay live-mode verification checklist.
 
 ## Short Answer
 
-If you find a new product, do not add it in Cashfree first. Add it to FeelsNeat CMS as a product. If AliShipping will fulfill it, map the AliShipping supplier SKU inside that FeelsNeat product. Cashfree only collects payment after a customer places an order. AliShipping only fulfills the order after the FeelsNeat order exists and has been confirmed.
+If you find a new product, do not add it in Razorpay first. Add it to FeelsNeat CMS as a product. If AliShipping will fulfill it, map the AliShipping supplier SKU inside that FeelsNeat product. Razorpay only collects payment after a customer places an order. AliShipping only fulfills the order after the FeelsNeat order exists and has been confirmed.

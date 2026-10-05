@@ -10,6 +10,7 @@ import {
   EstimatedMargin,
 } from '@/lib/ecommerce/types';
 import { getPaymentProvider } from '@/lib/ecommerce/payments/mock';
+import { isDigitalProduct } from '@/lib/ecommerce/product-classification';
 
 export const runtime = 'edge';
 
@@ -52,25 +53,48 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    if (
+    if (!Array.isArray(items) || items.length === 0) {
+      return NextResponse.json({ error: 'Order must contain at least one product.' }, { status: 400 });
+    }
+
+    const db = await loadEcommerceDb(req.url);
+    const hasDigitalItems = items.some((item) => {
+      const product = db.products.find((p) => p.id === item.productId && (p.status === 'ACTIVE' || p.status === 'PUBLISHED'));
+      return product && isDigitalProduct(product);
+    });
+    const productTypes = new Set(
+      items.map((item) => {
+        const product = db.products.find((p) => p.id === item.productId && (p.status === 'ACTIVE' || p.status === 'PUBLISHED'));
+        return product && isDigitalProduct(product) ? 'DIGITAL' : 'PHYSICAL';
+      })
+    );
+    if (productTypes.size > 1) {
+      return NextResponse.json(
+        { error: 'Digital and physical products are purchased separately. Please use separate checkouts.' },
+        { status: 400 }
+      );
+    }
+    if (hasDigitalItems && paymentMethod === 'COD') {
+      return NextResponse.json(
+        { error: 'Cash on Delivery is not available for digital products.' },
+        { status: 400 }
+      );
+    }
+
+    if (!hasDigitalItems && (
       !shippingAddress?.line1 ||
       !shippingAddress?.city ||
       !shippingAddress?.state ||
       !shippingAddress?.pincode
-    ) {
+    )) {
       return NextResponse.json(
         { error: 'Full shipping address (Street, City, State, Pincode) is required.' },
         { status: 400 }
       );
     }
 
-    if (!Array.isArray(items) || items.length === 0) {
-      return NextResponse.json({ error: 'Order must contain at least one product.' }, { status: 400 });
-    }
-
-    const db = await loadEcommerceDb(req.url);
     const hasDropshipItems = items.some((item) => {
-      const product = db.products.find((p) => p.id === item.productId && p.status === 'ACTIVE');
+      const product = db.products.find((p) => p.id === item.productId && (p.status === 'ACTIVE' || p.status === 'PUBLISHED'));
       return product && (product.fulfillmentType || 'DROPSHIP') === 'DROPSHIP';
     });
 
@@ -81,10 +105,10 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    if (hasDropshipItems && paymentMethod === 'PREPAID' &&
-      (!process.env.CASHFREE_CLIENT_ID || !process.env.CASHFREE_CLIENT_SECRET)) {
+    if (paymentMethod === 'PREPAID' &&
+      (!process.env.RAZORPAY_KEY_ID || !process.env.RAZORPAY_KEY_SECRET)) {
       return NextResponse.json(
-        { error: 'Online payments are not enabled yet. Cashfree credentials must be configured before placing prepaid orders.' },
+        { error: 'Online payments are not enabled yet. Razorpay credentials must be configured before placing prepaid orders.' },
         { status: 503 }
       );
     }
@@ -95,7 +119,7 @@ export async function POST(req: NextRequest) {
     let totalSupplierCost = 0;
 
     for (const item of items) {
-      const product = db.products.find((p) => p.id === item.productId && p.status === 'ACTIVE');
+      const product = db.products.find((p) => p.id === item.productId && (p.status === 'ACTIVE' || p.status === 'PUBLISHED'));
       if (!product) {
         return NextResponse.json(
           { error: `Product "${item.productId}" is currently unavailable.` },
@@ -136,7 +160,7 @@ export async function POST(req: NextRequest) {
       }
 
       const qty = Math.max(1, Math.min(item.quantity || 1, 50));
-      if (qty > availableStock) {
+      if (!isDigitalProduct(product) && qty > availableStock) {
         return NextResponse.json(
           { error: `Requested quantity for "${title}" exceeds available stock (${availableStock}).` },
           { status: 400 }
@@ -187,8 +211,8 @@ export async function POST(req: NextRequest) {
 
     // 4. Shipping & COD Fee
     const freeShippingThreshold = db.settings.freeShippingThreshold || 999;
-    const shippingCharge = subtotal >= freeShippingThreshold ? 0 : db.settings.standardShippingFee || 60;
-    const codFee = paymentMethod === 'COD' && db.settings.codAvailable ? (db.settings.codFee || 40) : 0;
+    const shippingCharge = hasDigitalItems ? 0 : (subtotal >= freeShippingThreshold ? 0 : db.settings.standardShippingFee || 60);
+    const codFee = hasDigitalItems ? 0 : (paymentMethod === 'COD' && db.settings.codAvailable ? (db.settings.codFee || 40) : 0);
     const total = Math.max(0, subtotal - discountAmount + shippingCharge + codFee);
 
     // 5. Estimated Margin Calculation (Admin estimate only)
@@ -233,15 +257,15 @@ export async function POST(req: NextRequest) {
         phone: customer.phone,
       },
       shippingAddress: {
-        name: shippingAddress.name || customer.name,
-        phone: shippingAddress.phone || customer.phone,
-        email: shippingAddress.email || customer.email,
-        line1: shippingAddress.line1,
-        line2: shippingAddress.line2 || '',
-        city: shippingAddress.city,
-        state: shippingAddress.state,
-        pincode: shippingAddress.pincode,
-        country: shippingAddress.country || 'India',
+        name: shippingAddress?.name || customer.name,
+        phone: shippingAddress?.phone || customer.phone,
+        email: shippingAddress?.email || customer.email,
+        line1: shippingAddress?.line1 || (hasDigitalItems ? 'Digital delivery' : ''),
+        line2: shippingAddress?.line2 || '',
+        city: shippingAddress?.city || (hasDigitalItems ? 'Digital' : ''),
+        state: shippingAddress?.state || (hasDigitalItems ? 'Online' : ''),
+        pincode: shippingAddress?.pincode || (hasDigitalItems ? '000000' : ''),
+        country: shippingAddress?.country || 'India',
       },
       billingAddress: billingAddress || undefined,
       items: itemSnapshots,
@@ -267,7 +291,7 @@ export async function POST(req: NextRequest) {
     const newPayment: Payment = {
       id: paymentId,
       orderId,
-      provider: paymentMethod === 'COD' ? 'COD' : (process.env.CASHFREE_CLIENT_ID ? 'CASHFREE' : 'MOCK'),
+      provider: paymentMethod === 'COD' ? 'COD' : (process.env.RAZORPAY_KEY_ID ? 'RAZORPAY' : 'MOCK'),
       amount: total,
       currency: 'INR',
       paymentMethod: paymentMethod === 'COD' ? 'COD' : 'ONLINE',
@@ -282,11 +306,11 @@ export async function POST(req: NextRequest) {
     let paymentSessionId: string | undefined;
 
     if (paymentMethod === 'PREPAID') {
-      const providerType = process.env.CASHFREE_CLIENT_ID ? 'CASHFREE' : 'MOCK';
+      const providerType = process.env.RAZORPAY_KEY_ID ? 'RAZORPAY' : 'MOCK';
       const paymentProvider = getPaymentProvider(providerType);
       const origin = req.headers.get('origin') || 'http://localhost:8085';
       const returnUrl = `${origin}/shop/order-confirmation/${orderId}?token=${newOrder.trackingToken}`;
-      const notifyUrl = `${origin}/api/webhooks/cashfree`;
+      const notifyUrl = `${origin}/api/webhooks/razorpay`;
 
       try {
         const payResult = await paymentProvider.createPaymentOrder({
@@ -298,9 +322,9 @@ export async function POST(req: NextRequest) {
         newPayment.providerOrderId = payResult.providerOrderId;
         paymentSessionId = payResult.paymentSessionId;
         paymentRedirectUrl = payResult.paymentUrl;
-      } catch (payErr: any) {
-        console.error('Payment order creation warning:', payErr);
-        // Still save order as PENDING_PAYMENT
+      } catch (payErr: unknown) {
+        console.error('Payment order creation failed:', payErr);
+        throw payErr;
       }
     } else {
       // For COD, record confirmation event directly
@@ -330,6 +354,8 @@ export async function POST(req: NextRequest) {
       paymentMethod,
       paymentSessionId,
       paymentRedirectUrl: paymentRedirectUrl || `/shop/order-confirmation/${orderId}?token=${newOrder.trackingToken}`,
+      razorpayOrderId: paymentMethod === 'PREPAID' ? newPayment.providerOrderId : undefined,
+      razorpayKeyId: paymentMethod === 'PREPAID' ? process.env.RAZORPAY_KEY_ID : undefined,
       trackingToken: newOrder.trackingToken,
     });
   } catch (error: any) {

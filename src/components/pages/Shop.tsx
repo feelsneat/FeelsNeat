@@ -69,6 +69,7 @@ export default function ShopPage({ initialCategory, initialCollection }: ShopPag
       quantity: 1,
       image: product.images[0] || '',
       maxStock: product.stockQuantity || 50,
+      isDigital: false,
     });
 
     setAddedToast(`Added "${product.title}" to cart!`);

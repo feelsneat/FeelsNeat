@@ -19,8 +19,8 @@ export const initialEcommerceSettings: EcommerceSettings = {
   codAvailable: true,
   codFee: 40,
   taxRatePercent: 0, // Included in product price
-  cashfreeEnvironment: 'TEST',
-  cashfreeConfigured: false,
+  razorpayEnvironment: 'TEST',
+  razorpayConfigured: false,
   aliShippingConfigured: false,
   aliShippingStatus: 'NOT_CONNECTED',
   estimatedPaymentFeePercent: 2,
@@ -130,6 +130,17 @@ export const initialCategories: Category[] = [
     image: 'https://images.unsplash.com/photo-1527864550417-7fd91fc51a46?q=80&w=800',
     order: 3,
     active: true,
+  },
+  {
+    id: 'cat-digital-templates',
+    name: 'Digital Templates',
+    slug: 'digital-templates',
+    description: 'Clean, useful digital products, templates, and ready-to-use resource packs.',
+    parentId: null,
+    image: 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=800',
+    order: 4,
+    active: true,
+    categoryType: 'DIGITAL',
   },
 ];
 
@@ -532,6 +543,48 @@ Features integrated cork-backed feet that protect your desk surface and an open 
     createdAt: '2026-09-17T10:00:00.000Z',
     updatedAt: '2026-09-19T10:00:00.000Z',
   },
+  {
+    id: 'prod-ats-resume-template',
+    slug: 'ats-tech-resume-template',
+    title: 'ATS Tech Resume Template',
+    shortDescription: 'A clean, one-page resume template built for modern tech hiring workflows.',
+    description: 'A polished ATS-friendly resume template with structured sections, action-verbs, and strong readability for software, product, and design roles.',
+    categoryId: 'cat-digital-templates',
+    category: 'Digital Templates',
+    collectionIds: [],
+    brand: 'FeelsNeat',
+    tags: ['Resume', 'Template', 'ATS', 'Career'],
+    sku: 'FN-DIG-ATS-001',
+    sellingPrice: 1999,
+    compareAtPrice: 2999,
+    costPrice: 0,
+    images: [
+      'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?q=80&w=1200',
+    ],
+    hasVariants: false,
+    variants: [],
+    status: 'ACTIVE',
+    productType: 'TEMPLATE',
+    digitalProductType: 'TEMPLATE',
+    downloadableFiles: [
+      {
+        id: 'file-ats-pdf',
+        title: 'ATS Resume Template',
+        filename: 'feelsneat-ats-tech-resume.pdf',
+        mimeType: 'application/pdf',
+        sizeBytes: 540000,
+        url: 'https://example.com/feelsneat-ats-tech-resume.pdf',
+      },
+    ],
+    fulfillmentType: 'DIRECT',
+    taxIncluded: true,
+    inventorySource: 'OWNED',
+    stockQuantity: 9999,
+    seoTitle: 'ATS Tech Resume Template | FeelsNeat',
+    seoDescription: 'Download a clean ATS-friendly one-page resume template for modern tech roles.',
+    createdAt: '2026-09-18T10:00:00.000Z',
+    updatedAt: '2026-09-18T10:00:00.000Z',
+  },
 ];
 
 export const initialDiscounts: Discount[] = [
@@ -571,6 +624,7 @@ export const emptyEcommerceDb = (includeSeedProducts = process.env.NODE_ENV !== 
   discounts: initialDiscounts,
   returns: [],
   refunds: [],
+  entitlements: [],
   settings: initialEcommerceSettings,
 });
 
@@ -588,8 +642,12 @@ export async function loadEcommerceDb(reqUrl: string): Promise<EcommerceDb> {
     ) {
       const c = candidate as Partial<EcommerceDb>;
       db = {
-        products: Array.isArray(c.products) ? (c.products.length > 0 ? c.products : seedProducts) : seedProducts,
-        categories: Array.isArray(c.categories) && c.categories.length > 0 ? c.categories : initialCategories,
+        products: Array.isArray(c.products)
+          ? [...c.products, ...seedProducts.filter((seed) => !c.products!.some((product) => product.id === seed.id))]
+          : seedProducts,
+        categories: Array.isArray(c.categories)
+          ? [...c.categories, ...initialCategories.filter((seed) => !c.categories!.some((category) => category.id === seed.id))]
+          : initialCategories,
         collections: Array.isArray(c.collections) && c.collections.length > 0 ? c.collections : initialCollections,
         suppliers: Array.isArray(c.suppliers) && c.suppliers.length > 0 ? c.suppliers : initialSuppliers,
         supplierCatalog: Array.isArray(c.supplierCatalog) && c.supplierCatalog.length > 0 ? c.supplierCatalog : initialSupplierCatalog,
@@ -600,6 +658,7 @@ export async function loadEcommerceDb(reqUrl: string): Promise<EcommerceDb> {
         discounts: Array.isArray(c.discounts) && c.discounts.length > 0 ? c.discounts : initialDiscounts,
         returns: Array.isArray(c.returns) ? c.returns : [],
         refunds: Array.isArray(c.refunds) ? c.refunds : [],
+        entitlements: Array.isArray(c.entitlements) ? c.entitlements : [],
         settings: c.settings ? { ...initialEcommerceSettings, ...c.settings } : initialEcommerceSettings,
       };
     }

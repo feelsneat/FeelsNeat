@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { loadEcommerceDb } from '@/lib/ecommerce/db';
+import { isDigitalProduct } from '@/lib/ecommerce/product-classification';
 
 export const runtime = 'edge';
 
@@ -56,6 +57,21 @@ export async function GET(req: NextRequest) {
         lineTotal: item.lineTotal,
         image: item.image,
       })),
+      isDigital: order.items.every((item) => {
+        const product = db.products.find((candidate) => candidate.id === item.productId);
+        return product && isDigitalProduct(product);
+      }),
+      digitalDownloads: order.paymentStatus === 'PAID'
+        ? order.items.flatMap((item) => {
+            const product = db.products.find((candidate) => candidate.id === item.productId);
+            return product?.downloadableFiles?.map((file) => ({
+              productId: product.id,
+              fileId: file.id,
+              title: file.title,
+              filename: file.filename,
+            })) || [];
+          })
+        : [],
       shipment: order.shipment ? {
         courier: order.shipment.courier,
         trackingNumber: order.shipment.trackingNumber,

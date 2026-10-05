@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { loadEcommerceDb } from '@/lib/ecommerce/db';
+import { isDigitalProduct } from '@/lib/ecommerce/product-classification';
 
 export const runtime = 'edge';
 
@@ -13,13 +14,21 @@ export async function GET(req: NextRequest) {
     const search = url.searchParams.get('search')?.toLowerCase().trim();
     const productSlug = url.searchParams.get('slug');
     const sort = url.searchParams.get('sort'); // price_asc, price_desc, newest
+    const typeFilter = url.searchParams.get('type'); // dropship, affiliate, digital, physical
+
+    const isPublishedProduct = (p: (typeof db.products)[number]) => p.status === 'ACTIVE' || p.status === 'PUBLISHED';
+    const isPhysicalProduct = (product: (typeof db.products)[number]) => !isDigitalProduct(product);
 
     // Single product lookup
     if (productSlug) {
       const product = db.products.find(
         (p) =>
           p.slug === productSlug &&
-          p.status === 'ACTIVE' &&
+          isPublishedProduct(p) &&
+          (!typeFilter ||
+            (typeFilter === 'digital' && isDigitalProduct(p)) ||
+            (typeFilter === 'physical' && isPhysicalProduct(p)) ||
+            (typeFilter !== 'digital' && typeFilter !== 'physical')) &&
           (p.fulfillmentType !== 'AFFILIATE' ||
             (p.affiliateDetails?.affiliateUrl && /^https:\/\//i.test(p.affiliateDetails.affiliateUrl)))
       );
@@ -43,6 +52,15 @@ export async function GET(req: NextRequest) {
         compareAtPrice: product.compareAtPrice,
         images: product.images,
         hasVariants: product.hasVariants,
+        productType: product.productType || (product.downloadableFiles?.length ? 'TEMPLATE' : 'PHYSICAL'),
+        digitalProductType: product.digitalProductType,
+        downloadableFiles: product.downloadableFiles?.map((file) => ({
+          id: file.id,
+          title: file.title,
+          filename: file.filename,
+          mimeType: file.mimeType,
+          sizeBytes: file.sizeBytes,
+        })) || [],
         variants: product.variants.map((v) => ({
           id: v.id,
           sku: v.sku,
@@ -78,7 +96,7 @@ export async function GET(req: NextRequest) {
     // Filter active products
     let items = db.products.filter(
       (p) =>
-        p.status === 'ACTIVE' &&
+        isPublishedProduct(p) &&
         (p.fulfillmentType !== 'AFFILIATE' ||
           (p.affiliateDetails?.affiliateUrl && /^https:\/\//i.test(p.affiliateDetails.affiliateUrl)))
     );
@@ -103,12 +121,14 @@ export async function GET(req: NextRequest) {
       }
     }
 
-    const typeFilter = url.searchParams.get('type'); // dropship, affiliate
-
     if (typeFilter === 'dropship') {
       items = items.filter((p) => !p.fulfillmentType || p.fulfillmentType === 'DROPSHIP');
     } else if (typeFilter === 'affiliate') {
       items = items.filter((p) => p.fulfillmentType === 'AFFILIATE');
+    } else if (typeFilter === 'digital') {
+      items = items.filter(isDigitalProduct);
+    } else if (typeFilter === 'physical') {
+      items = items.filter(isPhysicalProduct);
     }
 
     if (search) {
@@ -146,6 +166,15 @@ export async function GET(req: NextRequest) {
       compareAtPrice: product.compareAtPrice,
       images: product.images,
       hasVariants: product.hasVariants,
+      productType: product.productType || (product.downloadableFiles?.length ? 'TEMPLATE' : 'PHYSICAL'),
+      digitalProductType: product.digitalProductType,
+      downloadableFiles: product.downloadableFiles?.map((file) => ({
+        id: file.id,
+        title: file.title,
+        filename: file.filename,
+        mimeType: file.mimeType,
+        sizeBytes: file.sizeBytes,
+      })) || [],
       variants: product.variants.map((v) => ({
         id: v.id,
         sku: v.sku,
@@ -174,7 +203,9 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json({
       products: sanitizedProducts,
-      categories: db.categories.filter((c) => c.active),
+      categories: db.categories.filter((c) =>
+        c.active && (!typeFilter || typeFilter !== 'digital' || c.categoryType === 'DIGITAL')
+      ),
       collections: db.collections.filter((c) => c.active),
       settings: {
         storeName: db.settings.storeName,

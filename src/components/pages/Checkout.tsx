@@ -2,8 +2,15 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import Script from 'next/script';
 import { LucideIcon } from '@/components/ui/LucideIcon';
 import { getCart, clearCart, CartItem } from '@/lib/ecommerce/cart';
+
+declare global {
+  interface Window {
+    Razorpay?: new (options: Record<string, unknown>) => { open: () => void };
+  }
+}
 
 export default function CheckoutPage() {
   const [items, setItems] = useState<CartItem[]>([]);
@@ -37,6 +44,7 @@ export default function CheckoutPage() {
     codFee: 0,
     total: 0,
   });
+  const [isDigitalOnly, setIsDigitalOnly] = useState<boolean | null>(null);
 
   useEffect(() => {
     const current = getCart();
@@ -60,6 +68,10 @@ export default function CheckoutPage() {
       .then((res) => res.json())
       .then((data) => {
         if (data.total !== undefined) {
+          if (!data.valid) {
+            setErrorMessage(data.errors?.join(' ') || 'Some items are no longer available.');
+          }
+          setIsDigitalOnly(Boolean(data.isDigitalOnly));
           setSummary({
             subtotal: data.subtotal,
             discountAmount: data.discountAmount,
@@ -81,7 +93,7 @@ export default function CheckoutPage() {
       return;
     }
 
-    if (!shippingAddress.line1 || !shippingAddress.city || !shippingAddress.state || !shippingAddress.pincode) {
+    if (isDigitalOnly !== true && (!shippingAddress.line1 || !shippingAddress.city || !shippingAddress.state || !shippingAddress.pincode)) {
       setErrorMessage('Please fill in your complete shipping address including pincode.');
       return;
     }
@@ -113,8 +125,41 @@ export default function CheckoutPage() {
       // Clear shopping cart upon successful creation
       clearCart();
 
-      // Redirect to Cashfree payment or confirmation screen
-      if (data.paymentRedirectUrl) {
+      if (data.razorpayOrderId && data.razorpayKeyId && window.Razorpay) {
+        const razorpay = new window.Razorpay({
+          key: data.razorpayKeyId,
+          amount: Math.round(data.total * 100),
+          currency: 'INR',
+          name: 'FeelsNeat',
+          description: `FeelsNeat Order ${data.orderNumber}`,
+          order_id: data.razorpayOrderId,
+          prefill: customer,
+          notes: { order_id: data.orderId },
+          handler: async (response: Record<string, string>) => {
+            const verifyResponse = await fetch('/api/ecommerce/payments/verify', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                orderId: data.orderId,
+                razorpayOrderId: response.razorpay_order_id,
+                razorpayPaymentId: response.razorpay_payment_id,
+                razorpaySignature: response.razorpay_signature,
+              }),
+            });
+            if (!verifyResponse.ok) {
+              const verifyData = await verifyResponse.json();
+              setErrorMessage(verifyData.error || 'Payment verification failed.');
+              setSubmitting(false);
+              return;
+            }
+            window.location.href = `/shop/order-confirmation/${data.orderId}?token=${data.trackingToken}`;
+          },
+        });
+        razorpay.open();
+      } else if (data.razorpayOrderId && data.razorpayKeyId && !window.Razorpay) {
+        setErrorMessage('Razorpay checkout could not load. Disable ad blockers or refresh and try again.');
+        setSubmitting(false);
+      } else if (data.paymentRedirectUrl) {
         window.location.href = data.paymentRedirectUrl;
       } else {
         window.location.href = `/shop/order-confirmation/${data.orderId}`;
@@ -146,7 +191,9 @@ export default function CheckoutPage() {
   }
 
   return (
-    <main className="min-h-screen bg-[#0A0A0C] text-[#F4F4F5] pt-28 pb-24 px-4 sm:px-6 lg:px-12 relative overflow-hidden">
+    <>
+      <Script src="https://checkout.razorpay.com/v1/checkout.js" strategy="afterInteractive" />
+      <main className="min-h-screen bg-[#0A0A0C] text-[#F4F4F5] pt-28 pb-24 px-4 sm:px-6 lg:px-12 relative overflow-hidden">
       <div className="morphing-blob absolute top-20 left-10 opacity-15 pointer-events-none" />
 
       <div className="max-w-6xl mx-auto relative z-10">
@@ -229,7 +276,7 @@ export default function CheckoutPage() {
             </div>
 
             {/* Shipping Address Card */}
-            <div className="p-6 rounded-2xl border border-white/10 bg-white/5 space-y-4">
+            {isDigitalOnly !== true && <div className="p-6 rounded-2xl border border-white/10 bg-white/5 space-y-4">
               <div className="flex items-center gap-2 text-white font-black text-xs uppercase tracking-wider border-b border-white/10 pb-3">
                 <LucideIcon name="MapPin" className="h-4 w-4 text-[#E30613]" />
                 <span>2. Delivery Address</span>
@@ -307,7 +354,7 @@ export default function CheckoutPage() {
                   </div>
                 </div>
               </div>
-            </div>
+            </div>}
 
             {/* Payment Method Card */}
             <div className="p-6 rounded-2xl border border-white/10 bg-white/5 space-y-4">
@@ -338,11 +385,12 @@ export default function CheckoutPage() {
                     </span>
                   </div>
                   <p className="text-[11px] text-zinc-400 leading-relaxed">
-                    UPI, Credit / Debit Cards, Net Banking via Cashfree secure gateway.
+                    UPI, Credit / Debit Cards, Net Banking via Razorpay secure gateway.
                   </p>
                 </label>
 
                 {/* COD Option */}
+                {isDigitalOnly !== true && (
                 <label
                   onClick={() => setPaymentMethod('COD')}
                   className={`p-4 rounded-xl border flex flex-col justify-between cursor-pointer transition-all ${
@@ -366,6 +414,7 @@ export default function CheckoutPage() {
                     Pay in cash or UPI directly to courier partner upon doorstep delivery.
                   </p>
                 </label>
+                )}
               </div>
             </div>
           </div>
@@ -467,6 +516,7 @@ export default function CheckoutPage() {
           </div>
         </form>
       </div>
-    </main>
+      </main>
+    </>
   );
 }

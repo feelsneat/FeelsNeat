@@ -1,4 +1,19 @@
-export type ProductStatus = 'DRAFT' | 'ACTIVE' | 'UNPUBLISHED' | 'ARCHIVED';
+export type ProductStatus = 'DRAFT' | 'ACTIVE' | 'PUBLISHED' | 'UNPUBLISHED' | 'ARCHIVED';
+
+export type DigitalProductType =
+  | 'PRINTABLE'
+  | 'TEMPLATE'
+  | 'CARD'
+  | 'PROMPT_PACK'
+  | 'TRACKING_SHEET'
+  | 'PLANNER'
+  | 'GUIDE'
+  | 'STUDY_RESOURCE'
+  | 'TOOLKIT'
+  | 'BUNDLE'
+  | 'OTHER';
+
+export type ProductType = 'PHYSICAL' | 'AFFILIATE' | DigitalProductType;
 
 export type InventorySource = 'OWNED' | 'SUPPLIER';
 
@@ -51,6 +66,17 @@ export interface ProductVariant {
   active: boolean;
 }
 
+export interface DigitalProductFile {
+  id: string;
+  title: string;
+  filename: string;
+  mimeType: string;
+  sizeBytes?: number;
+  url: string;
+  checksum?: string;
+  isPublic?: boolean;
+}
+
 export interface Product {
   id: string;
   slug: string;
@@ -58,6 +84,7 @@ export interface Product {
   shortDescription?: string;
   description: string;
   categoryId: string;
+  category?: string;
   collectionIds: string[];
   brand?: string;
   tags: string[];
@@ -69,6 +96,9 @@ export interface Product {
   hasVariants: boolean;
   variants: ProductVariant[];
   status: ProductStatus;
+  productType?: ProductType;
+  digitalProductType?: DigitalProductType;
+  downloadableFiles?: DigitalProductFile[];
   fulfillmentType?: FulfillmentType; // 'DROPSHIP' | 'AFFILIATE' | 'DIRECT' (defaults to 'DROPSHIP')
   affiliateDetails?: AffiliateDetails;
   weightGrams?: number;
@@ -81,6 +111,9 @@ export interface Product {
   supplierMapping?: SupplierProductMapping;
   seoTitle?: string;
   seoDescription?: string;
+  featured?: boolean;
+  version?: string; // e.g. "1.0"
+  previewImages?: string[];
   createdAt: string;
   updatedAt: string;
 }
@@ -94,6 +127,7 @@ export interface Category {
   image?: string;
   order: number;
   active: boolean;
+  categoryType?: 'PHYSICAL' | 'DIGITAL';
 }
 
 export interface Collection {
@@ -182,6 +216,7 @@ export type OrderStatus =
   | 'OUT_FOR_DELIVERY'
   | 'DELIVERED'
   | 'PAYMENT_FAILED'
+  | 'FULFILLED'
   | 'CANCELLED'
   | 'RETURN_REQUESTED'
   | 'RETURN_APPROVED'
@@ -201,6 +236,7 @@ export type PaymentStatus =
 
 export type FulfillmentStatus =
   | 'NOT_CREATED'
+  | 'FULFILLED'
   | 'PENDING'
   | 'PROCESSING'
   | 'PACKED'
@@ -217,7 +253,7 @@ export interface OrderTimelineEvent {
   orderId: string;
   event: string;
   timestamp: string;
-  source: 'SYSTEM' | 'ADMIN' | 'CASHFREE' | 'ALISHIPPING' | 'CUSTOMER';
+  source: 'SYSTEM' | 'ADMIN' | 'RAZORPAY' | 'ALISHIPPING' | 'CUSTOMER';
   actor: string;
   notes?: string;
   metadata?: Record<string, any>;
@@ -226,7 +262,7 @@ export interface OrderTimelineEvent {
 export interface Payment {
   id: string; // Internal payment ID, e.g. PAY-10025
   orderId: string;
-  provider: 'CASHFREE' | 'COD' | 'MOCK';
+  provider: 'RAZORPAY' | 'COD' | 'MOCK';
   providerOrderId?: string;
   providerPaymentId?: string;
   amount: number;
@@ -375,12 +411,28 @@ export interface EcommerceSettings {
   codAvailable: boolean;
   codFee: number;
   taxRatePercent: number;
-  cashfreeEnvironment: 'TEST' | 'PRODUCTION';
-  cashfreeConfigured: boolean;
+  razorpayEnvironment: 'TEST' | 'PRODUCTION';
+  razorpayConfigured: boolean;
   aliShippingConfigured: boolean;
   aliShippingStatus: 'NOT_CONNECTED' | 'CONNECTED' | 'MOCK';
   estimatedPaymentFeePercent: number;
   estimatedRtoCostPerOrder: number;
+}
+
+export interface DigitalEntitlement {
+  id: string; // e.g. ENT-10025-prod-1
+  orderId: string;
+  orderNumber: number;
+  productId: string;
+  productTitle: string;
+  customerEmail: string;
+  customerName: string;
+  versionPurchased: string;
+  status: 'ACTIVE' | 'REVOKED' | 'REFUNDED';
+  purchaseDate: string;
+  downloadCount: number;
+  lastDownloadedAt?: string | null;
+  fileIds: string[];
 }
 
 export interface EcommerceDb {
@@ -396,5 +448,6 @@ export interface EcommerceDb {
   discounts: Discount[];
   returns: ReturnRequest[];
   refunds: RefundRecord[];
+  entitlements?: DigitalEntitlement[];
   settings: EcommerceSettings;
 }

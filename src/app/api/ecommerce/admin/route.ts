@@ -4,6 +4,7 @@ import { loadEcommerceDb, saveEcommerceDb } from '@/lib/ecommerce/db';
 import { Product, Category, Collection, Discount, EcommerceOrder } from '@/lib/ecommerce/types';
 import { getPaymentProvider } from '@/lib/ecommerce/payments/mock';
 import { getFulfillmentProvider } from '@/lib/ecommerce/fulfillment/mock';
+import { isDigitalProduct } from '@/lib/ecommerce/product-classification';
 
 export const runtime = 'edge';
 
@@ -11,6 +12,10 @@ const MAX_PRODUCT_IMAGES = 8;
 const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
 const MAX_IMAGE_DATA_BYTES = 20 * 1024 * 1024;
 const ALLOWED_IMAGE_MIME_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp']);
+const DIGITAL_PRODUCT_TYPES = new Set([
+  'PRINTABLE', 'TEMPLATE', 'CARD', 'PROMPT_PACK', 'TRACKING_SHEET', 'PLANNER',
+  'GUIDE', 'STUDY_RESOURCE', 'TOOLKIT', 'BUNDLE', 'OTHER',
+]);
 
 function validateProductImages(images: unknown): string[] | null {
   if (images === undefined) return [];
@@ -34,6 +39,7 @@ function validateProductImages(images: unknown): string[] | null {
       } catch {
         return null;
       }
+
       totalDataBytes += bytes;
       if (totalDataBytes > MAX_IMAGE_DATA_BYTES) return null;
     } else {
@@ -46,6 +52,26 @@ function validateProductImages(images: unknown): string[] | null {
     }
   }
   return images;
+}
+
+function validateDigitalProduct(product: Product): string | null {
+  const isDigital = product.productType && product.productType !== 'PHYSICAL' && product.productType !== 'AFFILIATE';
+  if (!isDigital) return null;
+  if (!product.slug?.trim()) return 'Digital products require a slug.';
+  if (!Number.isFinite(product.sellingPrice) || product.sellingPrice < 0) return 'Price must be a non-negative number.';
+  if (product.compareAtPrice != null && (!Number.isFinite(product.compareAtPrice) || product.compareAtPrice < product.sellingPrice)) return 'Compare-at price must be greater than or equal to price.';
+  if (!product.digitalProductType || !DIGITAL_PRODUCT_TYPES.has(product.digitalProductType)) return 'Choose a valid digital product type.';
+  if (!Array.isArray(product.downloadableFiles) || product.downloadableFiles.length === 0) return 'At least one downloadable file is required for a digital product.';
+  for (const file of product.downloadableFiles) {
+    if (!file || !file.id || !file.title?.trim() || !file.filename?.trim() || !file.mimeType?.trim() || !file.url?.trim()) return 'Every downloadable file needs an id, title, filename, MIME type, and URL.';
+    try {
+      const url = new URL(file.url);
+      if (!['http:', 'https:'].includes(url.protocol)) return 'Downloadable file URLs must use HTTP(S).';
+    } catch {
+      return 'Downloadable file URLs must be valid HTTP(S) URLs.';
+    }
+  }
+  return null;
 }
 
 async function authenticateAdmin(req: NextRequest): Promise<boolean> {
@@ -71,11 +97,26 @@ export async function GET(req: NextRequest) {
 
   try {
     const db = await loadEcommerceDb(req.url);
+    const store = new URL(req.url).searchParams.get('store');
+    const products = store === 'digital'
+      ? db.products.filter(isDigitalProduct)
+      : store === 'physical'
+        ? db.products.filter((product) => !isDigitalProduct(product))
+        : db.products;
+    const orders = store
+      ? db.orders.filter((order) => {
+        const orderIsDigital = order.items.some((item) => {
+          const product = db.products.find((current) => current.id === item.productId);
+          return product ? isDigitalProduct(product) : false;
+        });
+        return store === 'digital' ? orderIsDigital : !orderIsDigital;
+      })
+      : db.orders;
 
     // Compute live operational metrics for Dashboard
     const todayStr = new Date().toISOString().slice(0, 10);
-    const todayOrders = db.orders.filter((o) => o.createdAt.startsWith(todayStr));
-    const paidOrders = db.orders.filter((o) => o.paymentStatus === 'PAID');
+    const todayOrders = orders.filter((o) => o.createdAt.startsWith(todayStr));
+    const paidOrders = orders.filter((o) => o.paymentStatus === 'PAID');
     const totalRevenue = paidOrders.reduce((sum, o) => sum + o.total, 0);
     const estimatedProfit = paidOrders.reduce(
       (sum, o) => sum + (o.estimatedMargin?.estimatedProfit || 0),
@@ -97,9 +138,9 @@ export async function GET(req: NextRequest) {
     );
 
     const metrics = {
-      totalOrders: db.orders.length,
+      totalOrders: orders.length,
       todayOrdersCount: todayOrders.length,
-      pendingPaymentCount: db.orders.filter((o) => o.paymentStatus === 'PENDING').length,
+      pendingPaymentCount: orders.filter((o) => o.paymentStatus === 'PENDING').length,
       confirmedCount: db.orders.filter((o) => o.orderStatus === 'CONFIRMED').length,
       processingCount: db.orders.filter((o) => o.orderStatus === 'PROCESSING').length,
       shippedCount: db.orders.filter((o) => o.orderStatus === 'SHIPPED').length,
@@ -115,12 +156,14 @@ export async function GET(req: NextRequest) {
       affiliateReferenceValue,
       affiliateProductsCount: affiliateProducts.length,
       dropshipProductsCount: dropshipProducts.length,
-      cashfreeConfigured: Boolean(process.env.CASHFREE_CLIENT_ID && process.env.CASHFREE_CLIENT_SECRET),
+      razorpayConfigured: Boolean(process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_SECRET),
       aliShippingConfigured: Boolean(process.env.ALISHIPPING_API_KEY && process.env.ALISHIPPING_API_SECRET),
     };
 
     return NextResponse.json({
       ...db,
+      products,
+      orders,
       metrics,
     });
   } catch (error: any) {
@@ -147,8 +190,35 @@ export async function POST(req: NextRequest) {
         ...body.product,
         ...(action === 'save_affiliate_product' ? { fulfillmentType: 'AFFILIATE' } : {}),
       };
+      if (productData.status === 'PUBLISHED') {
+        productData.status = 'ACTIVE';
+      }
+      if (!productData.productType && productData.downloadableFiles?.length) {
+        productData.productType = 'TEMPLATE';
+        productData.digitalProductType = 'TEMPLATE';
+      }
+      if (productData.downloadableFiles?.length && !productData.fulfillmentType) {
+        productData.fulfillmentType = 'DIRECT';
+      }
       if (!productData || !productData.title || !productData.sku) {
         return NextResponse.json({ error: 'Product title and SKU are required.' }, { status: 400 });
+      }
+      const existingProduct = productData.id ? db.products.find((product) => product.id === productData.id) : null;
+      const existingIsDigital = existingProduct ? isDigitalProduct(existingProduct) : null;
+      const nextIsDigital = isDigitalProduct(productData);
+      if (existingIsDigital !== null && existingIsDigital !== nextIsDigital) {
+        return NextResponse.json({ error: 'Product type is immutable. Create a new product for the other store.' }, { status: 400 });
+      }
+      const category = db.categories.find((current) => current.id === productData.categoryId);
+      if (category?.categoryType === 'DIGITAL' && !nextIsDigital) {
+        return NextResponse.json({ error: 'Digital categories can only be used by digital products.' }, { status: 400 });
+      }
+      if (category?.categoryType !== 'DIGITAL' && nextIsDigital) {
+        return NextResponse.json({ error: 'Digital products require a digital category.' }, { status: 400 });
+      }
+      const digitalValidationError = validateDigitalProduct(productData);
+      if (digitalValidationError) {
+        return NextResponse.json({ error: digitalValidationError }, { status: 400 });
       }
       const validatedImages = validateProductImages(productData.images);
       if (!validatedImages) {

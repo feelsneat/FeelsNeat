@@ -22,6 +22,8 @@ import PetProfilePage from '@/components/pages/PetProfile';
 import ReviewCardsPage from '@/components/pages/ReviewCards';
 import ShopPage from '@/components/pages/Shop';
 import ProductDetailPage from '@/components/pages/ProductDetail';
+import DigitalStorePage from '@/components/pages/DigitalStore';
+import DigitalProductDetailPage from '@/components/pages/DigitalProductDetail';
 import CartPage from '@/components/pages/Cart';
 import CheckoutPage from '@/components/pages/Checkout';
 import EcommerceOrderConfirmationPage from '@/components/pages/OrderConfirmation';
@@ -271,6 +273,19 @@ export default async function CatchAllPage({ params, searchParams }: PageProps) 
     }
     if (slug.length === 3 && slug[1] === 'order-confirmation') {
       return <EcommerceOrderConfirmationPage orderId={slug[2]} token={token} />;
+    }
+    notFound();
+  }
+
+  if (route === 'digital-store') {
+    if (slug.length === 1) {
+      return <DigitalStorePage />;
+    }
+    if (slug.length === 3 && slug[1] === 'product') {
+      return <DigitalProductDetailPage slug={slug[2]} />;
+    }
+    if (slug.length === 3 && slug[1] === 'checkout') {
+      return <CheckoutPage />;
     }
     notFound();
   }

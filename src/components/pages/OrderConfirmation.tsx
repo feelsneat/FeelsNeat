@@ -12,6 +12,22 @@ interface OrderConfirmationPageProps {
 export default function EcommerceOrderConfirmationPage({ orderId, token = '' }: OrderConfirmationPageProps) {
   const [order, setOrder] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [downloadError, setDownloadError] = useState<string | null>(null);
+
+  const requestDownload = async (download: { productId: string; fileId: string }) => {
+    setDownloadError(null);
+    const response = await fetch('/api/ecommerce/download', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ...download, orderId, trackingToken: token }),
+    });
+    const data = await response.json();
+    if (!response.ok) {
+      setDownloadError(data.error || 'Download is not available yet.');
+      return;
+    }
+    window.location.href = data.downloadUrl;
+  };
 
   useEffect(() => {
     async function loadOrder() {
@@ -28,7 +44,7 @@ export default function EcommerceOrderConfirmationPage({ orderId, token = '' }: 
       }
     }
     loadOrder();
-  }, [orderId]);
+  }, [orderId, token]);
 
   return (
     <main className="min-h-screen bg-[#0A0A0C] text-[#F4F4F5] pt-28 pb-24 px-4 sm:px-6 lg:px-12 relative overflow-hidden flex flex-col items-center justify-center">
@@ -42,10 +58,12 @@ export default function EcommerceOrderConfirmationPage({ orderId, token = '' }: 
         </div>
 
         <h1 className="text-2xl sm:text-3xl font-extrabold uppercase tracking-tight text-white mb-2">
-          Order Confirmed!
+          {order?.isDigital ? 'Payment Successful' : 'Order Confirmed!'}
         </h1>
         <p className="text-sm text-zinc-400 max-w-md mx-auto mb-6">
-          Thank you for choosing FeelsNeat. Your order has been placed and our fulfillment team is preparing your package.
+          {order?.isDigital
+            ? 'Thank you for your purchase. Your digital files are ready for download.'
+            : 'Thank you for choosing FeelsNeat. Your order has been placed and our fulfillment team is preparing your package.'}
         </p>
 
         {/* Order Identifier Callout */}
@@ -57,10 +75,10 @@ export default function EcommerceOrderConfirmationPage({ orderId, token = '' }: 
         {/* Order Snapshot if loaded */}
         {order && (
           <div className="bg-black/40 border border-white/10 rounded-xl p-5 text-left mb-8 space-y-4 text-xs uppercase font-bold">
-            <div className="flex justify-between items-center border-b border-white/10 pb-3">
+            {!order.isDigital && <div className="flex justify-between items-center border-b border-white/10 pb-3">
               <span className="text-zinc-400">Recipient:</span>
               <span className="text-white">{order.customerName}</span>
-            </div>
+            </div>}
             <div className="flex justify-between items-center border-b border-white/10 pb-3">
               <span className="text-zinc-400">Destination:</span>
               <span className="text-white">{order.shippingCity}, {order.shippingState}</span>
@@ -91,14 +109,34 @@ export default function EcommerceOrderConfirmationPage({ orderId, token = '' }: 
           </div>
         )}
 
+        {order?.isDigital && order.digitalDownloads?.length > 0 && (
+          <div className="mb-8 rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-5 text-left">
+            <h2 className="text-xs font-black uppercase tracking-widest text-emerald-300">Your downloads</h2>
+            <div className="mt-3 space-y-2">
+              {order.digitalDownloads.map((download: any) => (
+                <button
+                  key={`${download.productId}-${download.fileId}`}
+                  type="button"
+                  onClick={() => requestDownload(download)}
+                  className="flex w-full items-center justify-between rounded-lg border border-white/10 bg-black/20 px-3 py-3 text-left text-xs font-bold text-white hover:bg-white/10"
+                >
+                  <span>{download.title || download.filename}</span>
+                  <span className="text-emerald-300">Download</span>
+                </button>
+              ))}
+            </div>
+            {downloadError && <p className="mt-3 text-xs text-red-300">{downloadError}</p>}
+          </div>
+        )}
+
         {/* Actions */}
         <div className="flex flex-col sm:flex-row gap-3 justify-center">
           <Link
-            href={`/track?orderId=${encodeURIComponent(orderId)}&token=${encodeURIComponent(token)}`}
+            href={order?.isDigital ? `/digital-store` : `/track?orderId=${encodeURIComponent(orderId)}&token=${encodeURIComponent(token)}`}
             className="inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-[#E30613] hover:bg-white hover:text-black px-6 text-xs font-black uppercase tracking-wider text-white transition-colors shadow-lg"
           >
-            <LucideIcon name="Truck" className="h-4 w-4" />
-            <span>Track Order Status</span>
+            <LucideIcon name={order?.isDigital ? 'Download' : 'Truck'} className="h-4 w-4" />
+            <span>{order?.isDigital ? 'Digital Store' : 'Track Order Status'}</span>
           </Link>
           <Link
             href="/shop"

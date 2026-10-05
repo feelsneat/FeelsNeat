@@ -67,10 +67,11 @@ export class MockPaymentProvider implements PaymentProvider {
 }
 
 export function getPaymentProvider(providerName?: string): PaymentProvider {
-  if (providerName?.toUpperCase() === 'CASHFREE') {
+  if (providerName?.toUpperCase() === 'RAZORPAY') {
+    // Keep the provider module lazy so mock-only environments do not load Razorpay.
     // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const { CashfreePaymentProvider } = require('./cashfree');
-    return new CashfreePaymentProvider();
+    const { RazorpayPaymentProvider } = require('./razorpay');
+    return new RazorpayPaymentProvider();
   }
   return new MockPaymentProvider();
 }

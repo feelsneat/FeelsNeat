@@ -58,6 +58,27 @@ export default async function HomePage() {
         </div>
       </section>
 
+      {/* SECTION 1.5: DIGITAL STORE */}
+      <section className="border-t border-white/10 bg-[#0D0D10] py-16 relative z-10">
+        <div className="mx-auto flex max-w-5xl flex-col items-start justify-between gap-6 px-4 sm:flex-row sm:items-center sm:px-6">
+          <div>
+            <span className="text-sm font-black uppercase tracking-widest text-emerald-400">Digital Store</span>
+            <h2 className="mt-2 text-2xl font-black uppercase tracking-tight text-[#F4F4F5]">
+              Templates and tools, ready to download
+            </h2>
+            <p className="mt-2 max-w-xl text-sm font-semibold leading-relaxed text-[#F4F4F5]/70">
+              Explore FeelsNeat digital resources separately from our physical shop.
+            </p>
+          </div>
+          <Link
+            href="/digital-store"
+            className="inline-flex h-11 shrink-0 items-center justify-center rounded-lg bg-emerald-500 px-6 text-xs font-black uppercase tracking-wider text-black transition-colors hover:bg-white"
+          >
+            Visit Digital Shop
+          </Link>
+        </div>
+      </section>
+
       {/* SECTION 2: PROFESSIONAL SERVICES SECTION */}
       <section className="py-28 bg-[#0A0A0C] border-t border-white/10 relative z-10 scroll-reveal">
         <div className="mx-auto max-w-5xl px-4 sm:px-6 space-y-16">
