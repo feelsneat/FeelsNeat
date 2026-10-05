@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { getAffiliatePlatformSelection } from '@/lib/ecommerce/affiliate-platform';
 import { LucideIcon } from '../ui/LucideIcon';
 import ReviewCardsAdmin from './ReviewCardsAdmin';
 
