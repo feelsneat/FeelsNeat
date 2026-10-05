@@ -94,7 +94,7 @@ Digital products use the same Razorpay checkout as physical products. In the Dig
 - Keep using an HTTPS URL for externally hosted files.
 - Choose `External link` for Canva, Google Sheets, or another HTTPS destination. The purchased link appears on the paid order confirmation page and redirects there only after the order entitlement is checked.
 
-In Cloudflare Pages, create an R2 bucket and add an R2 bucket binding named `FEELSNEAT_DIGITAL_FILES` under the Pages project's **Settings -> Functions -> R2 bucket bindings**. The binding must be available to production deployments before uploading files. Local development falls back to the local ecommerce database for uploaded file data.
+In the Cloudflare dashboard, open **Workers & Pages -> feelsneat -> Settings -> Bindings**, add an **R2 bucket** binding with the variable name `FEELSNEAT_DIGITAL_FILES`, and select or create the private bucket for digital downloads. Add it to the **Production** environment (and Preview too if testing preview deployments), save, then trigger a new deployment so the binding is available to the Worker. Production file uploads return an explicit configuration error until this binding is active. Local development falls back to the local ecommerce database for uploaded file data.
 
 ### 1. Evaluate the Product
 

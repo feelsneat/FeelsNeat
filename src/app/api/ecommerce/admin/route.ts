@@ -199,7 +199,19 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    const body = await req.json();
+    const isMultipart = /multipart\/form-data/i.test(req.headers.get('content-type') || '');
+    let body: any;
+    if (isMultipart) {
+      const formData = await req.formData();
+      body = {
+        action: formData.get('action'),
+        file: formData.get('file'),
+        filename: formData.get('filename'),
+        title: formData.get('title'),
+      };
+    } else {
+      body = await req.json();
+    }
     const { action } = body;
 
     if (action === 'upload_digital_file') {
@@ -207,30 +219,55 @@ export async function POST(req: NextRequest) {
         fileData?: string;
         filename?: string;
         title?: string;
+        file?: File;
       };
-      if (!filename?.trim() || !title?.trim() || !fileData) {
+      if (!filename?.trim() || !title?.trim()) {
         return NextResponse.json({ error: 'File, filename, and title are required.' }, { status: 400 });
       }
-      const dataMatch = /^data:(application\/(?:pdf|zip|x-zip-compressed));base64,([A-Za-z0-9+/=]+)$/i.exec(fileData);
-      if (!dataMatch) {
-        return NextResponse.json({ error: 'Upload a PDF or ZIP file.' }, { status: 400 });
-      }
-      const normalizedMimeType = dataMatch[1].toLowerCase() === 'application/x-zip-compressed'
-        ? 'application/zip'
-        : dataMatch[1].toLowerCase();
-      const base64 = dataMatch[2];
-      const paddingBytes = base64.endsWith('==') ? 2 : base64.endsWith('=') ? 1 : 0;
-      const sizeBytes = Math.floor((base64.length * 3) / 4) - paddingBytes;
       const maxFileBytes = 20 * 1024 * 1024;
-      if (sizeBytes < 1 || sizeBytes > maxFileBytes) {
-        return NextResponse.json({ error: 'PDF and ZIP uploads must be no larger than 20 MB each.' }, { status: 400 });
-      }
       let bytes: Uint8Array;
-      try {
-        const binary = atob(base64);
-        bytes = Uint8Array.from(binary, (character) => character.charCodeAt(0));
-      } catch {
-        return NextResponse.json({ error: 'The uploaded file could not be decoded.' }, { status: 400 });
+      let normalizedMimeType: string;
+      let sizeBytes: number;
+      let base64: string | undefined;
+      if (typeof File !== 'undefined' && body.file instanceof File) {
+        const extension = filename.split('.').pop()?.toLowerCase();
+        if (extension !== 'pdf' && extension !== 'zip') {
+          return NextResponse.json({ error: 'Upload a PDF or ZIP file.' }, { status: 400 });
+        }
+        normalizedMimeType = extension === 'pdf' ? 'application/pdf' : 'application/zip';
+        sizeBytes = body.file.size;
+        if (sizeBytes < 1 || sizeBytes > maxFileBytes) {
+          return NextResponse.json({ error: 'PDF and ZIP uploads must be no larger than 20 MB each.' }, { status: 400 });
+        }
+        try {
+          bytes = new Uint8Array(await body.file.arrayBuffer());
+        } catch (error) {
+          console.error('Digital file upload could not be read:', error);
+          return NextResponse.json({ error: 'The selected file could not be read. Please try selecting it again.' }, { status: 400 });
+        }
+      } else {
+        if (!fileData) {
+          return NextResponse.json({ error: 'File, filename, and title are required.' }, { status: 400 });
+        }
+        const dataMatch = /^data:(application\/(?:pdf|zip|x-zip-compressed));base64,([A-Za-z0-9+/=]+)$/i.exec(fileData);
+        if (!dataMatch) {
+          return NextResponse.json({ error: 'Upload a PDF or ZIP file.' }, { status: 400 });
+        }
+        normalizedMimeType = dataMatch[1].toLowerCase() === 'application/x-zip-compressed'
+          ? 'application/zip'
+          : dataMatch[1].toLowerCase();
+        base64 = dataMatch[2];
+        const paddingBytes = base64.endsWith('==') ? 2 : base64.endsWith('=') ? 1 : 0;
+        sizeBytes = Math.floor((base64.length * 3) / 4) - paddingBytes;
+        if (sizeBytes < 1 || sizeBytes > maxFileBytes) {
+          return NextResponse.json({ error: 'PDF and ZIP uploads must be no larger than 20 MB each.' }, { status: 400 });
+        }
+        try {
+          const binary = atob(base64);
+          bytes = Uint8Array.from(binary, (character) => character.charCodeAt(0));
+        } catch {
+          return NextResponse.json({ error: 'The uploaded file could not be decoded.' }, { status: 400 });
+        }
       }
       const isPdf = normalizedMimeType === 'application/pdf' &&
         new TextDecoder().decode(bytes.slice(0, 5)) === '%PDF-';
@@ -251,6 +288,13 @@ export async function POST(req: NextRequest) {
         });
         storedUrl = `r2://digital-files/${id}`;
       } else if (process.env.NODE_ENV === 'development') {
+        if (!base64) {
+          let binary = '';
+          for (let offset = 0; offset < bytes.length; offset += 0x8000) {
+            binary += String.fromCharCode(...bytes.subarray(offset, offset + 0x8000));
+          }
+          base64 = btoa(binary);
+        }
         storedUrl = `data:${normalizedMimeType};base64,${base64}`;
       } else {
         return NextResponse.json(

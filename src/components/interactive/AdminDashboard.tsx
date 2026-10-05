@@ -558,31 +558,14 @@ export function AdminDashboard({ userEmail }: AdminDashboardProps) {
     setUploadingDigitalFile(true);
     try {
       for (const file of files) {
-        const extension = file.name.split('.').pop()?.toLowerCase();
-        const mimeType = extension === 'pdf' ? 'application/pdf' : 'application/zip';
-        const fileData = await new Promise<string>((resolve, reject) => {
-          const reader = new FileReader();
-          reader.onload = () => {
-            const dataUrl = String(reader.result || '');
-            const base64 = dataUrl.split(',', 2)[1];
-            if (!base64) {
-              reject(new Error(`Could not read ${file.name}.`));
-              return;
-            }
-            resolve(`data:${mimeType};base64,${base64}`);
-          };
-          reader.onerror = () => reject(new Error(`Could not read ${file.name}.`));
-          reader.readAsDataURL(file);
-        });
+        const formData = new FormData();
+        formData.append('action', 'upload_digital_file');
+        formData.append('file', file);
+        formData.append('filename', file.name);
+        formData.append('title', file.name.replace(/\.[^.]+$/, ''));
         const response = await fetch('/api/ecommerce/admin', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            action: 'upload_digital_file',
-            fileData,
-            filename: file.name,
-            title: file.name.replace(/\.[^.]+$/, ''),
-          }),
+          body: formData,
         });
         const result = await response.json();
         if (!response.ok) throw new Error(result.error || `Could not upload ${file.name}.`);
