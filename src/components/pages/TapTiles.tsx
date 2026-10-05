@@ -285,7 +285,7 @@ export default function TapTilesPage() {
                   </div>
                 </div>
                 <p className="text-xs text-[#F4F4F5]/60 font-semibold uppercase tracking-wider leading-relaxed">
-                  "One tap to something meaningful."
+                  &quot;One tap to something meaningful.&quot;
                 </p>
               </div>
             </div>
@@ -379,7 +379,7 @@ export default function TapTilesPage() {
                 <div>
                   <span className="text-[8px] font-black text-[#E30613] tracking-widest uppercase">PERSONALITY INCLUDED</span>
                   <h3 className="text-sm font-bold uppercase tracking-tight text-[#F4F4F5] mt-1">PET TAP TILES</h3>
-                  <p className="text-xs text-[#F4F4F5]/85 mt-2 leading-relaxed">Turn your pet's silly or cozy personality into a tiny, custom piece of art.</p>
+                  <p className="text-xs text-[#F4F4F5]/85 mt-2 leading-relaxed">Turn your pet&apos;s silly or cozy personality into a tiny, custom piece of art.</p>
                 </div>
                 <Link
                   href="/tap-tiles/pets"

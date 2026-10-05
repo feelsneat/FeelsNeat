@@ -12,24 +12,12 @@ function getProfilesPath() {
   return path.join(process.cwd(), 'src/lib/profiles-db-dev.json');
 }
 
-function getDinePath() {
-  return path.join(process.cwd(), 'src/lib/dine-db-dev.json');
-}
-
 function getEcommercePath() {
   return path.join(process.cwd(), 'src/lib/ecommerce-db-dev.json');
 }
 
-function getEmptyDineDb() {
-  return {
-    enquiries: [],
-    restaurants: [],
-    users: [],
-    categories: [],
-    items: [],
-    tables: [],
-    orders: [],
-  };
+function getReviewCardsPath() {
+  return path.join(process.cwd(), 'src/lib/review-cards-db-dev.json');
 }
 
 export async function GET(req: NextRequest) {
@@ -51,6 +39,12 @@ export async function GET(req: NextRequest) {
       return NextResponse.json(ecommerceData);
     }
 
+    if (type === 'review-cards') {
+      const reviewCardsPath = getReviewCardsPath();
+      if (!fs.existsSync(reviewCardsPath)) return NextResponse.json([]);
+      return NextResponse.json(JSON.parse(fs.readFileSync(reviewCardsPath, 'utf-8')));
+    }
+
     if (type === 'profiles') {
       const pPath = getProfilesPath();
       if (!fs.existsSync(pPath)) {
@@ -59,16 +53,6 @@ export async function GET(req: NextRequest) {
       const content = fs.readFileSync(pPath, 'utf-8');
       const profiles = JSON.parse(content);
       return NextResponse.json(profiles);
-    }
-
-    if (type === 'dine') {
-      const dPath = getDinePath();
-      if (!fs.existsSync(dPath)) {
-        fs.writeFileSync(dPath, JSON.stringify(getEmptyDineDb(), null, 2), 'utf-8');
-      }
-      const content = fs.readFileSync(dPath, 'utf-8');
-      const dineData = JSON.parse(content);
-      return NextResponse.json(dineData);
     }
 
     const dbPath = getDbPath();
@@ -90,7 +74,18 @@ export async function POST(req: NextRequest) {
 
   try {
     const body = await req.json();
-    const { action, order_id, orderData, statusUpdates, profile_id, profileData, status, dineData, ecommerceData } = body;
+    const { action, order_id, orderData, statusUpdates, profile_id, profileData, status, ecommerceData } = body;
+
+    if (action === 'save_review_card_order' && body.order) {
+      const reviewCardsPath = getReviewCardsPath();
+      const orders = fs.existsSync(reviewCardsPath)
+        ? JSON.parse(fs.readFileSync(reviewCardsPath, 'utf-8'))
+        : [];
+      const updatedOrders = orders.filter((order: any) => order.id !== body.order.id);
+      updatedOrders.unshift(body.order);
+      fs.writeFileSync(reviewCardsPath, JSON.stringify(updatedOrders, null, 2), 'utf-8');
+      return NextResponse.json({ success: true });
+    }
 
     // Handle Ecommerce actions
     if (action === 'save_ecommerce_db' && ecommerceData) {
@@ -142,13 +137,6 @@ export async function POST(req: NextRequest) {
         fs.writeFileSync(pPath, JSON.stringify(profiles, null, 2), 'utf-8');
         console.log(`[Dev-DB API] Updated pet profile status: ${profile_id} -> ${status}`);
       }
-      return NextResponse.json({ success: true });
-    }
-
-    if (action === 'save_dine_db' && dineData) {
-      const dPath = getDinePath();
-      fs.writeFileSync(dPath, JSON.stringify({ ...getEmptyDineDb(), ...dineData }, null, 2), 'utf-8');
-      console.log('[Dev-DB API] Saved Dine Assist data');
       return NextResponse.json({ success: true });
     }
 

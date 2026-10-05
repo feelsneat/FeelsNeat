@@ -1325,7 +1325,7 @@ export default function CreateMemoryPage() {
                     <div className="space-y-6 animate-fade-in text-left">
                       <div>
                         <h2 className="text-base font-black uppercase text-black mb-1">🔗 NFC Profile & Link Setup</h2>
-                        <p className="text-xs text-zinc-500 font-bold tracking-wider">Configure your pet tag's destination when tapped</p>
+                        <p className="text-xs text-zinc-500 font-bold tracking-wider">Configure your pet tag&apos;s destination when tapped</p>
                       </div>
 
                       <div className="bg-zinc-50 rounded-xl p-4 border border-zinc-150 text-xs text-zinc-650 leading-relaxed font-semibold">
@@ -1401,7 +1401,7 @@ export default function CreateMemoryPage() {
                               placeholder="e.g. This link opens my existing pet information page."
                             />
                             <p className="text-[10px] text-zinc-400 mt-1 font-semibold leading-relaxed">
-                              We'll program the link you provide into your NFC Tap Tile. Make sure the URL is correct and active before submitting your order.
+                              We&apos;ll program the link you provide into your NFC Tap Tile. Make sure the URL is correct and active before submitting your order.
                             </p>
                           </div>
                         </div>
@@ -1410,7 +1410,7 @@ export default function CreateMemoryPage() {
                         <div className="space-y-4 pt-2 animate-fade-in">
                           <div className="bg-zinc-50 rounded-xl p-4 border border-zinc-150 text-xs text-zinc-650 leading-relaxed font-semibold space-y-1">
                             <span className="text-black font-black uppercase tracking-wider block">🔒 Hosted Profile Information</span>
-                            <p className="normal-case">We'll create and host a personalized online profile for your pet. When someone taps your NFC Tap Tile, they can view your pet's information and use the contact details you choose to share.</p>
+                            <p className="normal-case">We&apos;ll create and host a personalized online profile for your pet. When someone taps your NFC Tap Tile, they can view your pet&apos;s information and use the contact details you choose to share.</p>
                             <p className="text-[11px] text-zinc-500 font-bold block pt-1.5 leading-relaxed">
                               Your personalized FeelsNeat Pet Profile is hosted for 1 year for ₹99. After the included hosting period ends, renewal options may be available to keep the profile active. Private order/customer information will not automatically appear publicly.
                             </p>
@@ -2116,7 +2116,7 @@ export default function CreateMemoryPage() {
                         {formData.title && (
                           <div className="border-b border-zinc-200 pb-3">
                             <span className="text-[9px] font-black text-zinc-400 uppercase tracking-widest block">Overlay Text</span>
-                            <p className="font-semibold text-xs text-black">"{formData.title}"</p>
+                            <p className="font-semibold text-xs text-black">&quot;{formData.title}&quot;</p>
                           </div>
                         )}
 
@@ -2131,7 +2131,7 @@ export default function CreateMemoryPage() {
                         {formData.design_notes && (
                           <div>
                             <span className="text-[9px] font-black text-zinc-400 uppercase tracking-widest block">Special Instructions</span>
-                            <p className="text-xs text-zinc-500 italic lowercase first-letter:uppercase">"{formData.design_notes}"</p>
+                            <p className="text-xs text-zinc-500 italic lowercase first-letter:uppercase">&quot;{formData.design_notes}&quot;</p>
                           </div>
                         )}
                       </div>

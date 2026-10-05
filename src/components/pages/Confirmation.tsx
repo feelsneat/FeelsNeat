@@ -187,15 +187,15 @@ export default function OrderConfirmationPage({ whatsappNumber }: OrderConfirmat
                 <div className="flex gap-4">
                   <div className="flex h-5 w-5 items-center justify-center rounded-full bg-zinc-100 border border-zinc-200 text-zinc-600 text-xs font-black shrink-0">2</div>
                   <div>
-                    <h4 className="text-sm font-black uppercase text-black leading-none">We'll contact you to confirm final details</h4>
-                    <p className="text-xs text-zinc-500 mt-1.5 font-semibold leading-normal">We reach out to you directly to verify layout options and answer questions.</p>
+                    <h4 className="text-sm font-black uppercase text-black leading-none">We&apos;ll contact you to confirm final details</h4>
+                    <p className="text-xs text-zinc-500 mt-1.5 font-semibold leading-normal">We&apos;ll reach out to you directly to verify layout options and answer questions.</p>
                   </div>
                 </div>
 
                 <div className="flex gap-4">
                   <div className="flex h-5 w-5 items-center justify-center rounded-full bg-zinc-100 border border-zinc-200 text-zinc-600 text-xs font-black shrink-0">3</div>
                   <div>
-                    <h4 className="text-sm font-black uppercase text-black leading-none">Once everything is confirmed, we'll share payment details</h4>
+                    <h4 className="text-sm font-black uppercase text-black leading-none">Once everything is confirmed, we&apos;ll share payment details</h4>
                     <p className="text-xs text-zinc-500 mt-1.5 font-semibold leading-normal">Once everything looks perfect, we share UPI payment details to begin production.</p>
                   </div>
                 </div>
@@ -204,7 +204,7 @@ export default function OrderConfirmationPage({ whatsappNumber }: OrderConfirmat
                   <div className="flex h-5 w-5 items-center justify-center rounded-full bg-zinc-100 border border-zinc-200 text-zinc-600 text-xs font-black shrink-0">4</div>
                   <div>
                     <h4 className="text-sm font-black uppercase text-black leading-none">We create and prepare your personalized Pet Tap Tile</h4>
-                    <p className="text-xs text-zinc-500 mt-1.5 font-semibold leading-normal">We prepare your pet's public page and write the target link to the embedded chip.</p>
+                    <p className="text-xs text-zinc-500 mt-1.5 font-semibold leading-normal">We prepare your pet&apos;s public page and write the target link to the embedded chip.</p>
                   </div>
                 </div>
 
@@ -318,7 +318,7 @@ export default function OrderConfirmationPage({ whatsappNumber }: OrderConfirmat
         {orderType === 'pet_tap_tile' && (
           <div className="mt-8 pt-6 border-t border-zinc-100 text-left space-y-3">
             <h4 className="text-xs font-black uppercase text-black tracking-widest">Want to contact us directly?</h4>
-            <p className="text-xs text-zinc-500 font-semibold leading-normal">If you'd like to discuss your request with us right away, you can also message us on WhatsApp.</p>
+            <p className="text-xs text-zinc-500 font-semibold leading-normal">If you&apos;d like to discuss your request with us right away, you can also message us on WhatsApp.</p>
             <a
               href={whatsappUrl}
               target="_blank"

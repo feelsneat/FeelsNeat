@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { LucideIcon } from '../ui/LucideIcon';
-import { getAffiliatePlatformSelection } from '@/lib/ecommerce/affiliate-platform';
+import ReviewCardsAdmin from './ReviewCardsAdmin';
 
 const AFFILIATE_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
 const AFFILIATE_MAX_IMAGE_BYTES = 5 * 1024 * 1024;
@@ -15,7 +15,7 @@ interface AdminDashboardProps {
 export function AdminDashboard({ userEmail }: AdminDashboardProps) {
   const [orders, setOrders] = useState<any[]>([]);
   const [loadingOrders, setLoadingOrders] = useState(true);
-  const [activeTab, setActiveTab] = useState<'all' | 'memories' | 'service' | 'digital_product' | 'general_inquiry' | 'pet_profiles' | 'dine_assist' | 'ecommerce'>('all');
+  const [activeTab, setActiveTab] = useState<'all' | 'memories' | 'service' | 'digital_product' | 'general_inquiry' | 'pet_profiles' | 'dine_assist' | 'ecommerce' | 'review_cards'>('all');
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [syncMessage, setSyncMessage] = useState('');
@@ -167,17 +167,10 @@ export function AdminDashboard({ userEmail }: AdminDashboardProps) {
   useEffect(() => {
     loadOrders();
     loadProfiles();
-    loadDineData();
     loadEcommerceData();
     loadContentSettings();
   }, []);
 
-  useEffect(() => {
-    if (activeTab !== 'dine_assist') return;
-    loadDineData();
-    const timer = window.setInterval(loadDineData, 5000);
-    return () => window.clearInterval(timer);
-  }, [activeTab]);
 
   useEffect(() => {
     if (activeTab !== 'ecommerce') return;
@@ -735,6 +728,7 @@ export function AdminDashboard({ userEmail }: AdminDashboardProps) {
           >
             Export Orders (JSON)
           </button>
+          {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
           <a
             href="/api/auth/logout"
             className="inline-flex h-9 items-center justify-center rounded-lg border border-red-100 bg-red-50 px-4 text-xs font-bold text-red-750 hover:bg-red-100/40 cursor-pointer"
@@ -833,25 +827,26 @@ export function AdminDashboard({ userEmail }: AdminDashboardProps) {
             </span>
           </button>
 
-          <span className="text-[10px] font-bold text-foreground/50 uppercase tracking-widest px-3 py-2 mt-4 block border-t border-zinc-150 text-left">Dine Assist</span>
+          <span className="text-[10px] font-bold text-foreground/50 uppercase tracking-widest px-3 py-2 mt-4 block border-t border-zinc-150 text-left">Production</span>
           <button
             onClick={() => {
-              setActiveTab('dine_assist');
+              setActiveTab('review_cards');
               setSelectedOrderId(null);
+              setModalFormData(null);
               setSelectedProfileId(null);
             }}
             className={`flex items-center justify-between px-3 py-2.5 rounded-lg text-xs font-bold transition-colors cursor-pointer ${
-              activeTab === 'dine_assist'
+              activeTab === 'review_cards'
                 ? 'bg-[#E30613] text-white font-black'
                 : 'text-foreground/75 hover:bg-zinc-50'
             }`}
           >
             <div className="flex items-center gap-3">
               <LucideIcon name="QrCode" className="h-4 w-4 shrink-0" />
-              <span>Dine Assist</span>
+              <span>Google Review Cards</span>
             </div>
-            <span className={`text-[9px] px-1.5 py-0.5 rounded font-black ${activeTab === 'dine_assist' ? 'bg-white text-[#E30613]' : 'bg-zinc-100 text-zinc-500'}`}>
-              {dineData.enquiries.length + dineData.restaurants.length}
+            <span className={`text-[9px] px-1.5 py-0.5 rounded font-black ${activeTab === 'review_cards' ? 'bg-white text-[#E30613]' : 'bg-zinc-100 text-zinc-500'}`}>
+              Review Cards
             </span>
           </button>
 
@@ -880,7 +875,7 @@ export function AdminDashboard({ userEmail }: AdminDashboardProps) {
 
         {/* Console Workspace area */}
         <div className="lg:col-span-9 rounded-xl border border-border-custom bg-white p-6 shadow-xs min-h-[500px]">
-          
+          {activeTab === 'review_cards' ? <ReviewCardsAdmin /> : (
           <div className="space-y-6">
             
             {/* Search inputs header */}
@@ -1624,7 +1619,7 @@ export function AdminDashboard({ userEmail }: AdminDashboardProps) {
                         {selectedProfile.public_message && (
                           <p className="sm:col-span-2 pt-2 border-t border-zinc-100 font-normal text-zinc-550 leading-relaxed normal-case">
                             <span className="text-zinc-400 font-bold uppercase block text-[9px]">Public Finder Message:</span>
-                            "{selectedProfile.public_message}"
+                            &quot;{selectedProfile.public_message}&quot;
                           </p>
                         )}
 
@@ -1814,14 +1809,14 @@ export function AdminDashboard({ userEmail }: AdminDashboardProps) {
                                 <p><span className="text-zinc-400">Breed:</span> {selectedOrder.pet_details?.pet_breed || 'N/A'}</p>
                                 <p><span className="text-zinc-400">Age:</span> {selectedOrder.pet_details?.pet_age || 'N/A'}</p>
                                 {selectedOrder.pet_details?.pet_description && (
-                                  <p className="sm:col-span-2 font-normal text-zinc-550 leading-relaxed normal-case"><span className="text-zinc-400 font-bold uppercase block text-[9px]">Description:</span> "{selectedOrder.pet_details.pet_description}"</p>
+                                  <p className="sm:col-span-2 font-normal text-zinc-550 leading-relaxed normal-case"><span className="text-zinc-400 font-bold uppercase block text-[9px]">Description:</span> &quot;{selectedOrder.pet_details.pet_description}&quot;</p>
                                 )}
 
                                 <p className="sm:col-span-2 pt-2 border-t border-zinc-100"><span className="text-zinc-400 font-bold uppercase tracking-wider text-[9px] block">📦 Product Customization</span></p>
                                 <p><span className="text-zinc-400">Format:</span> {selectedOrder.product?.size === 'magnet' ? 'Fridge Magnet (₹149)' : 'Art Keychain (₹199)'}</p>
                                 <p><span className="text-zinc-400">Quantity:</span> {selectedOrder.product?.quantity || 1} pc</p>
                                 {selectedOrder.memory_details?.title && (
-                                  <p className="sm:col-span-2"><span className="text-zinc-400">Overlay Text on Tile:</span> "{selectedOrder.memory_details.title}"</p>
+                                  <p className="sm:col-span-2"><span className="text-zinc-400">Overlay Text on Tile:</span> &quot;{selectedOrder.memory_details.title}&quot;</p>
                                 )}
                                 {selectedOrder.pet_details?.alt_phone && (
                                   <p><span className="text-zinc-400">Alternative Phone:</span> {selectedOrder.pet_details.alt_phone}</p>
@@ -1857,7 +1852,7 @@ export function AdminDashboard({ userEmail }: AdminDashboardProps) {
                                       </span>
                                     </p>
                                     {selectedOrder.pet_details?.nfc_custom_url_notes && (
-                                      <p className="sm:col-span-2 font-normal text-zinc-555 leading-relaxed normal-case"><span className="text-zinc-400 font-bold uppercase block text-[9px]">Custom Link Notes:</span> "{selectedOrder.pet_details.nfc_custom_url_notes}"</p>
+                                      <p className="sm:col-span-2 font-normal text-zinc-555 leading-relaxed normal-case"><span className="text-zinc-400 font-bold uppercase block text-[9px]">Custom Link Notes:</span> &quot;{selectedOrder.pet_details.nfc_custom_url_notes}&quot;</p>
                                     )}
                                   </>
                                 ) : (
@@ -1879,7 +1874,7 @@ export function AdminDashboard({ userEmail }: AdminDashboardProps) {
                                       <p className="sm:col-span-2 font-normal text-zinc-555 leading-relaxed normal-case"><span className="text-zinc-400 font-bold uppercase block text-[9px]">Medical/Important Info:</span> {selectedOrder.pet_details.nfc_profile.medical_info}</p>
                                     )}
                                     {selectedOrder.pet_details?.nfc_profile?.message && (
-                                      <p className="sm:col-span-2 font-normal text-zinc-555 leading-relaxed normal-case"><span className="text-zinc-400 font-bold uppercase block text-[9px]">Public Scan Message:</span> "{selectedOrder.pet_details.nfc_profile.message}"</p>
+                                      <p className="sm:col-span-2 font-normal text-zinc-555 leading-relaxed normal-case"><span className="text-zinc-400 font-bold uppercase block text-[9px]">Public Scan Message:</span> &quot;{selectedOrder.pet_details.nfc_profile.message}&quot;</p>
                                     )}
                                   </>
                                 )}
@@ -1896,7 +1891,7 @@ export function AdminDashboard({ userEmail }: AdminDashboardProps) {
                                 <a href={selectedOrder.digital_memory?.google_photos_url} target="_blank" rel="noopener noreferrer" className="text-[#E30613] hover:underline block break-all font-mono text-[10px]">{selectedOrder.digital_memory?.google_photos_url}</a>
                               </p>
                               {selectedOrder.memory_details?.title && (
-                                <p className="sm:col-span-2"><span className="text-zinc-400">Overlay Text:</span> "{selectedOrder.memory_details.title}"</p>
+                                <p className="sm:col-span-2"><span className="text-zinc-400">Overlay Text:</span> &quot;{selectedOrder.memory_details.title}&quot;</p>
                               )}
                               {selectedOrder.memory_details?.design_notes && (
                                 <p className="sm:col-span-2 bg-yellow-50/50 p-2 border border-yellow-100 rounded text-[#1E1E1E] italic text-[11px] font-medium leading-normal">
@@ -2355,6 +2350,7 @@ export function AdminDashboard({ userEmail }: AdminDashboardProps) {
             </div>
 
           </div>
+          )}
         </div>
       </div>
       {/* PET PROFILE CREATION/EDITING MODAL */}
@@ -2536,7 +2532,7 @@ export function AdminDashboard({ userEmail }: AdminDashboardProps) {
                   <div className="flex items-center justify-between">
                     <div>
                       <label className="block text-[10px] font-black text-zinc-900 uppercase tracking-wider text-left">Enable Backup Emergency Contact</label>
-                      <span className="text-[9px] text-zinc-450 font-bold block mt-0.5 normal-case text-left">Add a backup phone if primary owner doesn't respond.</span>
+                      <span className="text-[9px] text-zinc-450 font-bold block mt-0.5 normal-case text-left">Add a backup phone if primary owner doesn&apos;t respond.</span>
                     </div>
                     <input
                       type="checkbox"

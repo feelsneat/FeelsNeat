@@ -222,7 +222,7 @@ export default function CartPage() {
                 {cartSummary.appliedDiscount && (
                   <p className="text-[11px] font-bold text-emerald-400 flex items-center gap-1">
                     <LucideIcon name="Check" className="h-3 w-3" />
-                    Coupon "{cartSummary.appliedDiscount.code}" applied (-₹{cartSummary.discountAmount})
+                    Coupon &quot;{cartSummary.appliedDiscount.code}&quot; applied (-₹{cartSummary.discountAmount})
                   </p>
                 )}
               </form>

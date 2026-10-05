@@ -144,7 +144,7 @@ export async function getPage(slug: string): Promise<PageContent> {
 
 export async function getServices(): Promise<ServiceItem[]> {
   const contentDb = await getContentDb();
-  return contentDb.services;
+  return contentDb.services.filter((service: ServiceItem) => service.slug !== 'dine-assist');
 }
 
 export async function getWork(): Promise<WorkItem[]> {

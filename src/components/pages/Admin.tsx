@@ -40,6 +40,7 @@ export default async function AdminPage({ userEmail, error, email }: AdminPagePr
           )}
 
           <div className="mt-8 space-y-4">
+            {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
             <a
               href="/api/auth/login"
               className="inline-flex h-12 w-full items-center justify-center gap-3 rounded-xl border border-zinc-200 bg-white px-6 font-semibold text-zinc-700 hover:bg-zinc-50 transition-colors shadow-3xs cursor-pointer"
@@ -59,6 +60,7 @@ export default async function AdminPage({ userEmail, error, email }: AdminPagePr
             {process.env.NODE_ENV === 'development' && (
               <div className="mt-4 pt-4 border-t border-zinc-200">
                 <p className="text-xs text-zinc-400 mb-2">Development Tooling</p>
+                {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
                 <a
                   href="/api/auth/dev-login"
                   className="inline-flex h-10 w-full items-center justify-center rounded-xl bg-zinc-100 text-xs font-semibold text-zinc-700 hover:bg-zinc-200 transition-colors cursor-pointer"

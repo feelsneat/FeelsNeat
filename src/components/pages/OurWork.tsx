@@ -281,7 +281,7 @@ export default async function OurWorkPage() {
               <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent pointer-events-none" />
               <div className="absolute bottom-4 left-4 right-4 text-left pointer-events-none">
                 <span className="text-[8px] font-black text-[#E30613] tracking-widest uppercase">Tap Tile Mockups</span>
-                <p className="text-xs font-bold text-white uppercase mt-0.5">"Magnets & Keychains in physical form."</p>
+                <p className="text-xs font-bold text-white uppercase mt-0.5">&quot;Magnets &amp; Keychains in physical form.&quot;</p>
               </div>
             </div>
             <div className="w-full md:w-1/2 space-y-6 text-left">

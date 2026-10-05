@@ -9,7 +9,7 @@ import { AliShippingProvider } from './alishipping';
 
 export class MockFulfillmentProvider implements FulfillmentProvider {
   name = 'MOCK';
-  status: 'MOCK' = 'MOCK';
+  status = 'MOCK' as const;
 
   async createFulfillmentOrder(input: CreateFulfillmentInput): Promise<FulfillmentOrderResult> {
     const { order } = input;

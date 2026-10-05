@@ -169,14 +169,14 @@ export default function TapTileProductPage({ categorySlug }: TapTileProductProps
                     <span className="text-[8px] font-black text-[#E30613] uppercase tracking-wider block">Option A</span>
                     <h4 className="text-xs font-black uppercase text-[#F4F4F5]">FeelsNeat Pet Profile</h4>
                     <p className="text-[11px] text-[#F4F4F5]/70 leading-relaxed font-medium">
-                      We'll create and host a personalized secure online profile for your pet (₹99 for 1 year). Perfect for quick contact info and rescue details.
+                      We&apos;ll create and host a personalized secure online profile for your pet (₹99 for 1 year). Perfect for quick contact info and rescue details.
                     </p>
                   </div>
                   <div className="p-4 rounded-xl border border-white/5 bg-[#0E0E12] space-y-2">
                     <span className="text-[8px] font-black text-zinc-400 uppercase tracking-wider block">Option B</span>
                     <h4 className="text-xs font-black uppercase text-[#F4F4F5]">Your Own Link</h4>
                     <p className="text-[11px] text-[#F4F4F5]/70 leading-relaxed font-medium">
-                      Already have a pet website, online document, or custom link? We'll program it directly into your tag (No hosting charge).
+                      Already have a pet website, online document, or custom link? We&apos;ll program it directly into your tag (No hosting charge).
                     </p>
                   </div>
                 </div>

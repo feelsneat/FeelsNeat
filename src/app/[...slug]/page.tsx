@@ -19,9 +19,7 @@ import TapTilesPage from '@/components/pages/TapTiles';
 import CreateTapTilePage from '@/components/pages/CreateTapTile';
 import TapTileProductPage from '@/components/pages/TapTileProduct';
 import PetProfilePage from '@/components/pages/PetProfile';
-import DineAssistPage from '@/components/pages/DineAssist';
-import DineAdminPage from '@/components/pages/DineAdmin';
-import DineCustomerPage from '@/components/pages/DineCustomer';
+import ReviewCardsPage from '@/components/pages/ReviewCards';
 import ShopPage from '@/components/pages/Shop';
 import ProductDetailPage from '@/components/pages/ProductDetail';
 import CartPage from '@/components/pages/Cart';
@@ -147,19 +145,10 @@ async function generateRouteMetadata({ params }: { params: Promise<{ slug?: stri
       description: 'Design and customize your personalized NFC Tap Tile magnet or keychain with a custom photo, message, and target link.'
     };
   }
-  if (route === 'dine-assist' && slug.length === 1) {
+  if (route === 'review-cards' && slug.length === 1) {
     return {
-      title: `FeelsNeat Dine Assist | Digital Menu and Table Ordering`,
-      description: 'A simple digital menu and table ordering system for restaurants. Customers scan, choose, order, and the restaurant confirms.'
-    };
-  }
-  if (route === 'dine-admin' && slug.length === 1) {
-    return { title: `Restaurant Portal | FeelsNeat Dine Assist` };
-  }
-  if (route === 'dine') {
-    return {
-      title: `Dine Assist Menu`,
-      description: 'View the restaurant menu and place a table order.'
+      title: `Google Review Cards | ${settings.siteName}`,
+      description: 'Custom Google review QR cards and shop stickers from FeelsNeat.'
     };
   }
   if (route === 'shop') {
@@ -267,23 +256,9 @@ export default async function CatchAllPage({ params, searchParams }: PageProps) 
     return <CreateTapTilePage />;
   }
 
-  // 4.67. FeelsNeat Dine Assist sales and restaurant/customer routes
-  if (route === 'dine-assist' && slug.length === 1) {
+  if (route === 'review-cards' && slug.length === 1) {
     const settings = await getSettings();
-    const waNum = (settings as any).whatsappNumber || '919999999999';
-    return <DineAssistPage whatsappNumber={waNum} />;
-  }
-  if (route === 'dine-admin' && slug.length === 1) {
-    return <DineAdminPage />;
-  }
-  if (route === 'dine') {
-    if (slug.length === 2) {
-      return <DineCustomerPage restaurantSlug={slug[1]} />;
-    }
-    if (slug.length === 4 && slug[2] === 'table') {
-      return <DineCustomerPage restaurantSlug={slug[1]} tableToken={slug[3]} />;
-    }
-    notFound();
+    return <ReviewCardsPage whatsappNumber={(settings as any).whatsappNumber || '919999999999'} />;
   }
 
   // 4.675. Ecommerce Shop Routes

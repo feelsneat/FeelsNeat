@@ -68,6 +68,7 @@ export class MockPaymentProvider implements PaymentProvider {
 
 export function getPaymentProvider(providerName?: string): PaymentProvider {
   if (providerName?.toUpperCase() === 'CASHFREE') {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
     const { CashfreePaymentProvider } = require('./cashfree');
     return new CashfreePaymentProvider();
   }
