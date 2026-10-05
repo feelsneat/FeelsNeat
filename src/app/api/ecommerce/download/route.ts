@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { loadEcommerceDb, saveEcommerceDb } from '@/lib/ecommerce/db';
+import { getDigitalFileBucket, getDigitalFileObjectKey } from '@/lib/ecommerce/digital-file-storage';
 
 export const runtime = 'edge';
 
@@ -91,6 +92,45 @@ export async function GET(req: NextRequest) {
     entitlement.lastDownloadedAt = new Date().toISOString();
     await saveEcommerceDb(req.url, db);
 
+    if (file.deliveryType === 'LINK') {
+      if (!file.url.startsWith('https://')) {
+        return NextResponse.json({ error: 'The external delivery link is invalid.' }, { status: 400 });
+      }
+      return NextResponse.redirect(file.url, 302);
+    }
+
+    const r2Key = getDigitalFileObjectKey(file.url);
+    if (r2Key) {
+      const bucket = await getDigitalFileBucket();
+      if (!bucket) {
+        return NextResponse.json({ error: 'Digital file storage is temporarily unavailable.' }, { status: 503 });
+      }
+      const object = await bucket.get(r2Key);
+      if (!object) {
+        return NextResponse.json({ error: 'The digital file is temporarily unavailable.' }, { status: 404 });
+      }
+      return new Response(object.body, {
+        headers: {
+          'Content-Type': file.mimeType || object.httpMetadata?.contentType || 'application/octet-stream',
+          'Content-Disposition': `attachment; filename="${file.filename.replace(/["\r\n]/g, '_')}"`,
+          'Cache-Control': 'private, no-store',
+        },
+      });
+    }
+
+    const dataUrlMatch = /^data:(application\/(?:pdf|zip));base64,([A-Za-z0-9+/=]+)$/i.exec(file.url);
+    if (dataUrlMatch) {
+      const binary = atob(dataUrlMatch[2]);
+      const bytes = Uint8Array.from(binary, (character) => character.charCodeAt(0));
+      return new Response(bytes, {
+        headers: {
+          'Content-Type': file.mimeType || dataUrlMatch[1],
+          'Content-Disposition': `attachment; filename="${file.filename.replace(/["\r\n]/g, '_')}"`,
+          'Cache-Control': 'private, no-store',
+        },
+      });
+    }
+
     if (file.url.startsWith('http://') || file.url.startsWith('https://')) {
       const fileResponse = await fetch(file.url);
       if (!fileResponse.ok || !fileResponse.body) {
@@ -99,7 +139,7 @@ export async function GET(req: NextRequest) {
       return new Response(fileResponse.body, {
         headers: {
           'Content-Type': file.mimeType || fileResponse.headers.get('content-type') || 'application/octet-stream',
-          'Content-Disposition': `attachment; filename="${file.filename}"`,
+          'Content-Disposition': `attachment; filename="${file.filename.replace(/["\r\n]/g, '_')}"`,
           'Cache-Control': 'private, no-store',
         },
       });
@@ -175,6 +215,7 @@ export async function POST(req: NextRequest) {
       success: true,
       productTitle: product.title,
       fileName: file.filename,
+      deliveryType: file.deliveryType || 'FILE',
       expiresAt: new Date(expiresAt).toISOString(),
       downloadUrl: downloadUrl.toString(),
     });

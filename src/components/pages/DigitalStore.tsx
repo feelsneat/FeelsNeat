@@ -76,7 +76,7 @@ export default function DigitalStorePage() {
                   </div>
 
                   <div className="flex items-center justify-between pt-2 text-[10px] font-black uppercase tracking-[0.18em] text-zinc-400">
-                    <span>{product.downloadableFiles?.length || 0} files</span>
+                    <span>{product.downloadableFiles?.length || 0} delivery items</span>
                     <span className="text-emerald-300">View product →</span>
                   </div>
                 </div>

@@ -73,6 +73,7 @@ export interface DigitalProductFile {
   mimeType: string;
   sizeBytes?: number;
   url: string;
+  deliveryType?: 'FILE' | 'LINK';
   checksum?: string;
   isPublic?: boolean;
 }

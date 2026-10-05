@@ -3,11 +3,14 @@
 import { useState, useEffect } from 'react';
 import { LucideIcon } from '../ui/LucideIcon';
 import { getAffiliatePlatformSelection } from '@/lib/ecommerce/affiliate-platform';
+import { isDigitalProduct } from '@/lib/ecommerce/product-classification';
+import type { DigitalProductFile } from '@/lib/ecommerce/types';
 import ReviewCardsAdmin from './ReviewCardsAdmin';
 
-const AFFILIATE_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
-const AFFILIATE_MAX_IMAGE_BYTES = 5 * 1024 * 1024;
-const AFFILIATE_MAX_IMAGES = 8;
+const PRODUCT_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
+const PRODUCT_IMAGE_MAX_BYTES = 5 * 1024 * 1024;
+const PRODUCT_IMAGE_MAX_TOTAL_BYTES = 20 * 1024 * 1024;
+const PRODUCT_IMAGE_MAX_COUNT = 8;
 
 interface AdminDashboardProps {
   userEmail: string;
@@ -40,11 +43,13 @@ export function AdminDashboard({ userEmail }: AdminDashboardProps) {
   const [loadingEcommerce, setLoadingEcommerce] = useState(true);
   const [selectedEcommerceProductId, setSelectedEcommerceProductId] = useState<string | null>(null);
   const [selectedEcommerceOrderId, setSelectedEcommerceOrderId] = useState<string | null>(null);
-  const [ecommerceCatalogFilter, setEcommerceCatalogFilter] = useState<'all' | 'dropship' | 'affiliate' | 'digital' | 'ACTIVE' | 'DRAFT' | 'ARCHIVED'>('all');
+  const [ecommerceCatalogFilter, setEcommerceCatalogFilter] = useState<'all' | 'owned' | 'dropship' | 'affiliate' | 'digital' | 'ACTIVE' | 'DRAFT' | 'ARCHIVED'>('all');
   const [affiliateProductForm, setAffiliateProductForm] = useState<any>(null);
   const [physicalProductForm, setPhysicalProductForm] = useState<any>(null);
   const [digitalProductForm, setDigitalProductForm] = useState<any>(null);
+  const [productCreationChooser, setProductCreationChooser] = useState(false);
   const [savingDigitalProduct, setSavingDigitalProduct] = useState(false);
+  const [uploadingDigitalFile, setUploadingDigitalFile] = useState(false);
   const [savingAffiliateProduct, setSavingAffiliateProduct] = useState(false);
   const [savingPhysicalProduct, setSavingPhysicalProduct] = useState(false);
   const [ecommerceOrderUpdate, setEcommerceOrderUpdate] = useState<any>(null);
@@ -371,11 +376,12 @@ export function AdminDashboard({ userEmail }: AdminDashboardProps) {
   const selectedDineRestaurant = dineData.restaurants.find((restaurant: any) => restaurant.id === selectedDineRestaurantId);
   const filteredEcommerceProducts = ecommerceData.products.filter((product: any) => {
     const isAffiliate = product.fulfillmentType === 'AFFILIATE';
-    const isDigital = product.productType !== 'PHYSICAL' && Boolean(product.productType || product.digitalProductType || product.downloadableFiles?.length);
+    const isDigital = isDigitalProduct(product);
     if (activeTab === 'digital_ecommerce' && !isDigital) return false;
     if (activeTab === 'ecommerce' && isDigital) return false;
     if (ecommerceCatalogFilter === 'affiliate' && !isAffiliate) return false;
-    if (ecommerceCatalogFilter === 'dropship' && isAffiliate) return false;
+    if (ecommerceCatalogFilter === 'dropship' && (isAffiliate || (product.fulfillmentType && product.fulfillmentType !== 'DROPSHIP'))) return false;
+    if (ecommerceCatalogFilter === 'owned' && (isAffiliate || (product.fulfillmentType !== 'DIRECT' && product.inventorySource !== 'OWNED'))) return false;
     if (ecommerceCatalogFilter === 'digital' && !isDigital) return false;
     if (['ACTIVE', 'DRAFT', 'ARCHIVED'].includes(ecommerceCatalogFilter) && product.status !== ecommerceCatalogFilter) return false;
     if (searchQuery.trim() === '') return true;
@@ -410,6 +416,7 @@ export function AdminDashboard({ userEmail }: AdminDashboardProps) {
     sellingPrice: product?.sellingPrice ?? '',
     compareAtPrice: product?.compareAtPrice ?? '',
     images: Array.isArray(product?.images) ? product.images : [],
+    imageUrl: '',
     affiliateUrl: product?.affiliateDetails?.affiliateUrl || '',
     platform: getAffiliatePlatformSelection(
       product?.affiliateDetails?.platform,
@@ -424,7 +431,7 @@ export function AdminDashboard({ userEmail }: AdminDashboardProps) {
     categoryId: product?.categoryId || ecommerceData.categories?.[0]?.id || '',
   });
 
-  const createPhysicalProductForm = (product?: any) => ({
+  const createPhysicalProductForm = (product?: any, fulfillmentType?: 'DROPSHIP' | 'DIRECT') => ({
     id: product?.id || '',
     title: product?.title || '',
     slug: product?.slug || '',
@@ -432,10 +439,17 @@ export function AdminDashboard({ userEmail }: AdminDashboardProps) {
     description: product?.description || '',
     sellingPrice: product?.sellingPrice ?? '',
     compareAtPrice: product?.compareAtPrice ?? '',
+    costPrice: product?.costPrice ?? '',
     stockQuantity: product?.stockQuantity ?? 0,
+    fulfillmentType: fulfillmentType || (product?.fulfillmentType === 'DROPSHIP' ? 'DROPSHIP' : 'DIRECT'),
+    supplierId: product?.supplierId || product?.supplierMapping?.supplierId || ecommerceData.suppliers?.find((supplier: any) => supplier.status === 'ACTIVE')?.id || '',
+    supplierSku: product?.supplierMapping?.supplierSku || '',
+    supplierCost: product?.supplierMapping?.supplierCost ?? '',
+    supplierStock: product?.supplierMapping?.supplierStock ?? product?.stockQuantity ?? 0,
     categoryId: product?.categoryId || ecommerceData.categories?.find((c: any) => c.categoryType !== 'DIGITAL')?.id || '',
     status: product?.status || 'DRAFT',
-    images: Array.isArray(product?.images) ? product.images.join('\n') : '',
+    images: Array.isArray(product?.images) ? product.images : [],
+    imageUrl: '',
   });
 
   const handleSavePhysicalProduct = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -447,6 +461,9 @@ export function AdminDashboard({ userEmail }: AdminDashboardProps) {
     }
     setSavingPhysicalProduct(true);
     const slug = (form.slug || form.title).toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+    const isDropship = form.fulfillmentType === 'DROPSHIP';
+    const stockQuantity = Number(isDropship ? form.supplierStock : form.stockQuantity);
+    const costPrice = Number(isDropship ? form.supplierCost : form.costPrice);
     const product = {
       ...(selectedEcommerceProduct || {}),
       id: form.id,
@@ -461,15 +478,26 @@ export function AdminDashboard({ userEmail }: AdminDashboardProps) {
       sku: form.sku.trim(),
       sellingPrice: Number(form.sellingPrice) || 0,
       compareAtPrice: form.compareAtPrice === '' ? undefined : Number(form.compareAtPrice),
-      images: form.images.split('\n').map((image: string) => image.trim()).filter(Boolean),
+      costPrice: Number.isFinite(costPrice) ? costPrice : undefined,
+      images: form.images.filter((image: string) => image.trim()),
       hasVariants: false,
       variants: [],
       status: form.status,
       productType: 'PHYSICAL',
-      fulfillmentType: selectedEcommerceProduct?.fulfillmentType === 'DROPSHIP' ? 'DROPSHIP' : 'OWNED',
+      fulfillmentType: isDropship ? 'DROPSHIP' : 'DIRECT',
       taxIncluded: true,
-      inventorySource: 'OWNED',
-      stockQuantity: Number(form.stockQuantity) || 0,
+      inventorySource: isDropship ? 'SUPPLIER' : 'OWNED',
+      stockQuantity: Number.isFinite(stockQuantity) ? stockQuantity : 0,
+      supplierId: isDropship ? form.supplierId : undefined,
+      supplierMapping: isDropship ? {
+        supplierId: form.supplierId,
+        supplierSku: form.supplierSku.trim(),
+        supplierCost: Number(form.supplierCost),
+        supplierStock: Number(form.supplierStock),
+        lastStockSync: selectedEcommerceProduct?.supplierMapping?.lastStockSync || null,
+        fulfillmentEnabled: Boolean(ecommerceData.metrics?.aliShippingConfigured),
+        syncStatus: 'PENDING',
+      } : undefined,
     };
     try {
       const res = await fetch('/api/ecommerce/admin', {
@@ -502,9 +530,75 @@ export function AdminDashboard({ userEmail }: AdminDashboardProps) {
     status: product?.status || 'DRAFT',
     featured: Boolean(product?.featured),
     tags: Array.isArray(product?.tags) ? product.tags.join(', ') : '',
-    images: Array.isArray(product?.images) ? product.images.join('\n') : '',
-    downloadableFiles: Array.isArray(product?.downloadableFiles) ? product.downloadableFiles : [{ id: `file-${Date.now()}`, title: '', filename: '', mimeType: 'application/pdf', sizeBytes: '', url: '' }],
+    images: Array.isArray(product?.images) ? product.images : [],
+    imageUrl: '',
+    downloadableFiles: Array.isArray(product?.downloadableFiles) ? product.downloadableFiles : [{ id: `file-${Date.now()}`, title: '', filename: '', mimeType: 'application/pdf', sizeBytes: '', url: '', deliveryType: 'FILE' }],
   });
+
+  const handleDigitalFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(event.target.files || []);
+    event.target.value = '';
+    if (!files.length) return;
+    const existingFileCount = (digitalProductForm?.downloadableFiles || []).filter(
+      (file: any) => file.title?.trim() || file.filename?.trim() || file.url?.trim()
+    ).length;
+    if (existingFileCount + files.length > 10) {
+      alert('A digital product can have at most 10 files or delivery links.');
+      return;
+    }
+    const invalidFile = files.find((file) => {
+      const extension = file.name.split('.').pop()?.toLowerCase();
+      return !['pdf', 'zip'].includes(extension || '') || file.size > 20 * 1024 * 1024;
+    });
+    if (invalidFile) {
+      alert('Upload PDF or ZIP files no larger than 20 MB each.');
+      return;
+    }
+
+    setUploadingDigitalFile(true);
+    try {
+      for (const file of files) {
+        const extension = file.name.split('.').pop()?.toLowerCase();
+        const mimeType = extension === 'pdf' ? 'application/pdf' : 'application/zip';
+        const fileData = await new Promise<string>((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => {
+            const dataUrl = String(reader.result || '');
+            const base64 = dataUrl.split(',', 2)[1];
+            if (!base64) {
+              reject(new Error(`Could not read ${file.name}.`));
+              return;
+            }
+            resolve(`data:${mimeType};base64,${base64}`);
+          };
+          reader.onerror = () => reject(new Error(`Could not read ${file.name}.`));
+          reader.readAsDataURL(file);
+        });
+        const response = await fetch('/api/ecommerce/admin', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            action: 'upload_digital_file',
+            fileData,
+            filename: file.name,
+            title: file.name.replace(/\.[^.]+$/, ''),
+          }),
+        });
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.error || `Could not upload ${file.name}.`);
+        setDigitalProductForm((current: any) => {
+          const filesToKeep = (current.downloadableFiles || []).filter(
+            (currentFile: any) => currentFile.title?.trim() || currentFile.filename?.trim() || currentFile.url?.trim()
+          );
+          return { ...current, downloadableFiles: [...filesToKeep, result.file as DigitalProductFile] };
+        });
+      }
+    } catch (error: any) {
+      alert(error.message || 'Could not upload digital file.');
+    } finally {
+      setUploadingDigitalFile(false);
+    }
+  };
 
   const handleSaveDigitalProduct = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -513,8 +607,10 @@ export function AdminDashboard({ userEmail }: AdminDashboardProps) {
       alert('Title, SKU, and description are required.');
       return;
     }
-    if (!form.downloadableFiles?.length || form.downloadableFiles.some((file: any) => !file.title?.trim() || !file.filename?.trim() || !file.mimeType?.trim() || !file.url?.trim())) {
-      alert('Add a title, filename, MIME type, and URL for every downloadable file.');
+    if (!form.downloadableFiles?.length || form.downloadableFiles.some((file: any) =>
+      !file.title?.trim() || !file.filename?.trim() || !file.mimeType?.trim() || !file.url?.trim()
+    )) {
+      alert('Complete each file or external link with a title, filename, MIME type, and URL.');
       return;
     }
     setSavingDigitalProduct(true);
@@ -533,7 +629,7 @@ export function AdminDashboard({ userEmail }: AdminDashboardProps) {
       sku: form.sku.trim(),
       sellingPrice: Number(form.sellingPrice) || 0,
       compareAtPrice: form.compareAtPrice === '' ? undefined : Number(form.compareAtPrice),
-      images: form.images.split('\n').map((image: string) => image.trim()).filter(Boolean),
+      images: form.images.filter((image: string) => image.trim()),
       hasVariants: false,
       variants: [],
       status: form.status,
@@ -605,16 +701,67 @@ export function AdminDashboard({ userEmail }: AdminDashboardProps) {
     }
   };
 
-  const handleAffiliateImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const setProductImageForm = (formType: 'affiliate' | 'physical' | 'digital', updater: (form: any) => any) => {
+    const setForm = formType === 'affiliate'
+      ? setAffiliateProductForm
+      : formType === 'physical'
+        ? setPhysicalProductForm
+        : setDigitalProductForm;
+    setForm((current: any) => current ? updater(current) : current);
+  };
+
+  const addProductImageUrl = (formType: 'affiliate' | 'physical' | 'digital') => {
+    const currentForm = formType === 'affiliate'
+      ? affiliateProductForm
+      : formType === 'physical'
+        ? physicalProductForm
+        : digitalProductForm;
+    const imageUrl = currentForm?.imageUrl?.trim();
+    if (!imageUrl) return;
+    if ((currentForm.images || []).length >= PRODUCT_IMAGE_MAX_COUNT) {
+      alert(`You can add up to ${PRODUCT_IMAGE_MAX_COUNT} images.`);
+      return;
+    }
+    try {
+      const parsedUrl = new URL(imageUrl);
+      if (!['http:', 'https:'].includes(parsedUrl.protocol)) throw new Error('Unsupported protocol');
+    } catch {
+      alert('Enter a valid HTTP or HTTPS image URL.');
+      return;
+    }
+    setProductImageForm(formType, (form) => ({
+      ...form,
+      images: [...(form.images || []), imageUrl],
+      imageUrl: '',
+    }));
+  };
+
+  const handleProductImageUpload = (formType: 'affiliate' | 'physical' | 'digital', event: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(event.target.files || []);
     event.target.value = '';
     if (!files.length) return;
-    const currentImages: string[] = affiliateProductForm?.images || [];
-    if (currentImages.length + files.length > AFFILIATE_MAX_IMAGES) {
-      alert(`You can add up to ${AFFILIATE_MAX_IMAGES} images.`);
+    const currentForm = formType === 'affiliate'
+      ? affiliateProductForm
+      : formType === 'physical'
+        ? physicalProductForm
+        : digitalProductForm;
+    const currentImages: string[] = currentForm?.images || [];
+    if (currentImages.length + files.length > PRODUCT_IMAGE_MAX_COUNT) {
+      alert(`You can add up to ${PRODUCT_IMAGE_MAX_COUNT} images.`);
       return;
     }
-    const invalid = files.find((file) => !AFFILIATE_IMAGE_TYPES.includes(file.type) || file.size > AFFILIATE_MAX_IMAGE_BYTES);
+    const existingUploadBytes = currentImages.reduce((total, image) => {
+      if (!image.startsWith('data:')) return total;
+      const base64 = image.split(',', 2)[1] || '';
+      const paddingBytes = base64.endsWith('==') ? 2 : base64.endsWith('=') ? 1 : 0;
+      return total + Math.max(0, Math.floor((base64.length * 3) / 4) - paddingBytes);
+    }, 0);
+    const uploadBytes = files.reduce((total, file) => total + file.size, existingUploadBytes);
+    if (uploadBytes > PRODUCT_IMAGE_MAX_TOTAL_BYTES) {
+      alert('Uploaded images must be no larger than 20 MB combined.');
+      return;
+    }
+    const invalid = files.find((file) => !PRODUCT_IMAGE_TYPES.includes(file.type) || file.size > PRODUCT_IMAGE_MAX_BYTES);
     if (invalid) {
       alert('Images must be JPG, JPEG, PNG, or WEBP and no larger than 5 MB each.');
       return;
@@ -625,24 +772,78 @@ export function AdminDashboard({ userEmail }: AdminDashboardProps) {
       reader.onerror = () => reject(new Error('Could not read image.'));
       reader.readAsDataURL(file);
     }))).then((newImages) => {
-      setAffiliateProductForm((prev: any) => ({ ...prev, images: [...(prev.images || []), ...newImages] }));
+      setProductImageForm(formType, (form) => ({
+        ...form,
+        images: [...(form.images || []), ...newImages],
+      }));
     }).catch(() => alert('Could not read one of the selected images.'));
   };
 
-  const removeAffiliateImage = (index: number) => {
-    setAffiliateProductForm((prev: any) => ({
+  const removeProductImage = (formType: 'affiliate' | 'physical' | 'digital', index: number) => {
+    setProductImageForm(formType, (prev) => ({
       ...prev,
       images: (prev.images || []).filter((_: string, imageIndex: number) => imageIndex !== index),
     }));
   };
 
-  const setPrimaryAffiliateImage = (index: number) => {
-    setAffiliateProductForm((prev: any) => {
+  const setPrimaryProductImage = (formType: 'affiliate' | 'physical' | 'digital', index: number) => {
+    setProductImageForm(formType, (prev) => {
       const images = [...(prev.images || [])];
       const [primary] = images.splice(index, 1);
       return { ...prev, images: [primary, ...images] };
     });
   };
+
+  const renderProductImages = (formType: 'affiliate' | 'physical' | 'digital', form: any) => (
+    <div className="rounded-lg border border-dashed border-zinc-300 bg-white p-3">
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <label className="min-w-[220px] flex-1 text-[10px] font-black uppercase tracking-wider text-zinc-500">
+          Add image URL
+          <input
+            type="url"
+            value={form.imageUrl}
+            onChange={(event) => setProductImageForm(formType, (current) => ({ ...current, imageUrl: event.target.value }))}
+            placeholder="Paste an image URL (https://...)"
+            className="mt-2 w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-xs font-semibold normal-case text-zinc-800"
+          />
+        </label>
+        <button
+          type="button"
+          onClick={() => addProductImageUrl(formType)}
+          className="h-9 rounded-lg border border-zinc-200 bg-white px-3 text-[10px] font-black uppercase text-zinc-700 hover:bg-zinc-50"
+        >
+          Add URL
+        </button>
+        <label className="text-[10px] font-black uppercase tracking-wider text-zinc-500">
+          Upload images
+          <span className="ml-2 normal-case font-semibold text-zinc-400">JPG, PNG, WEBP · 5 MB each · max 8</span>
+          <input
+            type="file"
+            accept="image/jpeg,image/png,image/webp"
+            multiple
+            onChange={(event) => handleProductImageUpload(formType, event)}
+            className="mt-2 block w-full text-xs normal-case text-zinc-600 file:mr-2 file:rounded-md file:border-0 file:bg-zinc-900 file:px-2 file:py-1.5 file:text-[10px] file:font-bold file:text-white"
+          />
+        </label>
+      </div>
+      {(form.images || []).length > 0 && (
+        <div className="mt-3 grid grid-cols-3 gap-2 sm:grid-cols-5">
+          {form.images.map((image: string, index: number) => (
+            <div key={`${image.slice(0, 24)}-${index}`} className="relative overflow-hidden rounded-lg border border-zinc-200 bg-zinc-50">
+              <img src={image} alt={`Product image ${index + 1}`} className="aspect-square w-full object-cover" />
+              <div className="absolute inset-x-0 bottom-0 flex items-center justify-between gap-1 bg-black/65 p-1">
+                <button type="button" onClick={() => setPrimaryProductImage(formType, index)} disabled={index === 0} className="text-[8px] font-bold text-white disabled:text-emerald-300">
+                  {index === 0 ? 'Primary' : 'Make primary'}
+                </button>
+                <button type="button" onClick={() => removeProductImage(formType, index)} className="text-[8px] font-bold text-red-200 hover:text-white">Remove</button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+      <p className="mt-2 text-[9px] text-zinc-400">{(form.images || []).length}/{PRODUCT_IMAGE_MAX_COUNT} images · First image is the primary product image.</p>
+    </div>
+  );
 
   const handleSaveAffiliateProduct = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -982,6 +1183,8 @@ export function AdminDashboard({ userEmail }: AdminDashboardProps) {
               setPhysicalProductForm(null);
               setDigitalProductForm(null);
               setAffiliateProductForm(null);
+              setProductCreationChooser(false);
+              setEcommerceCatalogFilter('all');
               setSelectedOrderId(null);
               setSelectedProfileId(null);
               setSelectedDineEnquiryId(null);
@@ -1007,6 +1210,7 @@ export function AdminDashboard({ userEmail }: AdminDashboardProps) {
               setPhysicalProductForm(null);
               setDigitalProductForm(null);
               setAffiliateProductForm(null);
+              setProductCreationChooser(false);
               setEcommerceCatalogFilter('digital');
               setSelectedOrderId(null);
               setSelectedProfileId(null);
@@ -1024,7 +1228,7 @@ export function AdminDashboard({ userEmail }: AdminDashboardProps) {
               <span>Digital Store</span>
             </div>
             <span className={`text-[9px] px-1.5 py-0.5 rounded font-black ${activeTab === 'digital_ecommerce' ? 'bg-black text-emerald-300' : 'bg-zinc-100 text-zinc-500'}`}>
-              {ecommerceData.products?.filter((product: any) => product.productType !== 'PHYSICAL' && Boolean(product.productType || product.digitalProductType || product.downloadableFiles?.length)).length || 0}
+              {ecommerceData.products?.filter((product: any) => isDigitalProduct(product)).length || 0}
             </span>
           </button>
 
@@ -1175,7 +1379,7 @@ export function AdminDashboard({ userEmail }: AdminDashboardProps) {
                           ['Products', ecommerceData.products?.length || 0],
                           ['Pending pay', ecommerceData.metrics?.pendingPaymentCount || 0],
                           ['Razorpay', ecommerceData.metrics?.razorpayConfigured ? 'Ready' : 'Not configured'],
-                          ['AliShipping', ecommerceData.metrics?.aliShippingConfigured ? 'Ready' : 'Affiliate mode'],
+                          ['AliShipping', ecommerceData.metrics?.aliShippingConfigured ? 'Connected' : 'Manual fulfillment'],
                           ['Dropship revenue', `₹${ecommerceData.metrics?.dropshipRevenue || 0}`],
                           ['Dropship profit', `₹${ecommerceData.metrics?.dropshipEstimatedProfit || 0}`],
                           ['Affiliate clicks', ecommerceData.metrics?.totalAffiliateClicks || 0],
@@ -1212,29 +1416,36 @@ export function AdminDashboard({ userEmail }: AdminDashboardProps) {
                             onClick={() => {
                               setAffiliateProductForm(null);
                               setPhysicalProductForm(null);
+                              setProductCreationChooser(activeTab !== 'digital_ecommerce');
                               setDigitalProductForm(activeTab === 'digital_ecommerce' ? createDigitalProductForm() : null);
-                              if (activeTab !== 'digital_ecommerce') setPhysicalProductForm(createPhysicalProductForm());
                               setSelectedEcommerceProductId(null); setSelectedEcommerceOrderId(null);
                             }}
                             className="rounded-lg bg-[#E30613] px-2.5 py-1.5 text-[9px] font-black uppercase text-white"
                           >
-                            {activeTab === 'digital_ecommerce' ? '+ Add Digital Product' : '+ Add Physical Product'}
+                            {activeTab === 'digital_ecommerce' ? '+ Add Digital Product' : '+ Add Product'}
                           </button>
                         </div>
-                        <div className="mb-3 flex rounded-lg border border-zinc-150 bg-white p-1">
-                          {(activeTab === 'digital_ecommerce' ? (['digital'] as const) : (['all', 'ACTIVE', 'DRAFT', 'ARCHIVED'] as const)).map((filter) => (
+                        <div className="mb-3 flex flex-wrap gap-1 rounded-lg border border-zinc-150 bg-white p-1">
+                          {(activeTab === 'digital_ecommerce'
+                            ? (['digital', 'ACTIVE', 'DRAFT', 'ARCHIVED'] as const)
+                            : (['all', 'owned', 'dropship', 'affiliate', 'ACTIVE', 'DRAFT', 'ARCHIVED'] as const)
+                          ).map((filter) => (
                             <button
                               key={filter}
                               type="button"
                               onClick={() => setEcommerceCatalogFilter(filter)}
-                              className={`flex-1 rounded-md px-2 py-1.5 text-[9px] font-black uppercase ${ecommerceCatalogFilter === filter ? 'bg-zinc-900 text-white' : 'text-zinc-500 hover:bg-zinc-50'}`}
+                              className={`rounded-md px-2 py-1.5 text-[9px] font-black uppercase ${ecommerceCatalogFilter === filter ? 'bg-zinc-900 text-white' : 'text-zinc-500 hover:bg-zinc-50'}`}
                             >
-                              {filter}
+                              {filter === 'owned' ? 'Own stock' : filter === 'all' ? 'All' : filter}
                             </button>
                           ))}
                         </div>
                         {filteredEcommerceProducts.length === 0 ? (
-                          <p className="text-xs text-zinc-400 italic py-4">No products found.</p>
+                          <p className="text-xs text-zinc-400 italic py-4">
+                            {ecommerceData.products.length === 0
+                              ? 'No products have been added to this store yet.'
+                              : 'No products match this filter. Choose All to see every product.'}
+                          </p>
                         ) : filteredEcommerceProducts.map((product: any) => (
                           <div
                             key={product.id}
@@ -1243,12 +1454,16 @@ export function AdminDashboard({ userEmail }: AdminDashboardProps) {
                           >
                             <div className="flex justify-between gap-2">
                               <span className="text-xs font-black text-zinc-900 truncate">{product.title}</span>
-                              <span className={`text-[8px] font-black uppercase ${product.fulfillmentType === 'AFFILIATE' ? 'text-violet-600' : product.status === 'ACTIVE' ? 'text-emerald-600' : 'text-zinc-400'}`}>{product.fulfillmentType === 'AFFILIATE' ? 'AFFILIATE' : product.status}</span>
+                              <span className={`text-[8px] font-black uppercase ${product.fulfillmentType === 'AFFILIATE' ? 'text-violet-600' : product.fulfillmentType === 'DROPSHIP' ? 'text-blue-600' : product.status === 'ACTIVE' ? 'text-emerald-600' : 'text-zinc-400'}`}>{activeTab === 'digital_ecommerce' ? product.status : product.fulfillmentType === 'AFFILIATE' ? 'AFFILIATE' : product.fulfillmentType === 'DROPSHIP' || !product.fulfillmentType ? 'DROPSHIP' : 'OWN STOCK'}</span>
                             </div>
                             <p className="text-[10px] text-zinc-450 font-semibold mt-1">
                               {activeTab === 'digital_ecommerce'
                                 ? `₹${product.sellingPrice} | ${product.downloadableFiles?.length || 0} file${product.downloadableFiles?.length === 1 ? '' : 's'}`
-                                : `${product.sku} | ₹${product.sellingPrice} | Stock ${product.stockQuantity}`}
+                                : product.fulfillmentType === 'AFFILIATE'
+                                  ? `${product.sku} | Reference ₹${product.sellingPrice} | ${product.affiliateDetails?.clickCount || 0} clicks`
+                                  : product.fulfillmentType === 'DROPSHIP' || !product.fulfillmentType
+                                    ? `${product.sku} | ₹${product.sellingPrice} | Supplier stock ${product.stockQuantity}`
+                                    : `${product.sku} | ₹${product.sellingPrice} | Own stock ${product.stockQuantity}`}
                             </p>
                           </div>
                         ))}
@@ -1418,19 +1633,51 @@ export function AdminDashboard({ userEmail }: AdminDashboardProps) {
                       {physicalProductForm ? (
                         <form onSubmit={handleSavePhysicalProduct} className="space-y-4 rounded-xl border border-red-200 bg-red-50/20 p-4 text-left">
                           <div className="flex items-center justify-between border-b border-red-100 pb-3">
-                            <div><span className="text-[10px] font-black uppercase tracking-widest text-[#E30613]">Physical Store · Products</span><h3 className="text-lg font-black text-zinc-900">{physicalProductForm.id ? 'Edit Physical Product' : 'Create Physical Product'}</h3><p className="text-xs text-zinc-500">Manage inventory, pricing, media, and fulfillment for the physical store.</p></div>
+                            <div><span className="text-[10px] font-black uppercase tracking-widest text-[#E30613]">Physical Store · {physicalProductForm.fulfillmentType === 'DROPSHIP' ? 'Dropship' : 'Own stock'}</span><h3 className="text-lg font-black text-zinc-900">{physicalProductForm.id ? 'Edit Physical Product' : `Create ${physicalProductForm.fulfillmentType === 'DROPSHIP' ? 'Dropship' : 'Own-stock'} Product`}</h3><p className="text-xs text-zinc-500">Set the sales model, price, inventory or supplier details, and publishing status.</p></div>
                             <button type="button" onClick={() => setPhysicalProductForm(null)} className="text-xs font-bold text-zinc-500">Cancel</button>
                           </div>
                           <div className="grid sm:grid-cols-2 gap-3">
                             {[
                               ['title', 'Product name', 'text', true], ['slug', 'Slug', 'text', false],
                               ['sku', 'SKU', 'text', true], ['sellingPrice', 'Price (₹)', 'number', true],
-                              ['compareAtPrice', 'Compare-at price (₹)', 'number', false], ['stockQuantity', 'Stock', 'number', true],
+                              ['compareAtPrice', 'Compare-at price (₹)', 'number', false],
+                              ...(physicalProductForm.fulfillmentType === 'DROPSHIP'
+                                ? []
+                                : [['costPrice', 'Unit cost (₹)', 'number', false]]),
                             ].map(([key, label, type, required]) => (
                               <label key={key as string} className="text-[10px] font-black uppercase tracking-wider text-zinc-500">{label as string}
-                                <input type={type as string} required={Boolean(required)} value={physicalProductForm[key as string]} onChange={(e) => setPhysicalProductForm((prev: any) => ({ ...prev, [key as string]: e.target.value }))} className="mt-1 w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-xs font-semibold normal-case text-zinc-800" />
+                                <input type={type as string} min={type === 'number' ? 0 : undefined} step={key === 'sellingPrice' || key === 'compareAtPrice' || key === 'costPrice' ? '0.01' : undefined} required={Boolean(required)} value={physicalProductForm[key as string]} onChange={(e) => setPhysicalProductForm((prev: any) => ({ ...prev, [key as string]: e.target.value }))} className="mt-1 w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-xs font-semibold normal-case text-zinc-800" />
                               </label>
                             ))}
+                            <label className="text-[10px] font-black uppercase tracking-wider text-zinc-500">How is it fulfilled?
+                              <select value={physicalProductForm.fulfillmentType} onChange={(e) => setPhysicalProductForm((prev: any) => ({ ...prev, fulfillmentType: e.target.value }))} className="mt-1 w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-xs text-zinc-800">
+                                <option value="DIRECT">Own stock · FeelsNeat packs and ships</option>
+                                <option value="DROPSHIP">Dropship · Supplier ships to customer</option>
+                              </select>
+                            </label>
+                            {physicalProductForm.fulfillmentType === 'DROPSHIP' ? (
+                              <>
+                                <label className="text-[10px] font-black uppercase tracking-wider text-zinc-500">Supplier
+                                  <select required value={physicalProductForm.supplierId} onChange={(e) => setPhysicalProductForm((prev: any) => ({ ...prev, supplierId: e.target.value }))} className="mt-1 w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-xs text-zinc-800">
+                                    <option value="">Choose supplier</option>
+                                    {(ecommerceData.suppliers || []).filter((supplier: any) => supplier.status === 'ACTIVE').map((supplier: any) => <option key={supplier.id} value={supplier.id}>{supplier.name}</option>)}
+                                  </select>
+                                </label>
+                                <label className="text-[10px] font-black uppercase tracking-wider text-zinc-500">Supplier SKU
+                                  <input required value={physicalProductForm.supplierSku} onChange={(e) => setPhysicalProductForm((prev: any) => ({ ...prev, supplierSku: e.target.value }))} className="mt-1 w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-xs normal-case text-zinc-800" />
+                                </label>
+                                <label className="text-[10px] font-black uppercase tracking-wider text-zinc-500">Supplier cost (₹)
+                                  <input type="number" min="0" step="0.01" required value={physicalProductForm.supplierCost} onChange={(e) => setPhysicalProductForm((prev: any) => ({ ...prev, supplierCost: e.target.value }))} className="mt-1 w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-xs text-zinc-800" />
+                                </label>
+                                <label className="text-[10px] font-black uppercase tracking-wider text-zinc-500">Supplier available stock
+                                  <input type="number" min="0" step="1" required value={physicalProductForm.supplierStock} onChange={(e) => setPhysicalProductForm((prev: any) => ({ ...prev, supplierStock: e.target.value }))} className="mt-1 w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-xs text-zinc-800" />
+                                </label>
+                              </>
+                            ) : (
+                              <label className="text-[10px] font-black uppercase tracking-wider text-zinc-500">Available own stock
+                                <input type="number" min="0" step="1" required value={physicalProductForm.stockQuantity} onChange={(e) => setPhysicalProductForm((prev: any) => ({ ...prev, stockQuantity: e.target.value }))} className="mt-1 w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-xs text-zinc-800" />
+                              </label>
+                            )}
                             <label className="text-[10px] font-black uppercase tracking-wider text-zinc-500">Physical category
                               <select value={physicalProductForm.categoryId} onChange={(e) => setPhysicalProductForm((prev: any) => ({ ...prev, categoryId: e.target.value }))} className="mt-1 w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-xs text-zinc-800">{ecommerceData.categories?.filter((c: any) => c.categoryType !== 'DIGITAL').map((category: any) => <option key={category.id} value={category.id}>{category.name}</option>)}</select>
                             </label>
@@ -1441,11 +1688,14 @@ export function AdminDashboard({ userEmail }: AdminDashboardProps) {
                           <label className="block text-[10px] font-black uppercase tracking-wider text-zinc-500">Description
                             <textarea required value={physicalProductForm.description} onChange={(e) => setPhysicalProductForm((prev: any) => ({ ...prev, description: e.target.value }))} rows={4} className="mt-1 w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-xs normal-case text-zinc-800" />
                           </label>
-                          <label className="block text-[10px] font-black uppercase tracking-wider text-zinc-500">Product images
-                            <textarea value={physicalProductForm.images} onChange={(e) => setPhysicalProductForm((prev: any) => ({ ...prev, images: e.target.value }))} placeholder="One image URL per line" rows={3} className="mt-1 w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-xs normal-case text-zinc-800" />
-                          </label>
-                          <div className="rounded-lg border border-red-100 bg-white p-3 text-xs text-zinc-600"><strong>Physical product settings</strong><p className="mt-1">Shipping, inventory, and COD remain available only for this store. Digital files and download settings are not part of this editor.</p></div>
-                          <button type="submit" disabled={savingPhysicalProduct} className="rounded-lg bg-[#E30613] px-4 py-2 text-[10px] font-black uppercase text-white disabled:opacity-50">{savingPhysicalProduct ? 'Saving...' : 'Save Physical Product'}</button>
+                          {renderProductImages('physical', physicalProductForm)}
+                          <div className="rounded-lg border border-red-100 bg-white p-3 text-xs text-zinc-600">
+                            <strong>{physicalProductForm.fulfillmentType === 'DROPSHIP' ? 'Supplier fulfillment' : 'Own inventory'}</strong>
+                            <p className="mt-1">{physicalProductForm.fulfillmentType === 'DROPSHIP'
+                              ? 'Customers can order this product. Until AliShipping is connected, paid and COD orders must be placed with the supplier manually and their status updated in the order panel.'
+                              : 'FeelsNeat owns the stock. Keep the available quantity accurate; sold-out items cannot be purchased.'}</p>
+                          </div>
+                          <button type="submit" disabled={savingPhysicalProduct} className="rounded-lg bg-[#E30613] px-4 py-2 text-[10px] font-black uppercase text-white disabled:opacity-50">{savingPhysicalProduct ? 'Saving...' : 'Save Product'}</button>
                         </form>
                       ) : digitalProductForm ? (
                       <form onSubmit={handleSaveDigitalProduct} className="space-y-4 rounded-xl border border-emerald-200 bg-emerald-50/20 p-4 text-left">
@@ -1478,11 +1728,85 @@ export function AdminDashboard({ userEmail }: AdminDashboardProps) {
                         </label>
                         <div className="grid sm:grid-cols-2 gap-3">
                           <label className="text-[10px] font-black uppercase tracking-wider text-zinc-500">Tags <input value={digitalProductForm.tags} onChange={(e) => setDigitalProductForm((prev: any) => ({ ...prev, tags: e.target.value }))} placeholder="planner, productivity" className="mt-1 w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-xs normal-case text-zinc-800" /></label>
-                          <label className="text-[10px] font-black uppercase tracking-wider text-zinc-500">Image URLs <textarea value={digitalProductForm.images} onChange={(e) => setDigitalProductForm((prev: any) => ({ ...prev, images: e.target.value }))} placeholder="One URL per line" rows={2} className="mt-1 w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-xs normal-case text-zinc-800" /></label>
                         </div>
-                        <div className="rounded-lg border border-dashed border-zinc-300 bg-white p-3 space-y-2">
-                          <div className="flex items-center justify-between"><span className="text-[10px] font-black uppercase tracking-wider text-zinc-500">Downloadable files</span><button type="button" onClick={() => setDigitalProductForm((prev: any) => ({ ...prev, downloadableFiles: [...prev.downloadableFiles, { id: `file-${Date.now()}`, title: '', filename: '', mimeType: 'application/pdf', sizeBytes: '', url: '' }] }))} className="text-[9px] font-black uppercase text-emerald-700">+ Add file</button></div>
-                          {digitalProductForm.downloadableFiles.map((file: any, index: number) => <div key={file.id} className="grid sm:grid-cols-5 gap-2"><input placeholder="Title" value={file.title} onChange={(e) => setDigitalProductForm((prev: any) => ({ ...prev, downloadableFiles: prev.downloadableFiles.map((f: any, i: number) => i === index ? { ...f, title: e.target.value } : f) }))} className="rounded border border-zinc-200 px-2 py-1.5 text-[10px]" /><input placeholder="Filename" value={file.filename} onChange={(e) => setDigitalProductForm((prev: any) => ({ ...prev, downloadableFiles: prev.downloadableFiles.map((f: any, i: number) => i === index ? { ...f, filename: e.target.value } : f) }))} className="rounded border border-zinc-200 px-2 py-1.5 text-[10px]" /><input placeholder="MIME type" value={file.mimeType} onChange={(e) => setDigitalProductForm((prev: any) => ({ ...prev, downloadableFiles: prev.downloadableFiles.map((f: any, i: number) => i === index ? { ...f, mimeType: e.target.value } : f) }))} className="rounded border border-zinc-200 px-2 py-1.5 text-[10px]" /><input placeholder="File URL (HTTPS)" type="url" value={file.url} onChange={(e) => setDigitalProductForm((prev: any) => ({ ...prev, downloadableFiles: prev.downloadableFiles.map((f: any, i: number) => i === index ? { ...f, url: e.target.value } : f) }))} className="rounded border border-zinc-200 px-2 py-1.5 text-[10px]" /><button type="button" onClick={() => setDigitalProductForm((prev: any) => ({ ...prev, downloadableFiles: prev.downloadableFiles.filter((_: any, i: number) => i !== index) }))} className="text-[9px] font-bold text-red-600">Remove</button></div>)}
+                        {renderProductImages('digital', digitalProductForm)}
+                        <div className="rounded-lg border border-dashed border-zinc-300 bg-white p-3 space-y-3">
+                          <div className="flex flex-wrap items-center justify-between gap-2">
+                            <div>
+                              <span className="text-[10px] font-black uppercase tracking-wider text-zinc-500">Digital delivery</span>
+                              <p className="mt-1 text-[10px] normal-case text-zinc-400">Upload PDFs or ZIPs, or provide a secure HTTPS link such as Canva or Google Sheets.</p>
+                            </div>
+                            <div className="flex flex-wrap items-center gap-3">
+                              <label className="cursor-pointer rounded-md bg-emerald-700 px-3 py-2 text-[9px] font-black uppercase text-white hover:bg-emerald-800">
+                                {uploadingDigitalFile ? 'Uploading...' : 'Upload PDF / ZIP'}
+                                <input type="file" accept=".pdf,.zip,application/pdf,application/zip" multiple disabled={uploadingDigitalFile} onChange={handleDigitalFileUpload} className="sr-only" />
+                              </label>
+                              <button
+                                type="button"
+                                disabled={digitalProductForm.downloadableFiles.length >= 10}
+                                onClick={() => setDigitalProductForm((prev: any) => ({
+                                  ...prev,
+                                  downloadableFiles: [...prev.downloadableFiles, {
+                                    id: `file-${Date.now()}`,
+                                    title: '',
+                                    filename: '',
+                                    mimeType: 'application/pdf',
+                                    sizeBytes: '',
+                                    url: '',
+                                    deliveryType: 'FILE',
+                                  }],
+                                }))}
+                                className="text-[9px] font-black uppercase text-emerald-700 disabled:opacity-40"
+                              >
+                                + Add URL / file
+                              </button>
+                            </div>
+                          </div>
+                          {digitalProductForm.downloadableFiles.map((file: any, index: number) => {
+                            const deliveryType = file.deliveryType || 'FILE';
+                            const updateFile = (changes: Record<string, string>) => setDigitalProductForm((prev: any) => ({
+                              ...prev,
+                              downloadableFiles: prev.downloadableFiles.map((current: any, fileIndex: number) =>
+                                fileIndex === index ? { ...current, ...changes } : current
+                              ),
+                            }));
+                            return (
+                              <div key={file.id} className="grid gap-2 rounded-lg border border-zinc-200 bg-zinc-50 p-3 sm:grid-cols-2">
+                                <label className="text-[9px] font-bold uppercase text-zinc-500">Delivery type
+                                  <select value={deliveryType} onChange={(event) => updateFile({
+                                    deliveryType: event.target.value,
+                                    url: event.target.value === 'LINK' ? '' : file.url.startsWith('https://') ? file.url : '',
+                                    mimeType: event.target.value === 'LINK' ? 'text/html' : 'application/pdf',
+                                  })} className="mt-1 w-full rounded border border-zinc-200 bg-white px-2 py-1.5 text-[10px] normal-case text-zinc-800">
+                                    <option value="FILE">Downloadable file</option>
+                                    <option value="LINK">External link (Canva, Google Sheets)</option>
+                                  </select>
+                                </label>
+                                <label className="text-[9px] font-bold uppercase text-zinc-500">Title
+                                  <input value={file.title} onChange={(event) => updateFile({ title: event.target.value })} placeholder="e.g. Editable Canva template" className="mt-1 w-full rounded border border-zinc-200 bg-white px-2 py-1.5 text-[10px] normal-case text-zinc-800" />
+                                </label>
+                                <label className="text-[9px] font-bold uppercase text-zinc-500">Filename / label
+                                  <input value={file.filename} onChange={(event) => updateFile({ filename: event.target.value })} placeholder={deliveryType === 'FILE' ? 'template.pdf' : 'Canva design link'} className="mt-1 w-full rounded border border-zinc-200 bg-white px-2 py-1.5 text-[10px] normal-case text-zinc-800" />
+                                </label>
+                                <label className="text-[9px] font-bold uppercase text-zinc-500">{deliveryType === 'FILE' ? 'File MIME type' : 'Link MIME type'}
+                                  <input value={file.mimeType} onChange={(event) => updateFile({ mimeType: event.target.value })} placeholder={deliveryType === 'FILE' ? 'application/pdf' : 'text/html'} className="mt-1 w-full rounded border border-zinc-200 bg-white px-2 py-1.5 text-[10px] normal-case text-zinc-800" />
+                                </label>
+                                <label className="text-[9px] font-bold uppercase text-zinc-500 sm:col-span-2">{deliveryType === 'FILE' ? 'File URL (HTTPS), if hosted elsewhere' : 'HTTPS delivery URL'}
+                                  <input type="url" value={file.url.startsWith('r2://') || file.url.startsWith('data:') ? '' : file.url} onChange={(event) => updateFile({ url: event.target.value })} placeholder={deliveryType === 'FILE' ? 'Upload a file above or paste an existing file URL' : 'https://www.canva.com/...'} className="mt-1 w-full rounded border border-zinc-200 bg-white px-2 py-1.5 text-[10px] normal-case text-zinc-800" />
+                                </label>
+                                <div className="flex items-center justify-between sm:col-span-2">
+                                  {file.url.startsWith('r2://') || file.url.startsWith('data:')
+                                    ? <span className="text-[9px] font-semibold text-emerald-700">Uploaded · {Math.ceil((file.sizeBytes || 0) / 1024)} KB</span>
+                                    : <span className="text-[9px] text-zinc-400">{deliveryType === 'LINK' ? 'Opens after payment is verified.' : 'URL delivery is retained for externally hosted files.'}</span>}
+                                  <button type="button" onClick={() => setDigitalProductForm((prev: any) => ({
+                                    ...prev,
+                                    downloadableFiles: prev.downloadableFiles.filter((_: any, fileIndex: number) => fileIndex !== index),
+                                  }))} className="text-[9px] font-bold text-red-600">Remove</button>
+                                </div>
+                              </div>
+                            );
+                          })}
+                          <p className="text-[9px] text-zinc-400">{digitalProductForm.downloadableFiles.length}/10 items · Uploaded files are limited to 20 MB each.</p>
                         </div>
                         <label className="flex items-center gap-2 text-[10px] font-black uppercase text-zinc-500"><input type="checkbox" checked={digitalProductForm.featured} onChange={(e) => setDigitalProductForm((prev: any) => ({ ...prev, featured: e.target.checked }))} /> Featured product</label>
                         <button type="submit" disabled={savingDigitalProduct} className="rounded-lg bg-emerald-600 px-4 py-2 text-[10px] font-black uppercase text-white disabled:opacity-50">{savingDigitalProduct ? 'Saving...' : 'Save digital product'}</button>
@@ -1528,36 +1852,7 @@ export function AdminDashboard({ userEmail }: AdminDashboardProps) {
                             </select>
                           </label>
                         </div>
-                        <div className="rounded-lg border border-dashed border-zinc-300 bg-white p-3">
-                          <div className="flex items-center justify-between gap-3">
-                            <label className="text-[10px] font-black uppercase tracking-wider text-zinc-500">
-                              Product images
-                              <span className="ml-2 normal-case font-semibold text-zinc-400">JPG, PNG, WEBP · 5 MB each · first is primary</span>
-                              <input
-                                type="file"
-                                accept="image/jpeg,image/png,image/webp"
-                                multiple
-                                onChange={handleAffiliateImageUpload}
-                                className="mt-2 block w-full text-xs normal-case text-zinc-600 file:mr-2 file:rounded-md file:border-0 file:bg-zinc-900 file:px-2 file:py-1.5 file:text-[10px] file:font-bold file:text-white"
-                              />
-                            </label>
-                          </div>
-                          {(affiliateProductForm.images || []).length > 0 && (
-                            <div className="mt-3 grid grid-cols-3 sm:grid-cols-5 gap-2">
-                              {(affiliateProductForm.images || []).map((image: string, index: number) => (
-                                <div key={`${image.slice(0, 24)}-${index}`} className="relative overflow-hidden rounded-lg border border-zinc-200 bg-zinc-50">
-                                  <img src={image} alt={`Product image ${index + 1}`} className="aspect-square w-full object-cover" />
-                                  <div className="absolute inset-x-0 bottom-0 flex items-center justify-between gap-1 bg-black/65 p-1">
-                                    <button type="button" onClick={() => setPrimaryAffiliateImage(index)} disabled={index === 0} className="text-[8px] font-bold text-white disabled:text-emerald-300">
-                                      {index === 0 ? 'Primary' : 'Make primary'}
-                                    </button>
-                                    <button type="button" onClick={() => removeAffiliateImage(index)} className="text-[8px] font-bold text-red-200 hover:text-white">Remove</button>
-                                  </div>
-                                </div>
-                              ))}
-                            </div>
-                          )}
-                        </div>
+                        {renderProductImages('affiliate', affiliateProductForm)}
                         <label className="block text-[10px] font-black uppercase tracking-wider text-zinc-500">Affiliate URL
                           <input type="url" required value={affiliateProductForm.affiliateUrl} onChange={(e) => setAffiliateProductForm((prev: any) => ({ ...prev, affiliateUrl: e.target.value }))} className="mt-1 w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-xs font-semibold normal-case text-zinc-800" />
                         </label>
@@ -1576,6 +1871,41 @@ export function AdminDashboard({ userEmail }: AdminDashboardProps) {
                           {savingAffiliateProduct ? 'Saving...' : 'Save affiliate product'}
                         </button>
                       </form>
+                    ) : productCreationChooser ? (
+                      <div className="space-y-4 rounded-xl border border-zinc-200 bg-zinc-50/30 p-4 text-left">
+                        <div className="flex items-center justify-between border-b border-zinc-200 pb-3">
+                          <div>
+                            <span className="text-[10px] font-black uppercase tracking-widest text-zinc-400">New physical-store product</span>
+                            <h3 className="text-lg font-black text-zinc-900">How will this product be sold?</h3>
+                            <p className="text-xs text-zinc-500">Choose the sales and fulfillment model. You can change product details before publishing.</p>
+                          </div>
+                          <button type="button" onClick={() => setProductCreationChooser(false)} className="text-xs font-bold text-zinc-500">Cancel</button>
+                        </div>
+                        <div className="grid gap-3 sm:grid-cols-3">
+                          {[
+                            { id: 'affiliate', title: 'Affiliate product', detail: 'Customer buys from Amazon or Meesho. No FeelsNeat checkout or stock.' },
+                            { id: 'dropship', title: 'Dropship product', detail: 'Customer orders from FeelsNeat. A supplier fulfills it; supplier cost and SKU are tracked.' },
+                            { id: 'owned', title: 'Own-stock product', detail: 'FeelsNeat owns the inventory and handles packing and shipping.' },
+                          ].map((option) => (
+                            <button
+                              key={option.id}
+                              type="button"
+                              onClick={() => {
+                                setProductCreationChooser(false);
+                                if (option.id === 'affiliate') {
+                                  setAffiliateProductForm(createAffiliateProductForm());
+                                } else {
+                                  setPhysicalProductForm(createPhysicalProductForm(undefined, option.id === 'dropship' ? 'DROPSHIP' : 'DIRECT'));
+                                }
+                              }}
+                              className="rounded-xl border border-zinc-200 bg-white p-4 text-left transition hover:border-[#E30613] hover:shadow-sm"
+                            >
+                              <span className="block text-xs font-black text-zinc-900">{option.title}</span>
+                              <span className="mt-2 block text-[10px] leading-relaxed text-zinc-500">{option.detail}</span>
+                            </button>
+                          ))}
+                        </div>
+                      </div>
                     ) : selectedEcommerceOrder ? (
                       <div className="space-y-4 p-4 rounded-xl border border-border-custom bg-zinc-50/30 text-left">
                         <div className="flex justify-between gap-4 border-b border-zinc-200 pb-3">
@@ -1604,7 +1934,7 @@ export function AdminDashboard({ userEmail }: AdminDashboardProps) {
                           <span className="text-[10px] font-black text-zinc-400 uppercase tracking-widest block">Items</span>
                           {selectedEcommerceOrder.items?.map((item: any, idx: number) => (
                             <p key={`${item.sku}-${idx}`} className="flex justify-between gap-3">
-                              <span>{item.quantity} x {item.title}{item.variantTitle ? ` (${item.variantTitle})` : ''}</span>
+                              <span>{item.quantity} x {item.title}{item.variantTitle ? ` (${item.variantTitle})` : ''}{item.supplierSku ? <span className="block text-[9px] text-zinc-400">Supplier SKU: {item.supplierSku}</span> : null}</span>
                               <span className="font-black">₹{item.lineTotal}</span>
                             </p>
                           ))}
@@ -1657,7 +1987,7 @@ export function AdminDashboard({ userEmail }: AdminDashboardProps) {
                       <div className="space-y-4 p-4 rounded-xl border border-border-custom bg-zinc-50/30 text-left">
                         <div className="flex justify-between gap-4 border-b border-zinc-200 pb-3">
                           <div>
-                            <span className="text-[10px] font-black text-zinc-400 uppercase tracking-widest block">{selectedEcommerceProduct.productType !== 'PHYSICAL' ? 'Digital Product' : 'Shop Product'}</span>
+                            <span className="text-[10px] font-black text-zinc-400 uppercase tracking-widest block">{isDigitalProduct(selectedEcommerceProduct) ? 'Digital Product' : selectedEcommerceProduct.fulfillmentType === 'AFFILIATE' ? 'Affiliate Product' : 'Physical Store Product'}</span>
                             <h3 className="text-lg font-black text-zinc-900">{selectedEcommerceProduct.title}</h3>
                             <p className="text-xs text-zinc-500 font-semibold">{selectedEcommerceProduct.sku} · /shop/product/{selectedEcommerceProduct.slug}</p>
                           </div>
@@ -1667,19 +1997,27 @@ export function AdminDashboard({ userEmail }: AdminDashboardProps) {
                         <div className="grid sm:grid-cols-2 gap-3 text-xs font-semibold text-zinc-700">
                           <p><span className="text-zinc-400 block">Price</span>₹{selectedEcommerceProduct.sellingPrice}</p>
                           <p><span className="text-zinc-400 block">Compare at</span>{selectedEcommerceProduct.compareAtPrice ? `₹${selectedEcommerceProduct.compareAtPrice}` : 'Not set'}</p>
-                          <p><span className="text-zinc-400 block">Inventory source</span>{selectedEcommerceProduct.inventorySource}</p>
-                          <p><span className="text-zinc-400 block">Stock</span>{selectedEcommerceProduct.stockQuantity}</p>
-                          <p><span className="text-zinc-400 block">Supplier SKU</span>{selectedEcommerceProduct.supplierMapping?.supplierSku || 'Not mapped'}</p>
-                          <p><span className="text-zinc-400 block">Supplier cost</span>{selectedEcommerceProduct.supplierMapping?.supplierCost ? `₹${selectedEcommerceProduct.supplierMapping.supplierCost}` : 'Not set'}</p>
-                          <p><span className="text-zinc-400 block">Catalog type</span>{selectedEcommerceProduct.fulfillmentType === 'AFFILIATE' ? 'Affiliate' : 'Dropship'}</p>
-                          {selectedEcommerceProduct.productType !== 'PHYSICAL' && (
+                          {selectedEcommerceProduct.fulfillmentType !== 'AFFILIATE' && (
+                            <>
+                              <p><span className="text-zinc-400 block">Inventory source</span>{selectedEcommerceProduct.inventorySource}</p>
+                              <p><span className="text-zinc-400 block">Available stock</span>{selectedEcommerceProduct.stockQuantity}</p>
+                              {selectedEcommerceProduct.fulfillmentType === 'DROPSHIP' && (
+                                <>
+                                  <p><span className="text-zinc-400 block">Supplier SKU</span>{selectedEcommerceProduct.supplierMapping?.supplierSku || 'Not mapped'}</p>
+                                  <p><span className="text-zinc-400 block">Supplier cost</span>{selectedEcommerceProduct.supplierMapping?.supplierCost != null ? `₹${selectedEcommerceProduct.supplierMapping.supplierCost}` : 'Not set'}</p>
+                                </>
+                              )}
+                            </>
+                          )}
+                          <p><span className="text-zinc-400 block">Sales model</span>{isDigitalProduct(selectedEcommerceProduct) ? 'Digital download' : selectedEcommerceProduct.fulfillmentType === 'AFFILIATE' ? 'Affiliate · partner checkout' : selectedEcommerceProduct.fulfillmentType === 'DROPSHIP' || !selectedEcommerceProduct.fulfillmentType ? 'Dropship · supplier fulfilled' : 'Own stock · FeelsNeat fulfilled'}</p>
+                          {isDigitalProduct(selectedEcommerceProduct) && (
                             <>
                               <p><span className="text-zinc-400 block">Digital type</span>{selectedEcommerceProduct.digitalProductType}</p>
                               <p><span className="text-zinc-400 block">Featured</span>{selectedEcommerceProduct.featured ? 'Yes' : 'No'}</p>
                               <p className="sm:col-span-2"><span className="text-zinc-400 block">Downloadable files</span>{selectedEcommerceProduct.downloadableFiles?.map((file: any) => `${file.title} (${file.filename})`).join(' · ') || 'None'}</p>
                             </>
                           )}
-                          {selectedEcommerceProduct.productType === 'PHYSICAL' && (
+                          {!isDigitalProduct(selectedEcommerceProduct) && selectedEcommerceProduct.fulfillmentType !== 'AFFILIATE' && (
                             <button type="button" onClick={() => setPhysicalProductForm(createPhysicalProductForm(selectedEcommerceProduct))} className="rounded-lg border border-zinc-200 bg-white px-3 py-2 text-[10px] font-black uppercase text-zinc-700">Edit physical</button>
                           )}
                           {selectedEcommerceProduct.fulfillmentType === 'AFFILIATE' && (
@@ -1693,8 +2031,8 @@ export function AdminDashboard({ userEmail }: AdminDashboardProps) {
                           )}
                         </div>
                         <div className="flex flex-wrap gap-2">
-                          <a href={selectedEcommerceProduct.productType !== 'PHYSICAL' ? `/digital-store/product/${selectedEcommerceProduct.slug}` : `/shop/product/${selectedEcommerceProduct.slug}`} target="_blank" rel="noopener noreferrer" className="rounded-lg bg-[#E30613] px-3 py-2 text-[10px] font-black uppercase text-white">Open Product</a>
-                          {selectedEcommerceProduct.productType !== 'PHYSICAL' && (
+                          <a href={isDigitalProduct(selectedEcommerceProduct) ? `/digital-store/product/${selectedEcommerceProduct.slug}` : `/shop/product/${selectedEcommerceProduct.slug}`} target="_blank" rel="noopener noreferrer" className="rounded-lg bg-[#E30613] px-3 py-2 text-[10px] font-black uppercase text-white">Open Product</a>
+                          {isDigitalProduct(selectedEcommerceProduct) && (
                             <>
                               <button type="button" onClick={() => setDigitalProductForm(createDigitalProductForm(selectedEcommerceProduct))} className="rounded-lg border border-zinc-200 bg-white px-3 py-2 text-[10px] font-black uppercase text-zinc-700">Edit digital</button>
                               {selectedEcommerceProduct.status !== 'ARCHIVED' && <button type="button" onClick={() => handleDigitalProductAction('archive')} className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-[10px] font-black uppercase text-amber-700">Archive</button>}

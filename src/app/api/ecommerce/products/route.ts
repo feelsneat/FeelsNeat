@@ -60,6 +60,7 @@ export async function GET(req: NextRequest) {
           filename: file.filename,
           mimeType: file.mimeType,
           sizeBytes: file.sizeBytes,
+          deliveryType: file.deliveryType || 'FILE',
         })) || [],
         variants: product.variants.map((v) => ({
           id: v.id,
@@ -174,6 +175,7 @@ export async function GET(req: NextRequest) {
         filename: file.filename,
         mimeType: file.mimeType,
         sizeBytes: file.sizeBytes,
+        deliveryType: file.deliveryType || 'FILE',
       })) || [],
       variants: product.variants.map((v) => ({
         id: v.id,

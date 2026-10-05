@@ -5,6 +5,7 @@ import { Product, Category, Collection, Discount, EcommerceOrder } from '@/lib/e
 import { getPaymentProvider } from '@/lib/ecommerce/payments/mock';
 import { getFulfillmentProvider } from '@/lib/ecommerce/fulfillment/mock';
 import { isDigitalProduct } from '@/lib/ecommerce/product-classification';
+import { getDigitalFileBucket } from '@/lib/ecommerce/digital-file-storage';
 
 export const runtime = 'edge';
 
@@ -16,6 +17,7 @@ const DIGITAL_PRODUCT_TYPES = new Set([
   'PRINTABLE', 'TEMPLATE', 'CARD', 'PROMPT_PACK', 'TRACKING_SHEET', 'PLANNER',
   'GUIDE', 'STUDY_RESOURCE', 'TOOLKIT', 'BUNDLE', 'OTHER',
 ]);
+const FULFILLMENT_TYPES = new Set(['DROPSHIP', 'AFFILIATE', 'DIRECT']);
 
 function validateProductImages(images: unknown): string[] | null {
   if (images === undefined) return [];
@@ -62,11 +64,27 @@ function validateDigitalProduct(product: Product): string | null {
   if (product.compareAtPrice != null && (!Number.isFinite(product.compareAtPrice) || product.compareAtPrice < product.sellingPrice)) return 'Compare-at price must be greater than or equal to price.';
   if (!product.digitalProductType || !DIGITAL_PRODUCT_TYPES.has(product.digitalProductType)) return 'Choose a valid digital product type.';
   if (!Array.isArray(product.downloadableFiles) || product.downloadableFiles.length === 0) return 'At least one downloadable file is required for a digital product.';
+  if (product.downloadableFiles.length > 10) return 'A digital product can have at most 10 files or delivery links.';
   for (const file of product.downloadableFiles) {
     if (!file || !file.id || !file.title?.trim() || !file.filename?.trim() || !file.mimeType?.trim() || !file.url?.trim()) return 'Every downloadable file needs an id, title, filename, MIME type, and URL.';
+    if (file.deliveryType && !['FILE', 'LINK'].includes(file.deliveryType)) return 'Choose file download or external link delivery.';
+    if (/^r2:\/\//i.test(file.url)) {
+      if (file.deliveryType === 'LINK' || !/^r2:\/\/digital-files\/[0-9a-f-]{36}$/i.test(file.url)) {
+        return 'Uploaded digital files must use a valid stored file reference.';
+      }
+      continue;
+    }
+    if (/^data:/i.test(file.url)) {
+      if (process.env.NODE_ENV !== 'development' || file.deliveryType === 'LINK' ||
+        !/^data:application\/(?:pdf|zip|x-zip-compressed);base64,/i.test(file.url)) {
+        return 'Uploaded files must be stored in the configured digital file bucket.';
+      }
+      continue;
+    }
     try {
       const url = new URL(file.url);
       if (!['http:', 'https:'].includes(url.protocol)) return 'Downloadable file URLs must use HTTP(S).';
+      if (file.deliveryType === 'LINK' && url.protocol !== 'https:') return 'External delivery links must use HTTPS.';
     } catch {
       return 'Downloadable file URLs must be valid HTTP(S) URLs.';
     }
@@ -124,14 +142,16 @@ export async function GET(req: NextRequest) {
     );
 
     const affiliateProducts = db.products.filter((p) => p.fulfillmentType === 'AFFILIATE');
-    const dropshipProducts = db.products.filter((p) => !p.fulfillmentType || p.fulfillmentType === 'DROPSHIP');
+    const dropshipProducts = db.products.filter((p) => !isDigitalProduct(p) && p.fulfillmentType !== 'AFFILIATE' && (!p.fulfillmentType || p.fulfillmentType === 'DROPSHIP'));
     const totalAffiliateClicks = affiliateProducts.reduce(
       (sum, p) => sum + (p.affiliateDetails?.clickCount || 0),
       0
     );
-    const dropshipOrders = db.orders.filter((o) => o.items.some((item) =>
-      db.products.find((p) => p.id === item.productId)?.fulfillmentType !== 'AFFILIATE'
-    ));
+    const dropshipOrders = db.orders.filter((order) => order.items.some((item) => {
+      const product = db.products.find((current) => current.id === item.productId);
+      return product && !isDigitalProduct(product) && product.fulfillmentType !== 'AFFILIATE' &&
+        (!product.fulfillmentType || product.fulfillmentType === 'DROPSHIP');
+    }));
     const dropshipPaidOrders = dropshipOrders.filter((o) => o.paymentStatus === 'PAID' || o.paymentMethod === 'COD');
     const affiliateReferenceValue = affiliateProducts.reduce((sum, p) =>
       sum + ((p.affiliateDetails?.clickCount || 0) * p.sellingPrice), 0
@@ -181,6 +201,78 @@ export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
     const { action } = body;
+
+    if (action === 'upload_digital_file') {
+      const { fileData, filename, title } = body as {
+        fileData?: string;
+        filename?: string;
+        title?: string;
+      };
+      if (!filename?.trim() || !title?.trim() || !fileData) {
+        return NextResponse.json({ error: 'File, filename, and title are required.' }, { status: 400 });
+      }
+      const dataMatch = /^data:(application\/(?:pdf|zip|x-zip-compressed));base64,([A-Za-z0-9+/=]+)$/i.exec(fileData);
+      if (!dataMatch) {
+        return NextResponse.json({ error: 'Upload a PDF or ZIP file.' }, { status: 400 });
+      }
+      const normalizedMimeType = dataMatch[1].toLowerCase() === 'application/x-zip-compressed'
+        ? 'application/zip'
+        : dataMatch[1].toLowerCase();
+      const base64 = dataMatch[2];
+      const paddingBytes = base64.endsWith('==') ? 2 : base64.endsWith('=') ? 1 : 0;
+      const sizeBytes = Math.floor((base64.length * 3) / 4) - paddingBytes;
+      const maxFileBytes = 20 * 1024 * 1024;
+      if (sizeBytes < 1 || sizeBytes > maxFileBytes) {
+        return NextResponse.json({ error: 'PDF and ZIP uploads must be no larger than 20 MB each.' }, { status: 400 });
+      }
+      let bytes: Uint8Array;
+      try {
+        const binary = atob(base64);
+        bytes = Uint8Array.from(binary, (character) => character.charCodeAt(0));
+      } catch {
+        return NextResponse.json({ error: 'The uploaded file could not be decoded.' }, { status: 400 });
+      }
+      const isPdf = normalizedMimeType === 'application/pdf' &&
+        new TextDecoder().decode(bytes.slice(0, 5)) === '%PDF-';
+      const isZip = normalizedMimeType === 'application/zip' &&
+        bytes[0] === 0x50 && bytes[1] === 0x4b &&
+        [0x03, 0x05, 0x07].includes(bytes[2]) &&
+        [0x04, 0x06, 0x08].includes(bytes[3]);
+      if (!isPdf && !isZip) {
+        return NextResponse.json({ error: 'The file contents do not match a valid PDF or ZIP file.' }, { status: 400 });
+      }
+
+      const id = crypto.randomUUID();
+      const bucket = await getDigitalFileBucket();
+      let storedUrl: string;
+      if (bucket) {
+        await bucket.put(`digital-files/${id}`, bytes, {
+          httpMetadata: { contentType: normalizedMimeType },
+        });
+        storedUrl = `r2://digital-files/${id}`;
+      } else if (process.env.NODE_ENV === 'development') {
+        storedUrl = `data:${normalizedMimeType};base64,${base64}`;
+      } else {
+        return NextResponse.json(
+          { error: 'Digital file storage is not configured. Bind the FEELSNEAT_DIGITAL_FILES R2 bucket in Cloudflare.' },
+          { status: 503 }
+        );
+      }
+
+      return NextResponse.json({
+        success: true,
+        file: {
+          id,
+          title: title.trim(),
+          filename: filename.trim().replace(/[\\/"]/g, '_'),
+          mimeType: normalizedMimeType,
+          sizeBytes,
+          url: storedUrl,
+          deliveryType: 'FILE',
+        },
+      });
+    }
+
     const db = await loadEcommerceDb(req.url);
     const now = new Date().toISOString();
 
@@ -190,6 +282,9 @@ export async function POST(req: NextRequest) {
         ...body.product,
         ...(action === 'save_affiliate_product' ? { fulfillmentType: 'AFFILIATE' } : {}),
       };
+      if (productData.fulfillmentType === 'AFFILIATE') {
+        productData.productType = 'PHYSICAL';
+      }
       if (productData.status === 'PUBLISHED') {
         productData.status = 'ACTIVE';
       }
@@ -206,6 +301,17 @@ export async function POST(req: NextRequest) {
       const existingProduct = productData.id ? db.products.find((product) => product.id === productData.id) : null;
       const existingIsDigital = existingProduct ? isDigitalProduct(existingProduct) : null;
       const nextIsDigital = isDigitalProduct(productData);
+      if (productData.fulfillmentType && !FULFILLMENT_TYPES.has(productData.fulfillmentType)) {
+        return NextResponse.json({ error: 'Choose a valid product fulfillment model.' }, { status: 400 });
+      }
+      if (
+        !Number.isFinite(productData.sellingPrice) ||
+        productData.sellingPrice < 0 ||
+        (productData.compareAtPrice != null &&
+          (!Number.isFinite(productData.compareAtPrice) || productData.compareAtPrice < productData.sellingPrice))
+      ) {
+        return NextResponse.json({ error: 'Product price must be non-negative; compare-at price must be greater than or equal to it.' }, { status: 400 });
+      }
       if (existingIsDigital !== null && existingIsDigital !== nextIsDigital) {
         return NextResponse.json({ error: 'Product type is immutable. Create a new product for the other store.' }, { status: 400 });
       }
@@ -260,6 +366,48 @@ export async function POST(req: NextRequest) {
         };
         productData.inventorySource = 'OWNED';
         productData.stockQuantity = 0;
+        delete productData.supplierId;
+        delete productData.supplierMapping;
+      } else if (!nextIsDigital && productData.fulfillmentType === 'DROPSHIP') {
+        const mapping = productData.supplierMapping;
+        if (
+          !productData.supplierId?.trim() ||
+          !mapping?.supplierSku?.trim() ||
+          !Number.isFinite(mapping.supplierCost) ||
+          mapping.supplierCost < 0 ||
+          !Number.isSafeInteger(mapping.supplierStock) ||
+          mapping.supplierStock < 0
+        ) {
+          return NextResponse.json(
+            { error: 'Dropship products require a supplier, supplier SKU, non-negative supplier cost, and whole-number available stock.' },
+            { status: 400 }
+          );
+        }
+        productData.supplierId = productData.supplierId.trim();
+        productData.supplierMapping = {
+          ...mapping,
+          supplierId: productData.supplierId,
+          supplierSku: mapping.supplierSku.trim(),
+          lastStockSync: mapping.lastStockSync || null,
+        };
+        productData.costPrice = mapping.supplierCost;
+        productData.inventorySource = 'SUPPLIER';
+        productData.stockQuantity = mapping.supplierStock;
+      } else if (!nextIsDigital && productData.fulfillmentType === 'DIRECT') {
+        if (!Number.isSafeInteger(productData.stockQuantity) || productData.stockQuantity < 0) {
+          return NextResponse.json(
+            { error: 'Own-stock inventory must be a non-negative whole number.' },
+            { status: 400 }
+          );
+        }
+        if (productData.costPrice !== undefined && (!Number.isFinite(productData.costPrice) || productData.costPrice < 0)) {
+          return NextResponse.json({ error: 'Unit cost must be a non-negative number.' }, { status: 400 });
+        }
+        productData.inventorySource = 'OWNED';
+        delete productData.supplierId;
+        delete productData.supplierMapping;
+      } else if (!nextIsDigital && !productData.fulfillmentType) {
+        productData.fulfillmentType = 'DROPSHIP';
       }
 
       productData.updatedAt = now;

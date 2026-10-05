@@ -21,22 +21,23 @@ export async function POST(req: NextRequest) {
   const db = await loadEcommerceDb(req.url);
   const order = db.orders.find((candidate) => candidate.id === event.orderId);
   if (!order) return NextResponse.json({ error: 'Order not found' }, { status: 404 });
+  if (event.paymentStatus === 'PENDING') {
+    return NextResponse.json({ success: true, message: 'No terminal payment state to process.' });
+  }
+  const payment = db.payments.find((candidate) => candidate.orderId === order.id);
+  if (
+    !payment ||
+    payment.provider !== 'RAZORPAY' ||
+    payment.providerOrderId !== event.providerOrderId ||
+    event.currency !== payment.currency ||
+    Math.round(event.amount * 100) !== Math.round(order.total * 100)
+  ) {
+    return NextResponse.json({ error: 'Razorpay webhook does not match the order payment.' }, { status: 400 });
+  }
   if (order.paymentStatus === 'PAID') return NextResponse.json({ success: true, message: 'Already processed' });
 
   const now = new Date().toISOString();
   const entitlements = db.entitlements || (db.entitlements = []);
-  const payment = db.payments.find((candidate) => candidate.orderId === order.id) || {
-    id: `PAY-${order.orderNumber}`,
-    orderId: order.id,
-    provider: 'RAZORPAY' as const,
-    amount: order.total,
-    currency: 'INR' as const,
-    paymentMethod: event.paymentMethod || 'ONLINE',
-    status: event.paymentStatus,
-    createdAt: now,
-    updatedAt: now,
-  };
-  if (!db.payments.includes(payment)) db.payments.unshift(payment);
   payment.provider = 'RAZORPAY';
   payment.status = event.paymentStatus;
   payment.providerOrderId = event.providerOrderId;
@@ -72,6 +73,8 @@ export async function POST(req: NextRequest) {
     if (digitalProducts.length > 0) {
       order.orderStatus = 'FULFILLED';
       order.fulfillmentStatus = 'FULFILLED';
+    } else {
+      order.fulfillmentStatus = 'PENDING';
     }
   }
   order.updatedAt = now;

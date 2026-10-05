@@ -121,7 +121,7 @@ export default function EcommerceOrderConfirmationPage({ orderId, token = '' }: 
                   className="flex w-full items-center justify-between rounded-lg border border-white/10 bg-black/20 px-3 py-3 text-left text-xs font-bold text-white hover:bg-white/10"
                 >
                   <span>{download.title || download.filename}</span>
-                  <span className="text-emerald-300">Download</span>
+                  <span className="text-emerald-300">{download.deliveryType === 'LINK' ? 'Open link' : 'Download'}</span>
                 </button>
               ))}
             </div>

@@ -61,8 +61,8 @@ Affiliate products do not create FeelsNeat orders. The partner site owns checkou
 1. Research and approve the product.
 2. Generate the tracked partner URL from the affiliate program.
 3. Open `/admin` -> `Ecommerce Shop` -> `Shop CMS`.
-4. Choose `+ Affiliate product`.
-5. Enter the title, SKU, reference price, image, partner, platform, affiliate URL, CTA, commission estimate, and disclosure.
+4. Choose `+ Add Product` -> `Affiliate product`.
+5. Enter the title, SKU, reference price, partner, platform, affiliate URL, CTA, commission estimate, and disclosure. Add product images by uploading JPG/PNG/WEBP files or pasting public HTTP(S) image URLs.
 6. Save as `DRAFT` and review `/shop/product/[slug]`.
 7. Set the product to `ACTIVE` only after the link and disclosure are verified.
 
@@ -74,7 +74,25 @@ For production publication, the affiliate destination must be a valid public `ht
 
 ### Dropship Product Workflow
 
-Dropship products require Razorpay for prepaid payment and a live/manual AliShipping fulfillment process before they should be activated.
+Dropship products use FeelsNeat checkout. Add them with `+ Add Product` -> `Dropship product`, then enter the supplier, supplier SKU, supplier cost, available supplier stock, selling price, and product details. All FeelsNeat checkouts use Razorpay; Cash on Delivery is disabled.
+
+Orders can be accepted while AliShipping is not connected, but fulfillment is manual: place the supplier order yourself and update the order status/tracking details in the Physical Store order panel. The CMS labels this mode as manual fulfillment. Do not assume stock is synchronized; keep supplier stock current yourself. Automatic supplier ordering and stock sync require a separately configured, implemented supplier integration.
+
+### Own-stock Product Workflow
+
+Choose `+ Add Product` -> `Own-stock product`. Enter FeelsNeat's internal SKU, selling price, optional unit cost, and the available stock quantity you physically hold. These orders use FeelsNeat checkout and must be packed/shipped by FeelsNeat; stock is checked during cart validation and checkout.
+
+All physical and digital product editors also support image uploads or public HTTP(S) image URLs. You can add up to 8 images; uploaded images must be JPG, PNG, or WEBP, up to 5 MB each and 20 MB combined. The first image is the primary image; reorder by making another image primary.
+
+### Digital Product Delivery
+
+Digital products use the same Razorpay checkout as physical products. In the Digital Store product editor, add up to 10 delivery items:
+
+- Upload PDF or ZIP files (up to 20 MB per file). In production, uploads are stored privately in the Cloudflare R2 bucket bound as `FEELSNEAT_DIGITAL_FILES`; files are only served through an order-authorized, expiring download link after payment is verified.
+- Keep using an HTTPS URL for externally hosted files.
+- Choose `External link` for Canva, Google Sheets, or another HTTPS destination. The purchased link appears on the paid order confirmation page and redirects there only after the order entitlement is checked.
+
+In Cloudflare Pages, create an R2 bucket and add an R2 bucket binding named `FEELSNEAT_DIGITAL_FILES` under the Pages project's **Settings -> Functions -> R2 bucket bindings**. The binding must be available to production deployments before uploading files. Local development falls back to the local ecommerce database for uploaded file data.
 
 ### 1. Evaluate the Product
 
@@ -315,38 +333,24 @@ When a customer checks out:
 3. The server finds each product by `productId`.
 4. If a variant was selected, the server uses variant price, SKU, supplier SKU, and stock.
 5. The server validates stock.
-6. The server recalculates subtotal, discount, shipping, COD fee, and total.
+6. The server recalculates subtotal, discount, shipping, and total.
 7. The server creates an item snapshot for the order.
 8. The server creates an order ID like `FN-10001`.
-9. The order is saved.
-10. The customer is redirected to the confirmation page.
+9. The server creates a Razorpay payment order and saves the pending order/payment.
+10. The customer completes payment in Razorpay Checkout; the order is confirmed only after server-side verification or the verified webhook.
 
 The item snapshot is important. Later product edits do not change what the customer bought. The order keeps the exact title, SKU, quantity, price, supplier SKU, and supplier cost from checkout time.
 
 ## Payment Workflow
 
-### COD Orders
-
-For Cash on Delivery:
-
-1. Order is created immediately.
-2. `orderStatus` becomes `CONFIRMED`.
-3. `paymentStatus` remains `PENDING`.
-4. `fulfillmentStatus` becomes `PENDING`.
-5. Team collects payment manually at delivery.
-6. Admin updates order/payment status after payment is collected.
-
-### Prepaid Orders
-
-For online payment:
+All non-affiliate product orders (digital, dropship, and own-stock) require Razorpay online payment. COD is not available.
 
 1. Order starts as `PENDING_PAYMENT`.
-2. FeelsNeat creates a Razorpay payment order if credentials are configured.
+2. FeelsNeat creates a Razorpay payment order; checkout is rejected until both API keys are configured.
 3. Customer pays through Razorpay.
-4. Razorpay sends a webhook to `/api/webhooks/razorpay`.
-5. The webhook verifies signature.
-6. On success, order becomes `CONFIRMED` and `PAID`.
-7. The system attempts fulfillment creation.
+4. The browser callback is signature-checked and the payment status/amount/payment ID are re-verified with Razorpay.
+5. Razorpay can also send a webhook to `/api/webhooks/razorpay`; the signature, provider order ID, currency, and amount are checked.
+6. On success, the order becomes `PAID` and `CONFIRMED`; digital products receive download/link entitlements, while physical orders become pending fulfillment.
 
 ## Razorpay Production Setup
 
@@ -437,7 +441,7 @@ AliShipping dashboard/manual setup:
 5. Confirm order creation API fields.
 6. Confirm tracking API fields.
 7. Confirm cancellation and return process.
-8. Confirm whether COD is supported or only prepaid fulfillment.
+8. Confirm all checkouts use Razorpay; COD is disabled.
 
 Until the real API is implemented, fulfillment should be handled manually after order confirmation.
 
@@ -497,7 +501,7 @@ Before pushing live:
 5. Configure Razorpay webhook URL.
 6. Test prepaid success payment.
 7. Test prepaid failed payment.
-8. Test COD order.
+8. Confirm COD requests are rejected by the checkout API.
 9. Confirm `/admin` can read ecommerce orders.
 10. Confirm `/track` can find a placed order.
 11. Confirm `/shop`, product detail, cart, checkout, and confirmation pages work on mobile.
@@ -506,13 +510,13 @@ Before pushing live:
 14. Confirm supplier SKU mapping exists for supplier-fulfilled products.
 15. Confirm manual fulfillment process is ready if AliShipping API is not live.
 16. Implement real AliShipping API before relying on automatic fulfillment.
-17. Add full CMS product editor UI if non-technical product management is required.
+17. Verify the CMS product editor exposes affiliate, dropship, own-stock, and digital-product workflows to the production admin account.
 
 ## Recommended Next Build Tasks
 
 For a production-ready operating system, the highest-value next tasks are:
 
-1. Add visible product create/edit forms to `/admin`.
+1. Implement and verify the live supplier fulfillment and stock-sync integration.
 2. Add category and collection management forms.
 3. Add discount management forms.
 4. Add order status update controls.

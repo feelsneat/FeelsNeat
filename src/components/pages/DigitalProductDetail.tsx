@@ -105,7 +105,7 @@ export default function DigitalProductDetailPage({ slug }: DigitalProductDetailP
                 {(product.downloadableFiles?.length ? product.downloadableFiles : [{ title: 'Downloadable File', filename: 'digital-product-file.zip' }]).map((file: any, index: number) => (
                   <li key={index} className="flex items-center justify-between rounded-xl border border-white/10 bg-black/20 px-3 py-2">
                     <span>{file.title || file.filename}</span>
-                    <span className="text-[10px] uppercase tracking-[0.18em] text-emerald-300">{file.filename?.split('.').pop()?.toUpperCase() || 'FILE'}</span>
+                    <span className="text-[10px] uppercase tracking-[0.18em] text-emerald-300">{file.deliveryType === 'LINK' ? 'LINK' : file.filename?.split('.').pop()?.toUpperCase() || 'FILE'}</span>
                   </li>
                 ))}
               </ul>

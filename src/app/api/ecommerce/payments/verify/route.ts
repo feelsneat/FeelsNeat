@@ -29,8 +29,15 @@ export async function POST(req: NextRequest) {
     if (!order || order.paymentDetails?.providerOrderId !== razorpayOrderId) {
       return NextResponse.json({ error: 'Order/payment mismatch.' }, { status: 400 });
     }
+    if (order.paymentStatus === 'PAID' && order.paymentDetails?.providerPaymentId === razorpayPaymentId) {
+      return NextResponse.json({ success: true, orderId: order.id, paymentStatus: order.paymentStatus });
+    }
     const verifiedPayment = await provider.verifyPayment(razorpayOrderId);
-    if (verifiedPayment.status !== 'PAID' || Math.round(verifiedPayment.amount * 100) !== Math.round(order.total * 100)) {
+    if (
+      verifiedPayment.status !== 'PAID' ||
+      verifiedPayment.providerPaymentId !== razorpayPaymentId ||
+      Math.round(verifiedPayment.amount * 100) !== Math.round(order.total * 100)
+    ) {
       return NextResponse.json({ error: 'Razorpay payment amount or status could not be verified.' }, { status: 400 });
     }
 
@@ -47,6 +54,15 @@ export async function POST(req: NextRequest) {
     order.paymentDetails = payment;
     order.paymentStatus = 'PAID';
     order.orderStatus = 'CONFIRMED';
+    order.timeline.push({
+      id: `evt-${Date.now()}`,
+      orderId: order.id,
+      event: 'Payment Confirmed',
+      timestamp: now,
+      source: 'RAZORPAY',
+      actor: 'Razorpay Checkout',
+      notes: `Razorpay payment ${razorpayPaymentId} verified.`,
+    });
     const digitalProducts = order.items
       .map((item) => db.products.find((product) => product.id === item.productId))
       .filter((product) => product && isDigitalProduct(product));
@@ -71,6 +87,8 @@ export async function POST(req: NextRequest) {
     if (digitalProducts.length > 0) {
       order.orderStatus = 'FULFILLED';
       order.fulfillmentStatus = 'FULFILLED';
+    } else {
+      order.fulfillmentStatus = 'PENDING';
     }
     order.updatedAt = now;
     await saveEcommerceDb(req.url, db);

@@ -69,6 +69,7 @@ export async function GET(req: NextRequest) {
               fileId: file.id,
               title: file.title,
               filename: file.filename,
+              deliveryType: file.deliveryType || 'FILE',
             })) || [];
           })
         : [],

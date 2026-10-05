@@ -33,7 +33,7 @@ export default function CheckoutPage() {
     country: 'India',
   });
 
-  const [paymentMethod, setPaymentMethod] = useState<'PREPAID' | 'COD'>('PREPAID');
+  const paymentMethod = 'PREPAID' as const;
   const [discountCode, setDiscountCode] = useState('');
 
   // Cart summary calculated from server
@@ -122,9 +122,6 @@ export default function CheckoutPage() {
         throw new Error(data.error || 'Failed to place order.');
       }
 
-      // Clear shopping cart upon successful creation
-      clearCart();
-
       if (data.razorpayOrderId && data.razorpayKeyId && window.Razorpay) {
         const razorpay = new window.Razorpay({
           key: data.razorpayKeyId,
@@ -136,23 +133,30 @@ export default function CheckoutPage() {
           prefill: customer,
           notes: { order_id: data.orderId },
           handler: async (response: Record<string, string>) => {
-            const verifyResponse = await fetch('/api/ecommerce/payments/verify', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                orderId: data.orderId,
-                razorpayOrderId: response.razorpay_order_id,
-                razorpayPaymentId: response.razorpay_payment_id,
-                razorpaySignature: response.razorpay_signature,
-              }),
-            });
-            if (!verifyResponse.ok) {
-              const verifyData = await verifyResponse.json();
-              setErrorMessage(verifyData.error || 'Payment verification failed.');
+            try {
+              const verifyResponse = await fetch('/api/ecommerce/payments/verify', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  orderId: data.orderId,
+                  razorpayOrderId: response.razorpay_order_id,
+                  razorpayPaymentId: response.razorpay_payment_id,
+                  razorpaySignature: response.razorpay_signature,
+                }),
+              });
+              if (!verifyResponse.ok) {
+                const verifyData = await verifyResponse.json();
+                throw new Error(verifyData.error || 'Payment verification failed.');
+              }
+              clearCart();
+              window.location.href = `/shop/order-confirmation/${data.orderId}?token=${data.trackingToken}`;
+            } catch (error: any) {
+              setErrorMessage(error.message || 'Payment verification failed. Your cart has been retained.');
               setSubmitting(false);
-              return;
             }
-            window.location.href = `/shop/order-confirmation/${data.orderId}?token=${data.trackingToken}`;
+          },
+          modal: {
+            ondismiss: () => setSubmitting(false),
           },
         });
         razorpay.open();
@@ -363,16 +367,9 @@ export default function CheckoutPage() {
                 <span>3. Payment Method</span>
               </div>
 
-              <div className="grid sm:grid-cols-2 gap-4">
+              <div className="grid gap-4">
                 {/* Online Payment Option */}
-                <label
-                  onClick={() => setPaymentMethod('PREPAID')}
-                  className={`p-4 rounded-xl border flex flex-col justify-between cursor-pointer transition-all ${
-                    paymentMethod === 'PREPAID'
-                      ? 'border-[#E30613] bg-[#E30613]/10 text-white'
-                      : 'border-white/15 bg-black/30 text-zinc-400 hover:border-white/30'
-                  }`}
-                >
+                <div className="p-4 rounded-xl border border-[#E30613] bg-[#E30613]/10 text-white flex flex-col justify-between">
                   <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center gap-2 font-bold text-xs uppercase text-white">
                       <span className={`h-3 w-3 rounded-full border flex items-center justify-center ${paymentMethod === 'PREPAID' ? 'border-[#E30613]' : 'border-zinc-500'}`}>
@@ -387,34 +384,7 @@ export default function CheckoutPage() {
                   <p className="text-[11px] text-zinc-400 leading-relaxed">
                     UPI, Credit / Debit Cards, Net Banking via Razorpay secure gateway.
                   </p>
-                </label>
-
-                {/* COD Option */}
-                {isDigitalOnly !== true && (
-                <label
-                  onClick={() => setPaymentMethod('COD')}
-                  className={`p-4 rounded-xl border flex flex-col justify-between cursor-pointer transition-all ${
-                    paymentMethod === 'COD'
-                      ? 'border-[#E30613] bg-[#E30613]/10 text-white'
-                      : 'border-white/15 bg-black/30 text-zinc-400 hover:border-white/30'
-                  }`}
-                >
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="flex items-center gap-2 font-bold text-xs uppercase text-white">
-                      <span className={`h-3 w-3 rounded-full border flex items-center justify-center ${paymentMethod === 'COD' ? 'border-[#E30613]' : 'border-zinc-500'}`}>
-                        {paymentMethod === 'COD' && <span className="h-1.5 w-1.5 rounded-full bg-[#E30613]" />}
-                      </span>
-                      <span>Cash on Delivery</span>
-                    </div>
-                    <span className="text-[9px] font-mono text-zinc-400">
-                      +₹40 COD Fee
-                    </span>
-                  </div>
-                  <p className="text-[11px] text-zinc-400 leading-relaxed">
-                    Pay in cash or UPI directly to courier partner upon doorstep delivery.
-                  </p>
-                </label>
-                )}
+                </div>
               </div>
             </div>
           </div>
@@ -476,13 +446,6 @@ export default function CheckoutPage() {
                 </span>
               </div>
 
-              {paymentMethod === 'COD' && summary.codFee > 0 && (
-                <div className="flex justify-between text-zinc-300">
-                  <span>COD Handling Fee</span>
-                  <span className="font-mono font-black text-white">₹{summary.codFee}</span>
-                </div>
-              )}
-
               <div className="border-t border-white/10 pt-3 flex justify-between items-baseline text-base font-black text-white">
                 <span>Total Amount</span>
                 <span className="font-mono text-xl text-[#E30613]">₹{summary.total}</span>
@@ -504,7 +467,7 @@ export default function CheckoutPage() {
                 <>
                   <LucideIcon name="Lock" className="h-4 w-4" />
                   <span>
-                    {paymentMethod === 'COD' ? 'Confirm Order' : `Pay ₹${summary.total} Now`}
+                    {`Pay ₹${summary.total} Now`}
                   </span>
                 </>
               )}

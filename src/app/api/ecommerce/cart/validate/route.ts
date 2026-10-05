@@ -95,8 +95,8 @@ export async function POST(req: NextRequest) {
     if (productTypes.size > 1) {
       errors.push('Digital and physical products are purchased separately. Please use separate checkouts.');
     }
-    if (paymentMethod === 'COD' && productTypes.has('DIGITAL')) {
-      errors.push('Cash on Delivery is not available for digital products.');
+    if (paymentMethod !== 'PREPAID') {
+      errors.push('All FeelsNeat orders require secure online payment through Razorpay.');
     }
     const isDigitalOnly = productTypes.size === 1 && productTypes.has('DIGITAL');
 
@@ -137,7 +137,7 @@ export async function POST(req: NextRequest) {
     const shippingCharge = isDigitalOnly || subtotal >= freeShippingThreshold || subtotal === 0 ? 0 : standardShipping;
 
     // COD fee
-    const codFee = !isDigitalOnly && paymentMethod === 'COD' && db.settings.codAvailable ? (db.settings.codFee || 40) : 0;
+    const codFee = 0;
 
     const total = Math.max(0, subtotal - discountAmount + shippingCharge + codFee);
 
@@ -156,7 +156,7 @@ export async function POST(req: NextRequest) {
       currency: 'INR',
       isDigitalOnly,
       shippingRequired: !isDigitalOnly,
-      codAllowed: !isDigitalOnly && db.settings.codAvailable,
+      codAllowed: false,
     });
   } catch (error: any) {
     console.error('Cart validation error:', error);

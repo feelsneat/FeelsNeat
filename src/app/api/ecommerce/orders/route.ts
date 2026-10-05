@@ -45,6 +45,13 @@ export async function POST(req: NextRequest) {
       paymentMethod: PaymentMethod;
     };
 
+    if (paymentMethod !== 'PREPAID') {
+      return NextResponse.json(
+        { error: 'All FeelsNeat orders require secure online payment through Razorpay.' },
+        { status: 400 }
+      );
+    }
+
     // 1. Validation
     if (!customer?.name || !customer?.email || !customer?.phone) {
       return NextResponse.json(
@@ -74,13 +81,6 @@ export async function POST(req: NextRequest) {
         { status: 400 }
       );
     }
-    if (hasDigitalItems && paymentMethod === 'COD') {
-      return NextResponse.json(
-        { error: 'Cash on Delivery is not available for digital products.' },
-        { status: 400 }
-      );
-    }
-
     if (!hasDigitalItems && (
       !shippingAddress?.line1 ||
       !shippingAddress?.city ||
@@ -90,18 +90,6 @@ export async function POST(req: NextRequest) {
       return NextResponse.json(
         { error: 'Full shipping address (Street, City, State, Pincode) is required.' },
         { status: 400 }
-      );
-    }
-
-    const hasDropshipItems = items.some((item) => {
-      const product = db.products.find((p) => p.id === item.productId && (p.status === 'ACTIVE' || p.status === 'PUBLISHED'));
-      return product && (product.fulfillmentType || 'DROPSHIP') === 'DROPSHIP';
-    });
-
-    if (hasDropshipItems && (!process.env.ALISHIPPING_API_KEY || !process.env.ALISHIPPING_API_SECRET)) {
-      return NextResponse.json(
-        { error: 'Dropshipping is not enabled yet. AliShipping credentials must be configured before placing this order.' },
-        { status: 503 }
       );
     }
 
@@ -212,11 +200,11 @@ export async function POST(req: NextRequest) {
     // 4. Shipping & COD Fee
     const freeShippingThreshold = db.settings.freeShippingThreshold || 999;
     const shippingCharge = hasDigitalItems ? 0 : (subtotal >= freeShippingThreshold ? 0 : db.settings.standardShippingFee || 60);
-    const codFee = hasDigitalItems ? 0 : (paymentMethod === 'COD' && db.settings.codAvailable ? (db.settings.codFee || 40) : 0);
+    const codFee = 0;
     const total = Math.max(0, subtotal - discountAmount + shippingCharge + codFee);
 
     // 5. Estimated Margin Calculation (Admin estimate only)
-    const estimatedPaymentFee = paymentMethod === 'COD' ? 0 : Math.round((total * (db.settings.estimatedPaymentFeePercent || 2)) / 100);
+    const estimatedPaymentFee = Math.round((total * (db.settings.estimatedPaymentFeePercent || 2)) / 100);
     const estimatedRtoCost = db.settings.estimatedRtoCostPerOrder || 30;
     const estimatedProfit = Math.round(total - (totalSupplierCost + shippingCharge + estimatedPaymentFee + estimatedRtoCost));
 
@@ -278,8 +266,8 @@ export async function POST(req: NextRequest) {
       paymentMethod,
       paymentStatus: 'PENDING',
       paymentId,
-      orderStatus: paymentMethod === 'COD' ? 'CONFIRMED' : 'PENDING_PAYMENT',
-      fulfillmentStatus: paymentMethod === 'COD' ? 'PENDING' : 'NOT_CREATED',
+      orderStatus: 'PENDING_PAYMENT',
+      fulfillmentStatus: 'NOT_CREATED',
       timeline: initialTimeline,
       adminNotes: [],
       estimatedMargin,
@@ -291,10 +279,10 @@ export async function POST(req: NextRequest) {
     const newPayment: Payment = {
       id: paymentId,
       orderId,
-      provider: paymentMethod === 'COD' ? 'COD' : (process.env.RAZORPAY_KEY_ID ? 'RAZORPAY' : 'MOCK'),
+      provider: 'RAZORPAY',
       amount: total,
       currency: 'INR',
-      paymentMethod: paymentMethod === 'COD' ? 'COD' : 'ONLINE',
+      paymentMethod: 'ONLINE',
       status: 'PENDING',
       refundStatus: 'NONE',
       refundAmount: 0,
@@ -305,38 +293,24 @@ export async function POST(req: NextRequest) {
     let paymentRedirectUrl: string | undefined;
     let paymentSessionId: string | undefined;
 
-    if (paymentMethod === 'PREPAID') {
-      const providerType = process.env.RAZORPAY_KEY_ID ? 'RAZORPAY' : 'MOCK';
-      const paymentProvider = getPaymentProvider(providerType);
-      const origin = req.headers.get('origin') || 'http://localhost:8085';
-      const returnUrl = `${origin}/shop/order-confirmation/${orderId}?token=${newOrder.trackingToken}`;
-      const notifyUrl = `${origin}/api/webhooks/razorpay`;
+    const paymentProvider = getPaymentProvider('RAZORPAY');
+    const origin = req.headers.get('origin') || 'http://localhost:8085';
+    const returnUrl = `${origin}/shop/order-confirmation/${orderId}?token=${newOrder.trackingToken}`;
+    const notifyUrl = `${origin}/api/webhooks/razorpay`;
 
-      try {
-        const payResult = await paymentProvider.createPaymentOrder({
-          order: newOrder,
-          returnUrl,
-          notifyUrl,
-        });
-
-        newPayment.providerOrderId = payResult.providerOrderId;
-        paymentSessionId = payResult.paymentSessionId;
-        paymentRedirectUrl = payResult.paymentUrl;
-      } catch (payErr: unknown) {
-        console.error('Payment order creation failed:', payErr);
-        throw payErr;
-      }
-    } else {
-      // For COD, record confirmation event directly
-      newOrder.timeline.push({
-        id: `evt-${Date.now()}-2`,
-        orderId,
-        event: 'Order Confirmed (COD)',
-        timestamp: now,
-        source: 'SYSTEM',
-        actor: 'System',
-        notes: 'Cash on Delivery order placed. Payment due upon delivery.',
+    try {
+      const payResult = await paymentProvider.createPaymentOrder({
+        order: newOrder,
+        returnUrl,
+        notifyUrl,
       });
+
+      newPayment.providerOrderId = payResult.providerOrderId;
+      paymentSessionId = payResult.paymentSessionId;
+      paymentRedirectUrl = payResult.paymentUrl;
+    } catch (payErr: unknown) {
+      console.error('Payment order creation failed:', payErr);
+      throw payErr;
     }
 
     newOrder.paymentDetails = newPayment;
