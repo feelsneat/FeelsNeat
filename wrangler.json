@@ -10,5 +10,11 @@
       "binding": "FEELSNEAT_CMS_KV",
       "id": "70732266fef64d9b84a38b7318563685"
     }
+  ],
+  "r2_buckets": [
+    {
+      "binding": "FEELSNEAT_DIGITAL_FILES",
+      "bucket_name": "feelsneat-digital-files"
+    }
   ]
 }
