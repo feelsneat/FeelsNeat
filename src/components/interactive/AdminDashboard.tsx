@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { LucideIcon } from '../ui/LucideIcon';
 import { getAffiliatePlatformSelection } from '@/lib/ecommerce/affiliate-platform';
 import { isDigitalProduct } from '@/lib/ecommerce/product-classification';
@@ -63,6 +63,7 @@ export function AdminDashboard({ userEmail }: AdminDashboardProps) {
   // Ecommerce Shop states
   const [ecommerceData, setEcommerceData] = useState<any>({ products: [], categories: [], collections: [], orders: [], metrics: null });
   const [loadingEcommerce, setLoadingEcommerce] = useState(true);
+  const ecommerceRequestId = useRef(0);
   const [selectedEcommerceProductId, setSelectedEcommerceProductId] = useState<string | null>(null);
   const [selectedEcommerceOrderId, setSelectedEcommerceOrderId] = useState<string | null>(null);
   const [ecommerceCatalogFilter, setEcommerceCatalogFilter] = useState<'all' | 'owned' | 'dropship' | 'affiliate' | 'digital' | 'ACTIVE' | 'DRAFT' | 'ARCHIVED'>('all');
@@ -316,17 +317,19 @@ export function AdminDashboard({ userEmail }: AdminDashboardProps) {
   };
 
   const loadEcommerceData = async () => {
+    const requestId = ++ecommerceRequestId.current;
     setLoadingEcommerce(true);
     try {
       const store = activeTab === 'digital_ecommerce' ? 'digital' : activeTab === 'ecommerce' ? 'physical' : '';
       const res = await fetch(`/api/ecommerce/admin${store ? `?store=${store}` : ''}`);
       if (res.ok) {
-        setEcommerceData(await res.json());
+        const data = await res.json();
+        if (requestId === ecommerceRequestId.current) setEcommerceData(data);
       }
     } catch (err) {
       console.error('Failed to load ecommerce data:', err);
     } finally {
-      setLoadingEcommerce(false);
+      if (requestId === ecommerceRequestId.current) setLoadingEcommerce(false);
     }
   };
 
@@ -1372,6 +1375,8 @@ export function AdminDashboard({ userEmail }: AdminDashboardProps) {
               setPhysicalProductForm(null);
               setDigitalProductForm(null);
               setAffiliateProductForm(null);
+              setSelectedEcommerceProductId(null);
+              setSelectedEcommerceOrderId(null);
               setProductCreationChooser(false);
               setEcommerceCatalogFilter('all');
               setSelectedOrderId(null);
@@ -1399,6 +1404,8 @@ export function AdminDashboard({ userEmail }: AdminDashboardProps) {
               setPhysicalProductForm(null);
               setDigitalProductForm(null);
               setAffiliateProductForm(null);
+              setSelectedEcommerceProductId(null);
+              setSelectedEcommerceOrderId(null);
               setProductCreationChooser(false);
               setEcommerceCatalogFilter('digital');
               setSelectedOrderId(null);

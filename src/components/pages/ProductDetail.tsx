@@ -22,7 +22,7 @@ export default function ProductDetailPage({ slug }: ProductDetailPageProps) {
     async function loadProduct() {
       setLoading(true);
       try {
-        const res = await fetch(`/api/ecommerce/products?slug=${slug}`);
+        const res = await fetch(`/api/ecommerce/products?slug=${encodeURIComponent(slug)}&type=physical`);
         if (res.ok) {
           const data = await res.json();
           setProduct(data.product);

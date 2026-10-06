@@ -15,10 +15,17 @@ export async function GET(req: NextRequest) {
     const search = url.searchParams.get('search')?.toLowerCase().trim();
     const productSlug = url.searchParams.get('slug');
     const sort = url.searchParams.get('sort'); // price_asc, price_desc, newest
-    const typeFilter = url.searchParams.get('type'); // dropship, affiliate, digital, physical
+    const typeFilter = url.searchParams.get('type') || 'physical'; // dropship, affiliate, digital, physical
 
     const isPublishedProduct = (p: (typeof db.products)[number]) => p.status === 'ACTIVE' || p.status === 'PUBLISHED';
     const isPhysicalProduct = (product: (typeof db.products)[number]) => !isDigitalProduct(product);
+    const matchesCatalogType = (product: (typeof db.products)[number]) => {
+      if (typeFilter === 'digital') return isDigitalProduct(product);
+      if (isDigitalProduct(product)) return false;
+      if (typeFilter === 'affiliate') return product.fulfillmentType === 'AFFILIATE';
+      if (typeFilter === 'dropship') return !product.fulfillmentType || product.fulfillmentType === 'DROPSHIP';
+      return isPhysicalProduct(product);
+    };
 
     // Single product lookup
     if (productSlug) {
@@ -26,10 +33,7 @@ export async function GET(req: NextRequest) {
         (p) =>
           p.slug === productSlug &&
           isPublishedProduct(p) &&
-          (!typeFilter ||
-            (typeFilter === 'digital' && isDigitalProduct(p)) ||
-            (typeFilter === 'physical' && isPhysicalProduct(p)) ||
-            (typeFilter !== 'digital' && typeFilter !== 'physical')) &&
+          matchesCatalogType(p) &&
           (p.fulfillmentType !== 'AFFILIATE' ||
             (p.affiliateDetails?.affiliateUrl && /^https:\/\//i.test(p.affiliateDetails.affiliateUrl)))
       );
@@ -101,6 +105,7 @@ export async function GET(req: NextRequest) {
     let items = db.products.filter(
       (p) =>
         isPublishedProduct(p) &&
+        matchesCatalogType(p) &&
         (p.fulfillmentType !== 'AFFILIATE' ||
           (p.affiliateDetails?.affiliateUrl && /^https:\/\//i.test(p.affiliateDetails.affiliateUrl)))
     );
@@ -123,16 +128,6 @@ export async function GET(req: NextRequest) {
       if (col) {
         items = items.filter((p) => p.collectionIds.includes(col.id));
       }
-    }
-
-    if (typeFilter === 'dropship') {
-      items = items.filter((p) => !p.fulfillmentType || p.fulfillmentType === 'DROPSHIP');
-    } else if (typeFilter === 'affiliate') {
-      items = items.filter((p) => p.fulfillmentType === 'AFFILIATE');
-    } else if (typeFilter === 'digital') {
-      items = items.filter(isDigitalProduct);
-    } else if (typeFilter === 'physical') {
-      items = items.filter(isPhysicalProduct);
     }
 
     if (search) {
@@ -210,8 +205,10 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json({
       products: sanitizedProducts,
-      categories: db.categories.filter((c) =>
-        c.active && (!typeFilter || typeFilter !== 'digital' || c.categoryType === 'DIGITAL')
+      categories: db.categories.filter((category) =>
+        category.active && (typeFilter === 'digital'
+          ? category.categoryType === 'DIGITAL' || category.name.toLowerCase().includes('digital')
+          : category.categoryType !== 'DIGITAL' && !category.name.toLowerCase().includes('digital'))
       ),
       collections: db.collections.filter((c) => c.active),
       settings: {

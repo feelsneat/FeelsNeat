@@ -419,7 +419,7 @@ export async function POST(req: NextRequest) {
         if (!kv) return NextResponse.json({ error: 'Customer order storage is not configured.' }, { status: 503 });
 
         let migratedCount = 0;
-        const page = await kv.list({ prefix: `${recordType}:`, cursor, limit: 50 });
+        const page = await kv.list({ prefix: `${recordType}:`, cursor, limit: 1 });
         for (const entry of page.keys) {
           const value = await kv.get(entry.name);
           if (!value) continue;

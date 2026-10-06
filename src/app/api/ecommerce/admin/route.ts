@@ -378,7 +378,7 @@ export async function POST(req: NextRequest) {
 
     if (action === 'migrate_product_images') {
       let migratedCount = 0;
-      const batchSize = 3;
+      const batchSize = 1;
       for (const product of db.products) {
         for (let index = 0; index < (product.images || []).length && migratedCount < batchSize; index += 1) {
           const image = product.images[index];

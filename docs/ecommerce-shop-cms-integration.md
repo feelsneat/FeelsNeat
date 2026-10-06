@@ -20,6 +20,8 @@ The customer-facing ecommerce routes are:
 
 - `/shop`: product listing and filters.
 - `/shop/product/[slug]`: product detail page.
+- `/digital-store`: digital product listing.
+- `/digital-store/product/[slug]`: digital product detail page.
 - `/cart`: customer cart.
 - `/checkout`: customer checkout.
 - `/shop/order-confirmation/[orderId]`: post-order confirmation page.
@@ -36,7 +38,7 @@ CMS/admin page:
 
 Public ecommerce APIs:
 
-- `GET /api/ecommerce/products`
+- `GET /api/ecommerce/products` (physical products by default; pass `type=digital` for digital products)
 - `POST /api/ecommerce/cart/validate`
 - `POST /api/ecommerce/orders`
 - `GET /api/ecommerce/track`
@@ -84,7 +86,7 @@ Choose `+ Add Product` -> `Own-stock product`. Enter FeelsNeat's internal SKU, s
 
 All physical and digital product editors also support image uploads or public HTTP(S) image URLs. You can add up to 8 images; uploaded images must be JPG, PNG, or WEBP, up to 5 MB each and 20 MB combined. The first image is the primary image; reorder by making another image primary.
 
-Uploaded product images are stored under the `product-images/` prefix in private R2 and served individually through the cacheable product-image endpoint. Immutable object keys allow long-lived browser and edge caching without exposing the bucket publicly. Legacy base64 product images remain supported during migration. From the admin **All** tab, choose **Migrate all uploads to R2** to scan and migrate product and variant images, customer order artwork, pet profile photos, and Review Cards logos. The customer records and Review Cards orders are processed in resumable batches; repeat the action after an interruption. The completion message reports the migrated counts and confirms all applicable records were scanned. The Shop CMS product panel also retains a product-only migration action. These migrations move uploaded files only: image URLs pasted into product forms remain external URLs and are not downloaded or copied to R2.
+Uploaded product images are stored under the `product-images/` prefix in private R2 and served individually through the cacheable product-image endpoint. Immutable object keys allow long-lived browser and edge caching without exposing the bucket publicly. Legacy base64 product images remain supported during migration. From the admin **All** tab, choose **Migrate all uploads to R2** to scan and migrate product and variant images, customer order artwork, pet profile photos, and Review Cards logos. Product images and customer records are migrated one at a time to keep Cloudflare Worker resource use bounded; Review Cards orders are processed in resumable pages. Repeat the action after an interruption. The completion message reports the migrated counts and confirms all applicable records were scanned. The Shop CMS product panel also retains a product-only migration action. These migrations move uploaded files only: image URLs pasted into product forms remain external URLs and are not downloaded or copied to R2.
 
 ### Digital Product Delivery
 

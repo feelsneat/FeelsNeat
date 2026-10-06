@@ -29,6 +29,7 @@ export default function ShopPage({ initialCategory, initialCollection }: ShopPag
       setLoading(true);
       try {
         const params = new URLSearchParams();
+        params.set('type', 'physical');
         if (selectedCategory !== 'all') params.set('category', selectedCategory);
         if (selectedCollection !== 'all') params.set('collection', selectedCollection);
         if (searchQuery.trim()) params.set('search', searchQuery.trim());
