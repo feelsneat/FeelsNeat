@@ -1,3 +1,5 @@
+import { getProductImageObjectKey } from './digital-file-storage';
+
 export function getPublicProductImageUrl(
   image: string | undefined,
   requestUrl: string,
@@ -5,6 +7,13 @@ export function getPublicProductImageUrl(
   imageIndex?: number,
   variantId?: string
 ): string {
+  const objectKey = image ? getProductImageObjectKey(image) : null;
+  if (objectKey) {
+    const imageUrl = new URL('/api/ecommerce/product-image', requestUrl);
+    imageUrl.searchParams.set('imageId', objectKey.slice('product-images/'.length));
+    return imageUrl.toString();
+  }
+
   if (!image?.startsWith('data:image/')) return image || '';
 
   const imageUrl = new URL('/api/ecommerce/product-image', requestUrl);

@@ -84,17 +84,19 @@ Choose `+ Add Product` -> `Own-stock product`. Enter FeelsNeat's internal SKU, s
 
 All physical and digital product editors also support image uploads or public HTTP(S) image URLs. You can add up to 8 images; uploaded images must be JPG, PNG, or WEBP, up to 5 MB each and 20 MB combined. The first image is the primary image; reorder by making another image primary.
 
-Uploaded product images are served individually by the public product-image endpoint rather than embedded in every catalog API response.
+Uploaded product images are stored under the `product-images/` prefix in private R2 and served individually through the cacheable product-image endpoint. Immutable object keys allow long-lived browser and edge caching without exposing the bucket publicly. Legacy base64 product images remain supported during migration. From the admin **All** tab, choose **Migrate all uploads to R2** to scan and migrate product and variant images, customer order artwork, pet profile photos, and Review Cards logos. The customer records and Review Cards orders are processed in resumable batches; repeat the action after an interruption. The completion message reports the migrated counts and confirms all applicable records were scanned. The Shop CMS product panel also retains a product-only migration action. These migrations move uploaded files only: image URLs pasted into product forms remain external URLs and are not downloaded or copied to R2.
 
 ### Digital Product Delivery
 
 Digital products use the same Razorpay checkout as physical products. In the Digital Store product editor, add up to 10 delivery items:
 
-- Upload PDF or ZIP files (up to 20 MB per file). In production, uploads are stored privately in the Cloudflare R2 bucket bound as `FEELSNEAT_DIGITAL_FILES`; files are only served through an order-authorized, expiring download link after payment is verified.
+- Upload PDF or ZIP files (up to 20 MB per file). In production, uploads are stored privately under `digital-files/` in the Cloudflare R2 bucket bound as `FEELSNEAT_DIGITAL_FILES`; files are only served through an order-authorized, expiring download link after payment is verified.
 - Keep using an HTTPS URL for externally hosted files.
 - Choose `External link` for Canva, Google Sheets, or another HTTPS destination. The purchased link appears on the paid order confirmation page and redirects there only after the order entitlement is checked.
 
-In the Cloudflare dashboard, open **Workers & Pages -> feelsneat -> Settings -> Bindings**, add an **R2 bucket** binding with the variable name `FEELSNEAT_DIGITAL_FILES`, and select or create the private bucket for digital downloads. Add it to the **Production** environment (and Preview too if testing preview deployments), save, then trigger a new deployment so the binding is available to the Worker. Production file uploads return an explicit configuration error until this binding is active. Local development falls back to the local ecommerce database for uploaded file data.
+The production binding is declared in the repository's `wrangler.json`, which maps `FEELSNEAT_DIGITAL_FILES` to the private bucket `feelsneat-digital-files`. Since this project manages bindings through Wrangler configuration, do not add a duplicate binding in the Cloudflare dashboard. Deploy the updated `main` branch before using production uploads or running migration controls. The same private bucket also stores product media, customer artwork, and Review Cards logos under separate prefixes; product images are served through an application endpoint, while customer artwork and digital downloads remain access-controlled. The migration button only runs against the environment where the deployed admin is open; running it locally does not migrate production KV data.
+
+Customer artwork uploads from Memories and Pet Profile orders are stored privately under `customer-uploads/`. Admin order previews use an authenticated endpoint; pet photos are available publicly only through an active pet profile. Optional Review Cards logos are stored under `review-card-logos/`; the admin can migrate previously submitted logos from its Review Cards panel. The separate Tap Tile quick-request form does not upload artwork; it directs customers to share artwork after sending their design details.
 
 ### 1. Evaluate the Product
 

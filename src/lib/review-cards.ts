@@ -58,6 +58,51 @@ export async function loadReviewCardOrders(reqUrl: string): Promise<ReviewCardOr
   }
 }
 
+export async function loadReviewCardOrdersPage(
+  reqUrl: string,
+  cursor: string | undefined,
+  limit: number
+): Promise<{ orders: ReviewCardOrder[]; nextCursor: string | null; complete: boolean }> {
+  if (process.env.NODE_ENV === 'development') {
+    const allOrders = await loadReviewCardOrders(reqUrl);
+    const offset = cursor === undefined ? 0 : Number(cursor);
+    if (!Number.isSafeInteger(offset) || offset < 0) throw new Error('Review Cards migration cursor is invalid.');
+    const orders = allOrders.slice(offset, offset + limit);
+    const nextOffset = offset + orders.length;
+    return {
+      orders,
+      nextCursor: nextOffset < allOrders.length ? String(nextOffset) : null,
+      complete: nextOffset >= allOrders.length,
+    };
+  }
+
+  try {
+    const { getRequestContext } = await import('@cloudflare/next-on-pages');
+    const kv = getRequestContext().env?.FEELSNEAT_CMS_KV;
+    if (!kv) throw new Error('Review Cards storage is not configured.');
+    const page = await kv.list({
+      prefix: REVIEW_CARD_KV_PREFIX,
+      ...(cursor ? { cursor } : {}),
+      limit,
+    });
+    const orders = await Promise.all(page.keys.map(async (entry: { name: string }) => {
+      const value = await kv.get(entry.name);
+      if (!value) throw new Error(`Review Cards order ${entry.name} could not be loaded.`);
+      const order: unknown = JSON.parse(value);
+      if (!isReviewCardOrder(order)) throw new Error(`Review Cards order ${entry.name} is invalid.`);
+      return order;
+    }));
+    return {
+      orders,
+      nextCursor: page.list_complete ? null : page.cursor,
+      complete: page.list_complete,
+    };
+  } catch (error) {
+    console.error('[Review Cards] Production migration page could not be loaded:', error);
+    throw new Error('Review Cards migration data could not be loaded from production storage.');
+  }
+}
+
 export async function saveReviewCardOrder(reqUrl: string, order: ReviewCardOrder): Promise<void> {
   const serialized = JSON.stringify(order);
   if (new TextEncoder().encode(serialized).byteLength > REVIEW_CARD_ORDER_MAX_BYTES) {

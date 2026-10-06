@@ -12,6 +12,13 @@ const PRODUCT_IMAGE_MAX_BYTES = 5 * 1024 * 1024;
 const PRODUCT_IMAGE_MAX_TOTAL_BYTES = 20 * 1024 * 1024;
 const PRODUCT_IMAGE_MAX_COUNT = 8;
 
+function getCustomerImageUrl(reference: string): string {
+  const match = /^r2:\/\/customer-uploads\/([A-Za-z0-9-]{1,64})\/([0-9a-f-]{36}|[0-9a-f]{64})$/i.exec(reference);
+  return match
+    ? `/api/order/photo?reference=${encodeURIComponent(reference)}`
+    : reference;
+}
+
 interface AdminDashboardProps {
   userEmail: string;
 }
@@ -24,6 +31,9 @@ export function AdminDashboard({ userEmail }: AdminDashboardProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [syncMessage, setSyncMessage] = useState('');
   const [syncStatus, setSyncStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
+  const [migratingCustomerImages, setMigratingCustomerImages] = useState(false);
+  const [migratingAllUploads, setMigratingAllUploads] = useState(false);
+  const [assetMigrationStep, setAssetMigrationStep] = useState('');
 
   // Pet Profiles specific states
   const [profiles, setProfiles] = useState<any[]>([]);
@@ -50,6 +60,8 @@ export function AdminDashboard({ userEmail }: AdminDashboardProps) {
   const [productCreationChooser, setProductCreationChooser] = useState(false);
   const [savingDigitalProduct, setSavingDigitalProduct] = useState(false);
   const [uploadingDigitalFile, setUploadingDigitalFile] = useState(false);
+  const [uploadingProductImages, setUploadingProductImages] = useState(false);
+  const [migratingProductImages, setMigratingProductImages] = useState(false);
   const [savingAffiliateProduct, setSavingAffiliateProduct] = useState(false);
   const [savingPhysicalProduct, setSavingPhysicalProduct] = useState(false);
   const [ecommerceOrderUpdate, setEcommerceOrderUpdate] = useState<any>(null);
@@ -128,6 +140,132 @@ export function AdminDashboard({ userEmail }: AdminDashboardProps) {
       setSyncMessage('Network error occurred loading orders.');
     } finally {
       setLoadingOrders(false);
+    }
+  };
+
+  const migrateCustomerImagesToR2 = async () => {
+    if (!confirm('Move existing customer artwork and pet photos to private R2 storage?')) return;
+    setMigratingCustomerImages(true);
+    try {
+      let migratedCount = 0;
+      for (const recordType of ['order', 'profile'] as const) {
+        let cursor: string | undefined;
+        let complete = false;
+        while (!complete) {
+          const response = await fetch('/api/order', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              action: 'migrate_customer_uploads',
+              recordType,
+              ...(cursor ? { cursor } : {}),
+            }),
+          });
+          const result = await response.json();
+          if (!response.ok) throw new Error(result.error || 'Could not migrate customer images.');
+          migratedCount += Number(result.migratedCount) || 0;
+          complete = result.complete === true;
+          const nextCursor = typeof result.nextCursor === 'string' ? result.nextCursor : undefined;
+          if (!complete && (!nextCursor || nextCursor === cursor)) {
+            throw new Error('Customer image migration stopped before all records were scanned. Run it again to resume safely.');
+          }
+          cursor = nextCursor;
+        }
+      }
+      await Promise.all([loadOrders(), loadProfiles()]);
+      alert(migratedCount
+        ? `Moved ${migratedCount} customer image${migratedCount === 1 ? '' : 's'} to R2. All customer order and profile records were scanned.`
+        : 'All customer images are already in R2.');
+    } catch (error) {
+      alert(error instanceof Error ? error.message : 'Could not migrate customer images.');
+    } finally {
+      setMigratingCustomerImages(false);
+    }
+  };
+
+  const migrateAllUploadedAssetsToR2 = async () => {
+    if (!confirm('Migrate all previously uploaded product images, customer artwork/pet photos, and Review Cards logos to R2? Pasted external image URLs will stay unchanged.')) return;
+    setMigratingAllUploads(true);
+    let productCount = 0;
+    let customerCount = 0;
+    let logoCount = 0;
+    let currentStep = 'startup';
+    try {
+      currentStep = 'product images';
+      setAssetMigrationStep('Product images');
+      const productsResponse = await fetch('/api/ecommerce/admin', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'migrate_product_images' }),
+      });
+      const productsResult = await productsResponse.json();
+      if (!productsResponse.ok) throw new Error(productsResult.error || 'Could not migrate product images.');
+      productCount = Number(productsResult.migratedCount) || 0;
+      if (Number(productsResult.remainingCount) !== 0) {
+        throw new Error(`${productsResult.remainingCount} uploaded product images remain outside R2.`);
+      }
+
+      for (const recordType of ['order', 'profile'] as const) {
+        let cursor: string | undefined;
+        let complete = false;
+        while (!complete) {
+          currentStep = recordType === 'order' ? 'customer order photos' : 'pet profile photos';
+          setAssetMigrationStep(currentStep);
+          const response = await fetch('/api/order', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              action: 'migrate_customer_uploads',
+              recordType,
+              ...(cursor ? { cursor } : {}),
+            }),
+          });
+          const result = await response.json();
+          if (!response.ok) throw new Error(result.error || 'Could not migrate customer images.');
+          customerCount += Number(result.migratedCount) || 0;
+          complete = result.complete === true;
+          const nextCursor = typeof result.nextCursor === 'string' ? result.nextCursor : undefined;
+          if (!complete && (!nextCursor || nextCursor === cursor)) {
+            throw new Error('Customer image migration stopped before all records were scanned. Run the migration again to resume safely.');
+          }
+          cursor = nextCursor;
+        }
+      }
+
+      let logoCursor: string | undefined;
+      let logosComplete = false;
+      while (!logosComplete) {
+        currentStep = 'Review Cards logos';
+        setAssetMigrationStep(currentStep);
+        const response = await fetch('/api/review-cards/admin', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            action: 'migrate_logos_to_r2',
+            ...(logoCursor ? { cursor: logoCursor } : {}),
+          }),
+        });
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.error || 'Could not migrate Review Cards logos.');
+        logoCount += Number(result.migratedCount) || 0;
+        logosComplete = result.complete === true;
+        const nextCursor = typeof result.nextCursor === 'string' ? result.nextCursor : undefined;
+        if (!logosComplete && (!nextCursor || nextCursor === logoCursor)) {
+          throw new Error('Review Cards logo migration stopped before all records were scanned. Run the migration again to resume safely.');
+        }
+        logoCursor = nextCursor;
+      }
+
+      await Promise.all([loadOrders(), loadProfiles(), loadEcommerceData()]);
+      alert(
+        `Migration complete. Scanned all product, customer order, pet profile, and Review Cards records. Moved ${productCount} product image${productCount === 1 ? '' : 's'}, ${customerCount} customer image${customerCount === 1 ? '' : 's'}, and ${logoCount} Review Cards logo${logoCount === 1 ? '' : 's'} to R2. Pasted external image URLs were left unchanged.`
+      );
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Could not complete the R2 migration.';
+      alert(`Migration stopped during ${currentStep}. Completed so far: ${productCount} product images, ${customerCount} customer images, and ${logoCount} Review Cards logos. ${message} It is safe to run again; completed records are skipped.`);
+    } finally {
+      setMigratingAllUploads(false);
+      setAssetMigrationStep('');
     }
   };
 
@@ -719,7 +857,7 @@ export function AdminDashboard({ userEmail }: AdminDashboardProps) {
     }));
   };
 
-  const handleProductImageUpload = (formType: 'affiliate' | 'physical' | 'digital', event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleProductImageUpload = async (formType: 'affiliate' | 'physical' | 'digital', event: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(event.target.files || []);
     event.target.value = '';
     if (!files.length) return;
@@ -749,17 +887,60 @@ export function AdminDashboard({ userEmail }: AdminDashboardProps) {
       alert('Images must be JPG, JPEG, PNG, or WEBP and no larger than 5 MB each.');
       return;
     }
-    Promise.all(files.map((file) => new Promise<string>((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => resolve(String(reader.result));
-      reader.onerror = () => reject(new Error('Could not read image.'));
-      reader.readAsDataURL(file);
-    }))).then((newImages) => {
+    setUploadingProductImages(true);
+    try {
+      const newImages: string[] = [];
+      for (const file of files) {
+        const formData = new FormData();
+        formData.append('action', 'upload_product_image');
+        formData.append('file', file);
+        const response = await fetch('/api/ecommerce/admin', { method: 'POST', body: formData });
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.error || `Could not upload ${file.name}.`);
+        if (typeof result.image?.reference !== 'string') {
+          throw new Error(`The server did not return a stored image reference for ${file.name}.`);
+        }
+        newImages.push(result.image.reference);
+      }
       setProductImageForm(formType, (form) => ({
         ...form,
         images: [...(form.images || []), ...newImages],
       }));
-    }).catch(() => alert('Could not read one of the selected images.'));
+    } catch (error) {
+      alert(error instanceof Error ? error.message : 'Could not upload the selected product image.');
+    } finally {
+      setUploadingProductImages(false);
+    }
+  };
+
+  const getProductImagePreviewUrl = (image: string) => {
+    const match = /^r2:\/\/product-images\/([0-9a-f-]{36}|[0-9a-f]{64})$/i.exec(image);
+    return match ? `/api/ecommerce/product-image?imageId=${match[1]}` : image;
+  };
+
+  const migrateProductImagesToR2 = async () => {
+    if (!confirm('Move existing uploaded product images to R2? Existing product image links will remain available.')) return;
+    setMigratingProductImages(true);
+    try {
+      const response = await fetch('/api/ecommerce/admin', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'migrate_product_images' }),
+      });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || 'Could not migrate product images.');
+      if (Number(result.remainingCount) !== 0) {
+        throw new Error(`${result.remainingCount} uploaded product images remain outside R2.`);
+      }
+      await loadEcommerceData();
+      alert(result.migratedCount
+        ? `Moved ${result.migratedCount} product image${result.migratedCount === 1 ? '' : 's'} to R2.`
+        : 'All uploaded product images are already in R2.');
+    } catch (error) {
+      alert(error instanceof Error ? error.message : 'Could not migrate product images.');
+    } finally {
+      setMigratingProductImages(false);
+    }
   };
 
   const removeProductImage = (formType: 'affiliate' | 'physical' | 'digital', index: number) => {
@@ -804,6 +985,7 @@ export function AdminDashboard({ userEmail }: AdminDashboardProps) {
             type="file"
             accept="image/jpeg,image/png,image/webp"
             multiple
+            disabled={uploadingProductImages}
             onChange={(event) => handleProductImageUpload(formType, event)}
             className="mt-2 block w-full text-xs normal-case text-zinc-600 file:mr-2 file:rounded-md file:border-0 file:bg-zinc-900 file:px-2 file:py-1.5 file:text-[10px] file:font-bold file:text-white"
           />
@@ -813,7 +995,7 @@ export function AdminDashboard({ userEmail }: AdminDashboardProps) {
         <div className="mt-3 grid grid-cols-3 gap-2 sm:grid-cols-5">
           {form.images.map((image: string, index: number) => (
             <div key={`${image.slice(0, 24)}-${index}`} className="relative overflow-hidden rounded-lg border border-zinc-200 bg-zinc-50">
-              <img src={image} alt={`Product image ${index + 1}`} className="aspect-square w-full object-cover" />
+              <img src={getProductImagePreviewUrl(image)} alt={`Product image ${index + 1}`} className="aspect-square w-full object-cover" />
               <div className="absolute inset-x-0 bottom-0 flex items-center justify-between gap-1 bg-black/65 p-1">
                 <button type="button" onClick={() => setPrimaryProductImage(formType, index)} disabled={index === 0} className="text-[8px] font-bold text-white disabled:text-emerald-300">
                   {index === 0 ? 'Primary' : 'Make primary'}
@@ -1346,6 +1528,26 @@ export function AdminDashboard({ userEmail }: AdminDashboardProps) {
                   `Showing ${filteredOrders.length} of ${orders.length} Records`
                 )}
               </span>
+              {activeTab === 'all' && (
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    type="button"
+                    onClick={migrateAllUploadedAssetsToR2}
+                    disabled={migratingAllUploads || migratingCustomerImages || migratingProductImages}
+                    className="rounded-lg bg-zinc-900 px-2.5 py-1.5 text-[9px] font-black uppercase text-white disabled:opacity-50"
+                  >
+                    {migratingAllUploads ? `Migrating ${assetMigrationStep || 'uploads'}...` : 'Migrate all uploads to R2'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={migrateCustomerImagesToR2}
+                    disabled={migratingCustomerImages || migratingAllUploads}
+                    className="rounded-lg border border-zinc-200 px-2.5 py-1.5 text-[9px] font-black uppercase text-zinc-600 disabled:opacity-50"
+                  >
+                    {migratingCustomerImages ? 'Moving customer images...' : 'Move customer images to R2'}
+                  </button>
+                </div>
+              )}
             </div>
 
             <div className="grid md:grid-cols-12 gap-6">
@@ -1394,19 +1596,31 @@ export function AdminDashboard({ userEmail }: AdminDashboardProps) {
                       <div className="border-t border-zinc-150 pt-4">
                         <div className="flex items-center justify-between gap-2 mb-2">
                           <span className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">Products</span>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setAffiliateProductForm(null);
-                              setPhysicalProductForm(null);
-                              setProductCreationChooser(activeTab !== 'digital_ecommerce');
-                              setDigitalProductForm(activeTab === 'digital_ecommerce' ? createDigitalProductForm() : null);
-                              setSelectedEcommerceProductId(null); setSelectedEcommerceOrderId(null);
-                            }}
-                            className="rounded-lg bg-[#E30613] px-2.5 py-1.5 text-[9px] font-black uppercase text-white"
-                          >
-                            {activeTab === 'digital_ecommerce' ? '+ Add Digital Product' : '+ Add Product'}
-                          </button>
+                          <div className="flex flex-wrap justify-end gap-1.5">
+                            {(activeTab === 'ecommerce' || activeTab === 'digital_ecommerce') && (
+                              <button
+                                type="button"
+                                onClick={migrateProductImagesToR2}
+                                disabled={migratingProductImages}
+                                className="rounded-lg border border-zinc-200 px-2.5 py-1.5 text-[9px] font-black uppercase text-zinc-600 disabled:opacity-50"
+                              >
+                                {migratingProductImages ? 'Moving images...' : 'Move images to R2'}
+                              </button>
+                            )}
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setAffiliateProductForm(null);
+                                setPhysicalProductForm(null);
+                                setProductCreationChooser(activeTab !== 'digital_ecommerce');
+                                setDigitalProductForm(activeTab === 'digital_ecommerce' ? createDigitalProductForm() : null);
+                                setSelectedEcommerceProductId(null); setSelectedEcommerceOrderId(null);
+                              }}
+                              className="rounded-lg bg-[#E30613] px-2.5 py-1.5 text-[9px] font-black uppercase text-white"
+                            >
+                              {activeTab === 'digital_ecommerce' ? '+ Add Digital Product' : '+ Add Product'}
+                            </button>
+                          </div>
                         </div>
                         <div className="mb-3 flex flex-wrap gap-1 rounded-lg border border-zinc-150 bg-white p-1">
                           {(activeTab === 'digital_ecommerce'
@@ -1524,7 +1738,7 @@ export function AdminDashboard({ userEmail }: AdminDashboardProps) {
                             {/* Pet Thumbnail */}
                             {profile.pet_photo ? (
                               <img
-                                src={profile.pet_photo}
+                                src={getCustomerImageUrl(profile.pet_photo)}
                                 alt={profile.pet_name}
                                 className="w-9 h-9 rounded-full object-cover border border-zinc-200 shrink-0"
                               />
@@ -2268,7 +2482,7 @@ export function AdminDashboard({ userEmail }: AdminDashboardProps) {
                         <div className="space-y-1.5">
                           <span className="block text-[9px] font-bold text-zinc-400 uppercase tracking-wider">Public Profile Photo</span>
                           <div className="max-w-[200px] rounded-lg border border-zinc-200 overflow-hidden bg-white shadow-2xs aspect-square relative group">
-                            <img src={selectedProfile.pet_photo} alt={selectedProfile.pet_name} className="w-full h-full object-cover" />
+                            <img src={getCustomerImageUrl(selectedProfile.pet_photo)} alt={selectedProfile.pet_name} className="w-full h-full object-cover" />
                           </div>
                         </div>
                       )}
@@ -2376,7 +2590,7 @@ export function AdminDashboard({ userEmail }: AdminDashboardProps) {
                               <div className="flex justify-between items-center max-w-[280px]">
                                 <span className="block text-[9px] font-bold text-zinc-400 uppercase tracking-wider">Canvas Photo Preview</span>
                                 <a
-                                  href={selectedOrder.photos.main_photo}
+                                  href={getCustomerImageUrl(selectedOrder.photos.main_photo)}
                                   download={`canvas_${selectedOrder.order_id}.png`}
                                   className="inline-flex items-center gap-1 text-[9px] font-bold text-[#E30613] hover:underline cursor-pointer select-none"
                                 >
@@ -2384,9 +2598,9 @@ export function AdminDashboard({ userEmail }: AdminDashboardProps) {
                                 </a>
                               </div>
                               <div className="max-w-[280px] rounded-lg border border-zinc-200 overflow-hidden bg-white shadow-2xs aspect-[1.5/1] relative group">
-                                <img src={selectedOrder.photos.main_photo} alt="Print Preview" className="w-full h-full object-cover" />
+                                <img src={getCustomerImageUrl(selectedOrder.photos.main_photo)} alt="Print Preview" className="w-full h-full object-cover" />
                                 <a
-                                  href={selectedOrder.photos.main_photo}
+                                  href={getCustomerImageUrl(selectedOrder.photos.main_photo)}
                                   download={`canvas_${selectedOrder.order_id}.png`}
                                   className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 flex flex-col items-center justify-center transition-all duration-200 text-white font-bold text-xs gap-1.5 cursor-pointer"
                                 >
@@ -2404,9 +2618,9 @@ export function AdminDashboard({ userEmail }: AdminDashboardProps) {
                               <div className="grid grid-cols-3 gap-2 max-w-[280px]">
                                 {selectedOrder.photos.additional_photos.map((photo: string, idx: number) => (
                                   <div key={idx} className="relative group rounded-md border border-zinc-150 overflow-hidden bg-zinc-50 aspect-square">
-                                    <img src={photo} alt={`Additional ${idx + 1}`} className="w-full h-full object-cover" />
+                                    <img src={getCustomerImageUrl(photo)} alt={`Additional ${idx + 1}`} className="w-full h-full object-cover" />
                                     <a
-                                      href={photo}
+                                      href={getCustomerImageUrl(photo)}
                                       download={`additional_${selectedOrder.order_id}_${idx + 1}.png`}
                                       className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-all duration-200 text-white font-black text-[9px] gap-1 cursor-pointer"
                                     >
@@ -2531,7 +2745,7 @@ export function AdminDashboard({ userEmail }: AdminDashboardProps) {
                               <div className="flex justify-between items-center max-w-[280px]">
                                 <span className="block text-[9px] font-bold text-zinc-400 uppercase tracking-wider">Custom Artwork Print</span>
                                 <a
-                                  href={selectedOrder.photos.main_photo}
+                                  href={getCustomerImageUrl(selectedOrder.photos.main_photo)}
                                   download={`taptile_${selectedOrder.order_id}.png`}
                                   className="inline-flex items-center gap-1 text-[9px] font-bold text-[#E30613] hover:underline cursor-pointer select-none"
                                 >
@@ -2539,9 +2753,9 @@ export function AdminDashboard({ userEmail }: AdminDashboardProps) {
                                 </a>
                               </div>
                               <div className="max-w-[280px] rounded-lg border border-zinc-200 overflow-hidden bg-white shadow-2xs aspect-square relative group">
-                                <img src={selectedOrder.photos.main_photo} alt="Print Preview" className="w-full h-full object-cover" />
+                                <img src={getCustomerImageUrl(selectedOrder.photos.main_photo)} alt="Print Preview" className="w-full h-full object-cover" />
                                 <a
-                                  href={selectedOrder.photos.main_photo}
+                                  href={getCustomerImageUrl(selectedOrder.photos.main_photo)}
                                   download={`taptile_${selectedOrder.order_id}.png`}
                                   className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 flex flex-col items-center justify-center transition-all duration-200 text-white font-bold text-xs gap-1.5 cursor-pointer"
                                 >
@@ -3023,7 +3237,7 @@ export function AdminDashboard({ userEmail }: AdminDashboardProps) {
                   <div className="flex items-center gap-4">
                     {modalFormData.pet_photo ? (
                       <img
-                        src={modalFormData.pet_photo}
+                        src={getCustomerImageUrl(modalFormData.pet_photo)}
                         alt="Pet Preview"
                         className="w-16 h-16 rounded-xl object-cover border border-zinc-250 shrink-0"
                       />

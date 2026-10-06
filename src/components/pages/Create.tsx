@@ -166,10 +166,11 @@ export default function CreateMemoryPage() {
     agent_llm_vendor: 'no-preference',
   });
 
-  // Photo uploads state (base64 stored in-memory, excluded from localStorage autosave)
+  // Customer artwork stays out of localStorage drafts.
   const [mainPhoto, setMainPhoto] = useState<string | null>(null);
+  const [mainPhotoFile, setMainPhotoFile] = useState<File | null>(null);
   const [mainPhotoName, setMainPhotoName] = useState<string>('');
-  const [additionalPhotos, setAdditionalPhotos] = useState<Array<{ name: string; data: string }>>([]);
+  const [additionalPhotos, setAdditionalPhotos] = useState<Array<{ name: string; data: string; file: File }>>([]);
 
   // Form submission / validation states
   const [status, setStatus] = useState<'idle' | 'submitting' | 'error'>('idle');
@@ -221,12 +222,14 @@ export default function CreateMemoryPage() {
       const base64Str = event.target?.result as string;
       if (isMain) {
         setMainPhoto(base64Str);
+        setMainPhotoFile(file);
         setMainPhotoName(file.name);
       } else {
-        setAdditionalPhotos((prev) => [...prev, { name: file.name, data: base64Str }]);
+        setAdditionalPhotos((prev) => [...prev, { name: file.name, data: base64Str, file }]);
       }
       setValidationError(null);
     };
+    reader.onerror = () => setValidationError(`Could not read ${file.name}. Please select it again.`);
     reader.readAsDataURL(file);
   };
 
@@ -473,13 +476,14 @@ export default function CreateMemoryPage() {
     setStatus('submitting');
     setValidationError(null);
 
-    const payload = (order_type === 'memories' || order_type === 'tap_tiles')
+    const includesCustomerArtwork = order_type === 'memories' || order_type === 'tap_tiles';
+    const payload = includesCustomerArtwork
       ? {
           order_type,
           product_id: productId || null,
           ...formData,
-          main_photo: mainPhoto,
-          additional_photos: additionalPhotos.map((p) => p.data),
+          main_photo: '',
+          additional_photos: [],
         }
       : {
           order_type,
@@ -509,10 +513,21 @@ export default function CreateMemoryPage() {
         };
 
     try {
+      const requestBody = includesCustomerArtwork
+        ? (() => {
+            const form = new FormData();
+            form.append('payload', JSON.stringify(payload));
+            if (mainPhotoFile) form.append('main_photo_file', mainPhotoFile, mainPhotoFile.name);
+            for (const photo of additionalPhotos) {
+              form.append('additional_photo_files', photo.file, photo.name);
+            }
+            return form;
+          })()
+        : JSON.stringify(payload);
       const response = await fetch('/api/order', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
+        ...(includesCustomerArtwork ? {} : { headers: { 'Content-Type': 'application/json' } }),
+        body: requestBody,
       });
 
       const result = await response.json();
@@ -730,7 +745,7 @@ export default function CreateMemoryPage() {
                         <div className="absolute top-2 right-2 flex gap-2">
                           <button
                             type="button"
-                            onClick={() => { setMainPhoto(null); setMainPhotoName(''); }}
+                            onClick={() => { setMainPhoto(null); setMainPhotoFile(null); setMainPhotoName(''); }}
                             className="bg-black/60 border border-white/20 text-white rounded-full p-1.5 hover:bg-black transition-colors cursor-pointer"
                             title="Remove image"
                           >
@@ -1187,7 +1202,7 @@ export default function CreateMemoryPage() {
                               <img src={mainPhoto} alt="Pet artwork preview" className="w-full h-full object-cover" />
                               <button
                                 type="button"
-                                onClick={() => { setMainPhoto(null); setMainPhotoName(''); }}
+                                onClick={() => { setMainPhoto(null); setMainPhotoFile(null); setMainPhotoName(''); }}
                                 className="absolute top-2 right-2 bg-black/70 hover:bg-black text-white rounded-full p-1.5 transition-colors cursor-pointer"
                               >
                                 <LucideIcon name="X" className="h-3.5 w-3.5" />
@@ -1890,7 +1905,7 @@ export default function CreateMemoryPage() {
                             <img src={mainPhoto} alt="Tile preview" className="w-full h-full object-cover" />
                             <button
                               type="button"
-                              onClick={() => { setMainPhoto(null); setMainPhotoName(''); }}
+                              onClick={() => { setMainPhoto(null); setMainPhotoFile(null); setMainPhotoName(''); }}
                               className="absolute top-2 right-2 bg-black/70 hover:bg-black text-white rounded-full p-1.5 transition-colors cursor-pointer"
                             >
                               <LucideIcon name="X" className="h-3.5 w-3.5" />

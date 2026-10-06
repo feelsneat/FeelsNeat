@@ -36,6 +36,7 @@ export interface ReviewCardOrder {
   material: ReviewCardMaterial;
   stickerText: string;
   logoDataUrl: string;
+  logoReference?: string;
   customerName: string;
   phone: string;
   whatsapp: string;

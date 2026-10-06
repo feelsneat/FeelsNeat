@@ -1,5 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { verifySession } from '@/lib/auth';
+import {
+  detectImageMimeType,
+  getDigitalFileBucket,
+  imageBytesToBase64,
+  putR2Object,
+} from '@/lib/ecommerce/digital-file-storage';
 
 export const runtime = 'edge';
 
@@ -74,7 +80,10 @@ export async function GET(req: NextRequest) {
       pet_type: profile.pet_type,
       pet_breed: profile.pet_breed,
       pet_age: profile.pet_age,
-      pet_photo: profile.pet_photo,
+      pet_photo: typeof profile.pet_photo === 'string' &&
+        /^r2:\/\/customer-uploads\/[A-Za-z0-9-]{1,64}\/(?:[0-9a-f-]{36}|[0-9a-f]{64})$/i.test(profile.pet_photo)
+        ? new URL(`/api/pet-profile/image?profileId=${encodeURIComponent(profileId)}`, req.url).toString()
+        : profile.pet_photo,
       public_message: profile.public_message,
       contact_method: profile.contact_method,
       owner_phone: profile.owner_phone,
@@ -201,10 +210,43 @@ function generatePetRequestId() {
   return `FN-PET-${result}`;
 }
 
+async function migrateLegacyCustomerImage(image: string, ownerId: string): Promise<string | null> {
+  const match = /^data:(image\/(?:jpeg|png|webp));base64,([A-Za-z0-9+/=\s]+)$/.exec(image);
+  if (!match) return null;
+  const binary = atob(match[2].replace(/\s/g, ''));
+  const bytes = Uint8Array.from(binary, (character) => character.charCodeAt(0));
+  if (detectImageMimeType(bytes) !== match[1]) return null;
+  const digest = await crypto.subtle.digest('SHA-256', bytes);
+  const hash = Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, '0')).join('');
+  const safeOwnerId = ownerId.replace(/[^A-Za-z0-9-]/g, '').slice(0, 64);
+  if (!safeOwnerId) return null;
+  const key = `customer-uploads/${safeOwnerId}/${hash}`;
+  await putR2Object(key, bytes, match[1]);
+  return `r2://${key}`;
+}
+
 // POST: Handles Admin Actions (Update/Delete) OR Customer Order Submissions & Contact Inquiries
 export async function POST(req: NextRequest) {
   try {
-    const body = await req.json();
+    let body: any;
+    let mainPhotoFile: File | null = null;
+    let additionalPhotoFiles: File[] = [];
+    if (/multipart\/form-data/i.test(req.headers.get('content-type') || '')) {
+      const formData = await req.formData();
+      const payload = formData.get('payload');
+      if (typeof payload !== 'string') {
+        return NextResponse.json({ error: 'Order details are missing from the submission.' }, { status: 400 });
+      }
+      body = JSON.parse(payload);
+      const uploadedMainPhoto = formData.get('main_photo_file');
+      mainPhotoFile = typeof File !== 'undefined' && uploadedMainPhoto instanceof File
+        ? uploadedMainPhoto
+        : null;
+      additionalPhotoFiles = formData.getAll('additional_photo_files')
+        .filter((file): file is File => typeof File !== 'undefined' && file instanceof File);
+    } else {
+      body = await req.json();
+    }
     const { action, order_id, statusUpdates, profile_id, profileData, status } = body;
 
     // ─── ADMIN PROFILE ACTIONS ROUTING ─────────────────────────────────────────
@@ -352,6 +394,82 @@ export async function POST(req: NextRequest) {
         }
 
         return NextResponse.json({ success: true });
+      }
+    }
+
+    if (action === 'migrate_customer_uploads') {
+      if (!await authenticateAdmin(req)) {
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      }
+      if (body.recordType !== 'order' && body.recordType !== 'profile') {
+        return NextResponse.json({ error: 'Choose order or profile records to migrate.' }, { status: 400 });
+      }
+      const recordType: 'order' | 'profile' = body.recordType;
+      const cursor = typeof body.cursor === 'string' ? body.cursor : undefined;
+      const bucket = await getDigitalFileBucket();
+      if (!bucket) {
+        return NextResponse.json(
+          { error: 'Customer image storage is not configured. Bind FEELSNEAT_DIGITAL_FILES in Cloudflare.' },
+          { status: 503 }
+        );
+      }
+      try {
+        const { getRequestContext } = await import('@cloudflare/next-on-pages');
+        const kv = getRequestContext().env?.FEELSNEAT_CMS_KV;
+        if (!kv) return NextResponse.json({ error: 'Customer order storage is not configured.' }, { status: 503 });
+
+        let migratedCount = 0;
+        const page = await kv.list({ prefix: `${recordType}:`, cursor, limit: 50 });
+        for (const entry of page.keys) {
+          const value = await kv.get(entry.name);
+          if (!value) continue;
+          const record = JSON.parse(value);
+          let changed = false;
+          const ownerId = recordType === 'order' ? record.order_id : record.profile_id;
+          if (recordType === 'order' && record.photos) {
+            const photos = record.photos;
+            if (typeof photos.main_photo === 'string' && photos.main_photo.startsWith('data:image/')) {
+              const reference = await migrateLegacyCustomerImage(photos.main_photo, ownerId);
+              if (!reference) throw new Error(`Could not migrate the main artwork for ${ownerId}.`);
+              photos.main_photo = reference;
+              changed = true;
+              migratedCount += 1;
+            }
+            if (Array.isArray(photos.additional_photos)) {
+              const migratedPhotos = await Promise.all(photos.additional_photos.map(async (photo: unknown) => {
+                if (typeof photo !== 'string' || !photo.startsWith('data:image/')) return photo;
+                const reference = await migrateLegacyCustomerImage(photo, ownerId);
+                if (!reference) throw new Error(`Could not migrate an additional artwork image for ${ownerId}.`);
+                changed = true;
+                migratedCount += 1;
+                return reference;
+              }));
+              photos.additional_photos = migratedPhotos;
+            }
+          } else if (recordType === 'profile' && typeof record.pet_photo === 'string' &&
+            record.pet_photo.startsWith('data:image/')) {
+            const reference = await migrateLegacyCustomerImage(record.pet_photo, ownerId);
+            if (!reference) throw new Error(`Could not migrate the pet photo for ${ownerId}.`);
+            record.pet_photo = reference;
+            changed = true;
+            migratedCount += 1;
+          }
+          if (changed) {
+            await kv.put(entry.name, JSON.stringify(record));
+          }
+        }
+        return NextResponse.json({
+          success: true,
+          migratedCount,
+          complete: page.list_complete,
+          nextCursor: page.list_complete ? null : page.cursor,
+        });
+      } catch (error) {
+        console.error('Legacy customer image migration failed:', error);
+        return NextResponse.json(
+          { error: error instanceof Error ? error.message : 'Could not migrate customer images.' },
+          { status: 500 }
+        );
       }
     }
 
@@ -553,7 +671,7 @@ export async function POST(req: NextRequest) {
     }
 
     if (order_type === 'memories') {
-      if (!memory_type || !size || !quantity || !google_photos_url || !main_photo) {
+      if (!memory_type || !size || !quantity || !google_photos_url || (!main_photo && !mainPhotoFile)) {
         return NextResponse.json(
           { error: 'Missing required configuration selections (Memory type, size, quantity, shared album link, and canvas photo are required).' },
           { status: 400 }
@@ -576,7 +694,7 @@ export async function POST(req: NextRequest) {
       }
     } else if (order_type === 'tap_tiles') {
       if (product_id === 'pets') {
-        if (!pet_name || !pet_type || !main_photo) {
+        if (!pet_name || !pet_type || (!main_photo && !mainPhotoFile)) {
           return NextResponse.json(
             { error: 'Pet name, pet type (Dog/Cat/Other), and pet photo are required.' },
             { status: 400 }
@@ -599,7 +717,7 @@ export async function POST(req: NextRequest) {
           }
         }
       } else {
-        if (!memory_type || !size || !quantity || !google_photos_url || !main_photo) {
+        if (!memory_type || !size || !quantity || !google_photos_url || (!main_photo && !mainPhotoFile)) {
           return NextResponse.json(
             { error: 'Missing required configuration selections (Style, format format, quantity, NFC link destination, and artwork photo are required).' },
             { status: 400 }
@@ -671,6 +789,76 @@ export async function POST(req: NextRequest) {
           return `${prefix}-${orderNum}`;
         })();
 
+    let storedMainPhoto = main_photo;
+    let storedAdditionalPhotos = Array.isArray(additional_photos) ? additional_photos : [];
+    const uploadedPhotos = [
+        ...(mainPhotoFile ? [mainPhotoFile] : []),
+        ...additionalPhotoFiles,
+    ];
+    if (uploadedPhotos.length > 0) {
+        if (additionalPhotoFiles.length > 4) {
+          return NextResponse.json({ error: 'You can upload up to 4 additional photos.' }, { status: 400 });
+        }
+        const uploadedSize = uploadedPhotos.reduce((total, file) => total + file.size, 0);
+        if (uploadedPhotos.some((file) => file.size < 1 || file.size > 12 * 1024 * 1024) ||
+          uploadedSize > 48 * 1024 * 1024) {
+          return NextResponse.json({ error: 'Each photo must be under 12 MB and all uploaded photos combined must be under 48 MB.' }, { status: 400 });
+        }
+        const photoBytes: Uint8Array[] = [];
+        for (const file of uploadedPhotos) {
+          let bytes: Uint8Array;
+          try {
+            bytes = new Uint8Array(await file.arrayBuffer());
+          } catch (error) {
+            console.error('Customer artwork upload could not be read:', error);
+            return NextResponse.json({ error: 'An uploaded image could not be read. Please select it again.' }, { status: 400 });
+          }
+          if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type) ||
+            detectImageMimeType(bytes) !== file.type) {
+            return NextResponse.json({ error: 'Uploaded artwork must be a valid JPG, PNG, or WEBP image.' }, { status: 400 });
+          }
+          photoBytes.push(bytes);
+        }
+
+        const bucket = await getDigitalFileBucket();
+        if (!bucket && process.env.NODE_ENV !== 'development') {
+          return NextResponse.json(
+            { error: 'Customer image storage is not configured. Bind FEELSNEAT_DIGITAL_FILES in Cloudflare.' },
+            { status: 503 }
+          );
+        }
+        const storedReferences: string[] = [];
+        const storedKeys: string[] = [];
+        try {
+          for (let index = 0; index < uploadedPhotos.length; index += 1) {
+            const file = uploadedPhotos[index];
+            const bytes = photoBytes[index];
+            if (bucket) {
+              const key = `customer-uploads/${orderId}/${crypto.randomUUID()}`;
+              await bucket.put(key, bytes, { httpMetadata: { contentType: file.type } });
+              storedKeys.push(key);
+              storedReferences.push(`r2://${key}`);
+            } else {
+              storedReferences.push(`data:${file.type};base64,${imageBytesToBase64(bytes)}`);
+            }
+          }
+        } catch (error) {
+          console.error('Customer artwork could not be stored in R2:', error);
+          const deleteObject = bucket?.delete;
+          if (bucket && deleteObject && storedKeys.length > 0) {
+            const cleanupResults = await Promise.allSettled(storedKeys.map((key) => deleteObject.call(bucket, key)));
+            if (cleanupResults.some((result) => result.status === 'rejected')) {
+              console.error('Some incomplete customer artwork uploads could not be cleaned up.');
+            }
+          }
+          return NextResponse.json({ error: 'Could not store the uploaded artwork. Please try again.' }, { status: 503 });
+        }
+        if (mainPhotoFile) {
+          storedMainPhoto = storedReferences.shift() || '';
+        }
+        storedAdditionalPhotos = storedReferences;
+    }
+
     const orderData = {
       order_id: orderId,
       order_type,
@@ -696,8 +884,8 @@ export async function POST(req: NextRequest) {
         quantity: Number(quantity),
       },
       photos: (order_type === 'memories' || order_type === 'tap_tiles') ? {
-        main_photo,
-        additional_photos: Array.isArray(additional_photos) ? additional_photos : [],
+        main_photo: storedMainPhoto,
+        additional_photos: storedAdditionalPhotos,
       } : null,
       memory_details: {
         title: title || '',

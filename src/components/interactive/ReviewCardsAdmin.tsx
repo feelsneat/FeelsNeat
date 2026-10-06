@@ -29,6 +29,7 @@ export default function ReviewCardsAdmin() {
   const [previewError, setPreviewError] = useState('');
   const [previewSvg, setPreviewSvg] = useState('');
   const [showWalkInForm, setShowWalkInForm] = useState(false);
+  const [migratingLogos, setMigratingLogos] = useState(false);
   const [walkInForm, setWalkInForm] = useState({
     businessName: '',
     googleReviewUrl: '',
@@ -205,6 +206,44 @@ export default function ReviewCardsAdmin() {
     URL.revokeObjectURL(url);
   };
 
+  const migrateLegacyLogos = async () => {
+    if (!confirm('Move existing uploaded shop logos to private R2 storage?')) return;
+    setMigratingLogos(true);
+    setError('');
+    try {
+      let cursor: string | undefined;
+      let complete = false;
+      let migratedCount = 0;
+      while (!complete) {
+        const response = await fetch('/api/review-cards/admin', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            action: 'migrate_logos_to_r2',
+            ...(cursor ? { cursor } : {}),
+          }),
+        });
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.error || 'Could not migrate shop logos.');
+        migratedCount += Number(result.migratedCount) || 0;
+        complete = result.complete === true;
+        const nextCursor = typeof result.nextCursor === 'string' ? result.nextCursor : undefined;
+        if (!complete && (!nextCursor || nextCursor === cursor)) {
+          throw new Error('Logo migration stopped before all orders were scanned. Run it again to resume safely.');
+        }
+        cursor = nextCursor;
+      }
+      await refreshOrders(selectedId);
+      setError(migratedCount
+        ? `Moved ${migratedCount} shop logo${migratedCount === 1 ? '' : 's'} to R2. All Review Cards orders were scanned.`
+        : 'All uploaded shop logos are already in R2. All Review Cards orders were scanned.');
+    } catch (migrationError) {
+      setError(migrationError instanceof Error ? migrationError.message : 'Could not migrate shop logos.');
+    } finally {
+      setMigratingLogos(false);
+    }
+  };
+
   const printSvg = (printWindow: Window, svg: string, quantity: number) => {
     const pages = Array.from({ length: quantity }, () => `<section class="label">${svg}</section>`).join('');
     const printDocument = `<!doctype html><html><head><title>${selectedOrder?.id || 'Review card sticker'}</title><style>@page{size:${REVIEW_CARD_STICKER_WIDTH_MM}mm ${REVIEW_CARD_STICKER_HEIGHT_MM}mm;margin:0}html,body{margin:0;padding:0}.label{width:${REVIEW_CARD_STICKER_WIDTH_MM}mm;height:${REVIEW_CARD_STICKER_HEIGHT_MM}mm;overflow:hidden;break-after:page;page-break-after:always}.label:last-child{break-after:auto;page-break-after:auto}.label svg{display:block;width:${REVIEW_CARD_STICKER_WIDTH_MM}mm;height:${REVIEW_CARD_STICKER_HEIGHT_MM}mm}</style></head><body>${pages}<script>window.onload=()=>window.print()</script></body></html>`;
@@ -253,6 +292,9 @@ export default function ReviewCardsAdmin() {
             <p className="mt-1 text-[10px] font-semibold text-zinc-500">{orders.length} saved order{orders.length === 1 ? '' : 's'}</p>
           </div>
           <div className="flex gap-2">
+            <button type="button" onClick={() => void migrateLegacyLogos()} disabled={migratingLogos} className="rounded-lg border border-zinc-200 px-3 py-2 text-[10px] font-black uppercase text-zinc-700 disabled:opacity-50">
+              {migratingLogos ? 'Moving logos...' : 'Move logos to R2'}
+            </button>
             <button type="button" onClick={() => setShowWalkInForm((open) => !open)} className="rounded-lg bg-zinc-900 px-3 py-2 text-[10px] font-black uppercase text-white">Add walk-in</button>
             <button type="button" onClick={() => void refreshOrders()} className="rounded-lg border border-zinc-200 px-3 py-2 text-[10px] font-black uppercase text-zinc-700">Refresh</button>
           </div>

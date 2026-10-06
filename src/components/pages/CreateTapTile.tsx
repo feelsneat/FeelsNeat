@@ -25,8 +25,7 @@ export default function CreateTapTilePage() {
     nfc_dest_type: 'spotify_song', // 'spotify_song' | 'spotify_playlist' | 'youtube' | 'google_photos' | 'website'
     nfc_url: '',
     quantity: 1,
-    instructions: '',
-    photo_filename: ''
+    instructions: ''
   });
 
   const handleTextChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
@@ -285,38 +284,9 @@ export default function CreateTapTilePage() {
                     />
                   </div>
 
-                  {/* Photo upload placeholder selector */}
-                  <div className="space-y-2">
-                    <label className="block text-xs font-black text-black uppercase tracking-widest">Upload Photo / Artwork</label>
-                    <div className="border-2 border-dashed border-zinc-200 rounded-xl p-6 text-center bg-zinc-50/50 relative hover:border-zinc-300 transition-colors">
-                      <LucideIcon name="Feather" className="h-6 w-6 text-zinc-400 mx-auto mb-2" />
-                      <span className="block text-xs font-bold text-zinc-600 uppercase">Select Art/Photo Print file</span>
-                      <span className="block text-[10px] text-zinc-400 mt-1 font-semibold">JPG or PNG formats (Max 15MB)</span>
-                      <input
-                        type="file"
-                        accept="image/*"
-                        onChange={(e) => {
-                          const file = e.target.files?.[0];
-                          if (file) {
-                            setFormData((prev) => ({ ...prev, photo_filename: file.name }));
-                          }
-                        }}
-                        className="absolute inset-0 opacity-0 cursor-pointer"
-                      />
-                    </div>
-                    {formData.photo_filename && (
-                      <div className="p-2.5 bg-zinc-50 border border-zinc-200 rounded-lg flex items-center justify-between text-xs text-zinc-800 font-semibold select-none">
-                        <span className="truncate max-w-[200px]">{formData.photo_filename}</span>
-                        <button
-                          type="button"
-                          onClick={() => setFormData((prev) => ({ ...prev, photo_filename: '' }))}
-                          className="text-[#E30613] hover:underline"
-                        >
-                          Clear
-                        </button>
-                      </div>
-                    )}
-                  </div>
+                  <p className="rounded-lg bg-zinc-50 p-3 text-[10px] font-semibold leading-relaxed text-zinc-500">
+                    This quick request form does not collect artwork uploads. You can share artwork with our team after submitting your design details.
+                  </p>
                 </div>
               )}
 

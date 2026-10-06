@@ -26,7 +26,7 @@ export default function ReviewCardsPage({ whatsappNumber }: ReviewCardsPageProps
     deliveryAddress: '',
     notes: '',
   });
-  const [logoDataUrl, setLogoDataUrl] = useState('');
+  const [logoFile, setLogoFile] = useState<File | null>(null);
   const [logoName, setLogoName] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
@@ -44,6 +44,8 @@ export default function ReviewCardsPage({ whatsappNumber }: ReviewCardsPageProps
     const file = event.target.files?.[0];
     event.target.value = '';
     if (!file) return;
+    setLogoFile(null);
+    setLogoName('');
     if (!['image/png', 'image/jpeg', 'image/webp'].includes(file.type) || file.size > 5 * 1024 * 1024) {
       setError('Choose a PNG, JPG, or WEBP logo smaller than 5 MB.');
       return;
@@ -76,14 +78,19 @@ export default function ReviewCardsPage({ whatsappNumber }: ReviewCardsPageProps
         }
       }
       context.putImageData(pixels, 0, 0);
-      const dataUrl = canvas.toDataURL('image/png');
-      if (dataUrl.length > 350_000) {
-        setError('That logo is too detailed for a thermal sticker. Try a smaller or simpler black-and-white image.');
-        return;
-      }
-      setLogoDataUrl(dataUrl);
-      setLogoName(file.name);
-      setError('');
+      canvas.toBlob((blob) => {
+        if (!blob) {
+          setError('Could not process the logo. You can continue without it.');
+          return;
+        }
+        if (blob.size > 250_000) {
+          setError('That logo is too detailed for a thermal sticker. Try a smaller or simpler black-and-white image.');
+          return;
+        }
+        setLogoFile(new File([blob], `${file.name.replace(/\.[^.]+$/, '')}.png`, { type: 'image/png' }));
+        setLogoName(file.name);
+        setError('');
+      }, 'image/png');
     };
     image.onerror = () => {
       URL.revokeObjectURL(imageUrl);
@@ -97,15 +104,17 @@ export default function ReviewCardsPage({ whatsappNumber }: ReviewCardsPageProps
     setSubmitting(true);
     setError('');
     try {
+      const payload = {
+        ...form,
+        quantity: Number(form.quantity),
+        whatsapp: form.whatsapp || form.phone,
+      };
+      const requestBody = new FormData();
+      requestBody.append('payload', JSON.stringify(payload));
+      if (logoFile) requestBody.append('logo_file', logoFile, logoFile.name);
       const response = await fetch('/api/review-cards/orders', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ...form,
-          quantity: Number(form.quantity),
-          whatsapp: form.whatsapp || form.phone,
-          logoDataUrl,
-        }),
+        body: requestBody,
       });
       const result = await response.json();
       if (!response.ok) throw new Error(result.error || 'Could not submit the order request.');

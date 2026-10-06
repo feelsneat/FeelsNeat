@@ -5,7 +5,12 @@ import { Product, Category, Collection, Discount, EcommerceOrder } from '@/lib/e
 import { getPaymentProvider } from '@/lib/ecommerce/payments/mock';
 import { getFulfillmentProvider } from '@/lib/ecommerce/fulfillment/mock';
 import { isDigitalProduct } from '@/lib/ecommerce/product-classification';
-import { getDigitalFileBucket } from '@/lib/ecommerce/digital-file-storage';
+import {
+  detectImageMimeType,
+  getDigitalFileBucket,
+  imageBytesToBase64,
+  putR2Object,
+} from '@/lib/ecommerce/digital-file-storage';
 
 export const runtime = 'edge';
 
@@ -25,6 +30,7 @@ function validateProductImages(images: unknown): string[] | null {
   let totalDataBytes = 0;
   for (const image of images) {
     if (typeof image !== 'string' || image.length === 0) return null;
+    if (/^r2:\/\/product-images\/(?:[0-9a-f-]{36}|[0-9a-f]{64})$/i.test(image)) continue;
     if (image.startsWith('data:')) {
       const match = image.match(/^data:(image\/(?:jpeg|png|webp));base64,([A-Za-z0-9+/=\s]+)$/);
       if (!match || !ALLOWED_IMAGE_MIME_TYPES.has(match[1])) return null;
@@ -54,6 +60,19 @@ function validateProductImages(images: unknown): string[] | null {
     }
   }
   return images;
+}
+
+async function migrateProductImageToR2(image: string): Promise<string | null> {
+  const match = /^data:(image\/(?:jpeg|png|webp));base64,([A-Za-z0-9+/=\s]+)$/.exec(image);
+  if (!match) return null;
+  const base64 = match[2].replace(/\s/g, '');
+  const binary = atob(base64);
+  const bytes = Uint8Array.from(binary, (character) => character.charCodeAt(0));
+  if (detectImageMimeType(bytes) !== match[1]) return null;
+  const digest = await crypto.subtle.digest('SHA-256', bytes);
+  const hash = Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, '0')).join('');
+  await putR2Object(`product-images/${hash}`, bytes, match[1]);
+  return `r2://product-images/${hash}`;
 }
 
 function validateDigitalProduct(product: Product): string | null {
@@ -288,13 +307,7 @@ export async function POST(req: NextRequest) {
         });
         storedUrl = `r2://digital-files/${id}`;
       } else if (process.env.NODE_ENV === 'development') {
-        if (!base64) {
-          let binary = '';
-          for (let offset = 0; offset < bytes.length; offset += 0x8000) {
-            binary += String.fromCharCode(...bytes.subarray(offset, offset + 0x8000));
-          }
-          base64 = btoa(binary);
-        }
+        if (!base64) base64 = imageBytesToBase64(bytes);
         storedUrl = `data:${normalizedMimeType};base64,${base64}`;
       } else {
         return NextResponse.json(
@@ -317,8 +330,77 @@ export async function POST(req: NextRequest) {
       });
     }
 
+    if (action === 'upload_product_image') {
+      if (typeof File === 'undefined' || !(body.file instanceof File)) {
+        return NextResponse.json({ error: 'Choose a JPG, PNG, or WEBP image to upload.' }, { status: 400 });
+      }
+      if (body.file.size < 1 || body.file.size > MAX_IMAGE_BYTES) {
+        return NextResponse.json({ error: 'Product images must be no larger than 5 MB each.' }, { status: 400 });
+      }
+      let bytes: Uint8Array;
+      try {
+        bytes = new Uint8Array(await body.file.arrayBuffer());
+      } catch (error) {
+        console.error('Product image upload could not be read:', error);
+        return NextResponse.json({ error: 'The selected image could not be read. Please try again.' }, { status: 400 });
+      }
+      const mimeType = detectImageMimeType(bytes);
+      if (!mimeType || body.file.type !== mimeType) {
+        return NextResponse.json({ error: 'Image contents must match a JPG, PNG, or WEBP file.' }, { status: 400 });
+      }
+      const id = crypto.randomUUID();
+      const bucket = await getDigitalFileBucket();
+      let reference: string;
+      if (bucket) {
+        await bucket.put(`product-images/${id}`, bytes, {
+          httpMetadata: {
+            contentType: mimeType,
+            cacheControl: 'public, max-age=31536000, immutable',
+          },
+        });
+        reference = `r2://product-images/${id}`;
+      } else if (process.env.NODE_ENV === 'development') {
+        reference = `data:${mimeType};base64,${imageBytesToBase64(bytes)}`;
+      } else {
+        return NextResponse.json(
+          { error: 'Product image storage is not configured. Bind FEELSNEAT_DIGITAL_FILES in Cloudflare.' },
+          { status: 503 }
+        );
+      }
+      const imageUrl = reference.startsWith('r2://')
+        ? new URL(`/api/ecommerce/product-image?imageId=${id}`, req.url).toString()
+        : reference;
+      return NextResponse.json({ success: true, image: { reference, imageUrl, sizeBytes: bytes.byteLength } });
+    }
+
     const db = await loadEcommerceDb(req.url);
     const now = new Date().toISOString();
+
+    if (action === 'migrate_product_images') {
+      let migratedCount = 0;
+      let remainingCount = 0;
+      for (const product of db.products) {
+        const images = await Promise.all((product.images || []).map(async (image) => {
+          if (!image.startsWith('data:image/')) return image;
+          const reference = await migrateProductImageToR2(image);
+          if (!reference) throw new Error(`Product image for "${product.title}" is not a valid supported image.`);
+          migratedCount += 1;
+          return reference;
+        }));
+        product.images = images;
+        for (const variant of product.variants || []) {
+          if (!variant.image?.startsWith('data:image/')) continue;
+          const reference = await migrateProductImageToR2(variant.image);
+          if (!reference) throw new Error(`Variant image for "${product.title}" is not a valid supported image.`);
+          variant.image = reference;
+          migratedCount += 1;
+        }
+        remainingCount += (product.images || []).filter((image) => image.startsWith('data:image/')).length;
+        remainingCount += (product.variants || []).filter((variant) => variant.image?.startsWith('data:image/')).length;
+      }
+      if (migratedCount > 0) await saveEcommerceDb(req.url, db);
+      return NextResponse.json({ success: true, migratedCount, remainingCount });
+    }
 
     // ─── PRODUCT ACTIONS ──────────────────────────────────────────
     if (action === 'save_product' || action === 'save_affiliate_product') {

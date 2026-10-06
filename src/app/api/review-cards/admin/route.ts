@@ -1,9 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { authenticateFeelsNeatAdmin } from '@/lib/dine-auth';
 import { createReviewCardStickerSvg } from '@/lib/review-card-sticker';
-import { loadReviewCardOrders, saveReviewCardOrder } from '@/lib/review-cards';
+import { loadReviewCardOrders, loadReviewCardOrdersPage, saveReviewCardOrder } from '@/lib/review-cards';
 import { REVIEW_CARD_MATERIALS, REVIEW_CARD_STATUS, type ReviewCardMaterial, type ReviewCardOrder, type ReviewCardPrintRun } from '@/lib/review-card-types';
 import { isValidGoogleReviewUrl } from '@/lib/review-card-validation';
+import {
+  detectImageMimeType,
+  getR2Object,
+  imageBytesToBase64,
+  putR2Object,
+} from '@/lib/ecommerce/digital-file-storage';
 
 export const runtime = 'edge';
 
@@ -11,10 +17,23 @@ async function requireAdmin(req: NextRequest) {
   return authenticateFeelsNeatAdmin(req);
 }
 
+async function hydrateReviewCardLogo(order: ReviewCardOrder): Promise<ReviewCardOrder> {
+  if (!order.logoReference) return order;
+  const match = /^r2:\/\/review-card-logos\/([A-Za-z0-9-]{1,64})\/([0-9a-f-]{36}|[0-9a-f]{64})$/i.exec(order.logoReference);
+  if (!match) throw new Error(`Review Cards order ${order.id} has an invalid logo reference.`);
+  const object = await getR2Object(`review-card-logos/${match[1]}/${match[2]}`);
+  if (!object || object.httpMetadata?.contentType !== 'image/png') {
+    throw new Error(`Review Cards logo for order ${order.id} could not be loaded.`);
+  }
+  const bytes = new Uint8Array(await new Response(object.body).arrayBuffer());
+  return { ...order, logoDataUrl: `data:image/png;base64,${imageBytesToBase64(bytes)}` };
+}
+
 export async function GET(req: NextRequest) {
   if (!await requireAdmin(req)) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   try {
-    return NextResponse.json({ orders: await loadReviewCardOrders(req.url) });
+    const orders = await loadReviewCardOrders(req.url);
+    return NextResponse.json({ orders: await Promise.all(orders.map(hydrateReviewCardLogo)) });
   } catch (error) {
     console.error('[Review Cards] Admin order list failed:', error);
     return NextResponse.json({ error: error instanceof Error ? error.message : 'Could not load Review Cards orders.' }, { status: 500 });
@@ -26,6 +45,35 @@ export async function POST(req: NextRequest) {
 
   try {
     const body = await req.json();
+    if (body.action === 'migrate_logos_to_r2') {
+      const cursor = typeof body.cursor === 'string' ? body.cursor : undefined;
+      const page = await loadReviewCardOrdersPage(req.url, cursor, 25);
+      let migratedCount = 0;
+      for (const order of page.orders) {
+        if (order.logoReference || !order.logoDataUrl) continue;
+        const match = /^data:image\/png;base64,([A-Za-z0-9+/=]+)$/.exec(order.logoDataUrl);
+        if (!match) throw new Error(`Review Cards order ${order.id} has an invalid legacy logo.`);
+        const binary = atob(match[1]);
+        const bytes = Uint8Array.from(binary, (character) => character.charCodeAt(0));
+        if (detectImageMimeType(bytes) !== 'image/png' || bytes.byteLength > 250_000) {
+          throw new Error(`Review Cards order ${order.id} has an invalid legacy logo.`);
+        }
+        const digest = await crypto.subtle.digest('SHA-256', bytes);
+        const hash = Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, '0')).join('');
+        const key = `review-card-logos/${order.id}/${hash}`;
+        await putR2Object(key, bytes, 'image/png');
+        order.logoReference = `r2://${key}`;
+        order.logoDataUrl = '';
+        await saveReviewCardOrder(req.url, order);
+        migratedCount += 1;
+      }
+      return NextResponse.json({
+        success: true,
+        migratedCount,
+        complete: page.complete,
+        nextCursor: page.nextCursor,
+      });
+    }
     if (body.action === 'create_walk_in_order') {
       const businessName = typeof body.businessName === 'string' ? body.businessName.trim().slice(0, 100) : '';
       const googleReviewUrl = typeof body.googleReviewUrl === 'string' ? body.googleReviewUrl.trim().slice(0, 2048) : '';
@@ -93,8 +141,9 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'A valid order reference is required.' }, { status: 400 });
     }
     const orders = await loadReviewCardOrders(req.url);
-    const order = orders.find((candidate) => candidate.id === id);
-    if (!order) return NextResponse.json({ error: 'Review Cards order not found.' }, { status: 404 });
+    const storedOrder = orders.find((candidate) => candidate.id === id);
+    if (!storedOrder) return NextResponse.json({ error: 'Review Cards order not found.' }, { status: 404 });
+    const order = await hydrateReviewCardLogo(storedOrder);
 
     if (body.action === 'save_design') {
       const material = body.material as ReviewCardMaterial;
@@ -150,7 +199,7 @@ export async function POST(req: NextRequest) {
     }
 
     order.updatedAt = new Date().toISOString();
-    await saveReviewCardOrder(req.url, order);
+    await saveReviewCardOrder(req.url, { ...order, logoDataUrl: '' });
     return NextResponse.json({ success: true, order });
   } catch (error) {
     console.error('[Review Cards] Admin update failed:', error);
