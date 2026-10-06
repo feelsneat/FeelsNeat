@@ -378,28 +378,37 @@ export async function POST(req: NextRequest) {
 
     if (action === 'migrate_product_images') {
       let migratedCount = 0;
-      let remainingCount = 0;
+      const batchSize = 3;
       for (const product of db.products) {
-        const images = await Promise.all((product.images || []).map(async (image) => {
-          if (!image.startsWith('data:image/')) return image;
+        for (let index = 0; index < (product.images || []).length && migratedCount < batchSize; index += 1) {
+          const image = product.images[index];
+          if (!image.startsWith('data:image/')) continue;
           const reference = await migrateProductImageToR2(image);
           if (!reference) throw new Error(`Product image for "${product.title}" is not a valid supported image.`);
+          product.images[index] = reference;
           migratedCount += 1;
-          return reference;
-        }));
-        product.images = images;
+        }
         for (const variant of product.variants || []) {
+          if (migratedCount >= batchSize) break;
           if (!variant.image?.startsWith('data:image/')) continue;
           const reference = await migrateProductImageToR2(variant.image);
           if (!reference) throw new Error(`Variant image for "${product.title}" is not a valid supported image.`);
           variant.image = reference;
           migratedCount += 1;
         }
-        remainingCount += (product.images || []).filter((image) => image.startsWith('data:image/')).length;
-        remainingCount += (product.variants || []).filter((variant) => variant.image?.startsWith('data:image/')).length;
       }
       if (migratedCount > 0) await saveEcommerceDb(req.url, db);
-      return NextResponse.json({ success: true, migratedCount, remainingCount });
+      const remainingCount = db.products.reduce((total, product) =>
+        total +
+        (product.images || []).filter((image) => image.startsWith('data:image/')).length +
+        (product.variants || []).filter((variant) => variant.image?.startsWith('data:image/')).length,
+      0);
+      return NextResponse.json({
+        success: true,
+        migratedCount,
+        remainingCount,
+        complete: remainingCount === 0,
+      });
     }
 
     // ─── PRODUCT ACTIONS ──────────────────────────────────────────
@@ -930,6 +939,9 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Unknown admin action' }, { status: 400 });
   } catch (error: any) {
     console.error('Admin Ecommerce POST error:', error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : 'The ecommerce admin request failed.' },
+      { status: 500 }
+    );
   }
 }

@@ -19,6 +19,18 @@ function getCustomerImageUrl(reference: string): string {
     : reference;
 }
 
+async function readMigrationResponse(response: Response): Promise<Record<string, any>> {
+  const responseText = await response.text();
+  try {
+    return JSON.parse(responseText);
+  } catch {
+    const summary = responseText.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 180);
+    throw new Error(
+      `Migration API returned an unexpected response (HTTP ${response.status}). ${summary || 'No response details were provided.'}`
+    );
+  }
+}
+
 interface AdminDashboardProps {
   userEmail: string;
 }
@@ -161,7 +173,7 @@ export function AdminDashboard({ userEmail }: AdminDashboardProps) {
               ...(cursor ? { cursor } : {}),
             }),
           });
-          const result = await response.json();
+          const result = await readMigrationResponse(response);
           if (!response.ok) throw new Error(result.error || 'Could not migrate customer images.');
           migratedCount += Number(result.migratedCount) || 0;
           complete = result.complete === true;
@@ -193,16 +205,21 @@ export function AdminDashboard({ userEmail }: AdminDashboardProps) {
     try {
       currentStep = 'product images';
       setAssetMigrationStep('Product images');
-      const productsResponse = await fetch('/api/ecommerce/admin', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'migrate_product_images' }),
-      });
-      const productsResult = await productsResponse.json();
-      if (!productsResponse.ok) throw new Error(productsResult.error || 'Could not migrate product images.');
-      productCount = Number(productsResult.migratedCount) || 0;
-      if (Number(productsResult.remainingCount) !== 0) {
-        throw new Error(`${productsResult.remainingCount} uploaded product images remain outside R2.`);
+      let productsComplete = false;
+      while (!productsComplete) {
+        const productsResponse = await fetch('/api/ecommerce/admin', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'migrate_product_images' }),
+        });
+        const productsResult = await readMigrationResponse(productsResponse);
+        if (!productsResponse.ok) throw new Error(productsResult.error || 'Could not migrate product images.');
+        const migratedThisBatch = Number(productsResult.migratedCount) || 0;
+        productCount += migratedThisBatch;
+        productsComplete = productsResult.complete === true;
+        if (!productsComplete && migratedThisBatch === 0) {
+          throw new Error(`${productsResult.remainingCount} uploaded product images remain, but none could be migrated in this batch.`);
+        }
       }
 
       for (const recordType of ['order', 'profile'] as const) {
@@ -220,7 +237,7 @@ export function AdminDashboard({ userEmail }: AdminDashboardProps) {
               ...(cursor ? { cursor } : {}),
             }),
           });
-          const result = await response.json();
+          const result = await readMigrationResponse(response);
           if (!response.ok) throw new Error(result.error || 'Could not migrate customer images.');
           customerCount += Number(result.migratedCount) || 0;
           complete = result.complete === true;
@@ -245,7 +262,7 @@ export function AdminDashboard({ userEmail }: AdminDashboardProps) {
             ...(logoCursor ? { cursor: logoCursor } : {}),
           }),
         });
-        const result = await response.json();
+        const result = await readMigrationResponse(response);
         if (!response.ok) throw new Error(result.error || 'Could not migrate Review Cards logos.');
         logoCount += Number(result.migratedCount) || 0;
         logosComplete = result.complete === true;
@@ -705,7 +722,7 @@ export function AdminDashboard({ userEmail }: AdminDashboardProps) {
           method: 'POST',
           body: formData,
         });
-        const result = await response.json();
+        const result = await readMigrationResponse(response);
         if (!response.ok) throw new Error(result.error || `Could not upload ${file.name}.`);
         setDigitalProductForm((current: any) => {
           const filesToKeep = (current.downloadableFiles || []).filter(
@@ -922,19 +939,26 @@ export function AdminDashboard({ userEmail }: AdminDashboardProps) {
     if (!confirm('Move existing uploaded product images to R2? Existing product image links will remain available.')) return;
     setMigratingProductImages(true);
     try {
-      const response = await fetch('/api/ecommerce/admin', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'migrate_product_images' }),
-      });
-      const result = await response.json();
-      if (!response.ok) throw new Error(result.error || 'Could not migrate product images.');
-      if (Number(result.remainingCount) !== 0) {
-        throw new Error(`${result.remainingCount} uploaded product images remain outside R2.`);
+      let migratedCount = 0;
+      let complete = false;
+      while (!complete) {
+        const response = await fetch('/api/ecommerce/admin', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'migrate_product_images' }),
+        });
+        const result = await readMigrationResponse(response);
+        if (!response.ok) throw new Error(result.error || 'Could not migrate product images.');
+        const migratedThisBatch = Number(result.migratedCount) || 0;
+        migratedCount += migratedThisBatch;
+        complete = result.complete === true;
+        if (!complete && migratedThisBatch === 0) {
+          throw new Error(`${result.remainingCount} uploaded product images remain, but none could be migrated.`);
+        }
       }
       await loadEcommerceData();
-      alert(result.migratedCount
-        ? `Moved ${result.migratedCount} product image${result.migratedCount === 1 ? '' : 's'} to R2.`
+      alert(migratedCount
+        ? `Moved ${migratedCount} product image${migratedCount === 1 ? '' : 's'} to R2.`
         : 'All uploaded product images are already in R2.');
     } catch (error) {
       alert(error instanceof Error ? error.message : 'Could not migrate product images.');
